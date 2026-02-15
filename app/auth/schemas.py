@@ -1,5 +1,8 @@
 from pydantic import BaseModel, EmailStr
 
+class LogoutResponse(BaseModel):
+    result: bool 
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

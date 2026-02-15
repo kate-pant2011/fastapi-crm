@@ -1,12 +1,11 @@
 from .base import BaseModel, user_roles
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 class User(BaseModel):
     __tablename__ = "users"
 
-    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
+    company_id = Column(Integer, ForeignKey("branches.id"), nullable=False, index=True)
 
     name = Column(String, nullable=False)
     surname = Column(String, nullable=False)
@@ -16,10 +15,10 @@ class User(BaseModel):
     
     is_active = Column(Boolean, default=False)
 
-    refresh_tokens =  relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
+    refresh_tokens =  relationship("RefreshToken", back_populates="user")
 
-    company = relationship("Company", back_populates="users")
+    branch = relationship("Branch", back_populates="users")
     roles = relationship("Role", secondary=user_roles, back_populates="users")
-    executors = relationship("Executor", back_populates="user")
+    assignments = relationship("Assignment", back_populates="user")
     clients = relationship("Client", back_populates="manager")
 

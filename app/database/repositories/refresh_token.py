@@ -48,3 +48,23 @@ async def deactivate_all_user_refresh(session, user_id):
         .where(RefreshToken.is_active == True)
         .values(is_active=False)
     )
+
+async def deactivate_user_refresh(session, user_id, jti):
+    await session.execute(
+        update(RefreshToken)
+        .where(RefreshToken.user_id == user_id)
+        .where(RefreshToken.jti == jti)
+        .values(is_active=False)
+    )
+
+async def get_refresh_by_jwt(session, jti):
+    result = await session.execute(
+        select(RefreshToken)
+        .where(RefreshToken.jti == jti)
+    )
+
+    refresh = result.scalar_one_or_none()
+    if not refresh:
+        raise RefreshTokenNotFound()
+
+    return refresh

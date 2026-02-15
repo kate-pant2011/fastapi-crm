@@ -1,8 +1,8 @@
 # business logic
 from app.config.security import verify_password, hash_password, check_password, JWTService
-from app.database.repositories.company import get_company_by_inn, create_company
+from app.database.repositories.branch import get_company_by_inn, create_company
 from app.database.repositories.user import get_user_by_email, create_user, add_user_role, get_user_by_id
-from app.database.repositories.refresh_token import add_refresh_jwt, verify_refresh_jwt, deactivate_all_user_refresh
+from app.database.repositories.refresh_token import add_refresh_jwt, verify_refresh_jwt, get_refresh_by_jwt, deactivate_user_refresh, deactivate_all_user_refresh
 from app.database.repositories.refresh_token import TokenReuseDetection
 from sqlalchemy.exc import IntegrityError
 import uuid
@@ -27,6 +27,20 @@ class InvalidCredentialsError(Exception):
 
 class UserIsInactiveError(Exception):
     pass
+
+async def logout_user(session, refresh_jwt):
+    try:
+        decoded = JWTService().decode_token(refresh_jwt)
+        refresh = await get_refresh_by_jwt(session, decoded.jti)
+
+        await deactivate_user_refresh(session, refresh.user_id, refresh.jti) 
+        await session.commit()      
+
+    except IntegrityError:
+        await session.rollback()
+        raise
+
+    return {"result": True} 
 
 async def login_user(session, email, password, device):
     user = await get_user_by_email(session, email)

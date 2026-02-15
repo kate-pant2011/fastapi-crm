@@ -1,6 +1,5 @@
-from datetime import datetime
 from .base import BaseModel
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Boolean
+from sqlalchemy import Column, String, Boolean
 from sqlalchemy.orm import relationship
 
 class Contractor(BaseModel):
@@ -11,8 +10,7 @@ class Contractor(BaseModel):
     description = Column(String)
     contractor_company = Column(String, default=None)
     contract = Column(String, default=None)
+    is_deleted = Column(Boolean, default=False, nullable=False)
 
-    executors = relationship("Executor", back_populates="contractor")
+    assignments = relationship("Assignment", back_populates="contractor")
 
-    company_id = Column(Integer, ForeignKey("companies.id", ondelete="CASCADE"), nullable=False, index=True)
-    company = relationship("Company", back_populates="contractors")

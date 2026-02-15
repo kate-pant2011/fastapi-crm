@@ -13,5 +13,5 @@ class RefreshToken(BaseModel):
     
     exp = Column(DateTime(timezone=True), nullable=False) 
 
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     user = relationship("User", back_populates="refresh_tokens")

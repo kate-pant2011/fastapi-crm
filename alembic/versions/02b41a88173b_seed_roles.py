@@ -1,8 +1,8 @@
 """seed_roles
 
-Revision ID: c917542b1757
-Revises: f77b7fd46260
-Create Date: 2026-02-11 17:20:00.860369
+Revision ID: 02b41a88173b
+Revises: baaa79b28e49
+Create Date: 2026-02-15 12:11:01.887789
 
 """
 from typing import Sequence, Union
@@ -15,10 +15,11 @@ from sqlalchemy.sql import table, column
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'c917542b1757'
-down_revision: Union[str, Sequence[str], None] = 'f77b7fd46260'
+revision: str = '02b41a88173b'
+down_revision: Union[str, Sequence[str], None] = 'baaa79b28e49'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
 
 roles_table = table(
     "roles",

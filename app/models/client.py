@@ -1,12 +1,12 @@
 from .base import BaseModel
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
 class Client(BaseModel):
     __tablename__ = "clients"
 
-    manager_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    manager_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     manager = relationship("User", back_populates="clients")
 
     name = Column(String)
@@ -14,5 +14,6 @@ class Client(BaseModel):
     inn = Column(Integer, nullable=True)
     email = Column(String, nullable=True)
     telephone = Column(Integer, nullable=True)
+    is_deleted = Column(Boolean, default=False, nullable=False)
 
-    projects = relationship("Project", back_populates="client", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="client")

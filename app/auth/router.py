@@ -1,6 +1,6 @@
 from fastapi import HTTPException, APIRouter, Depends, Request
-from .schemas import LoginRequest, Token, InnResponse, InnRequest, SignupRequest, SignupResponse, RefreshRequest
-from .service import login_user, verify_inn, signup_user, update_tokens
+from .schemas import LoginRequest, Token, InnResponse, InnRequest, SignupRequest, SignupResponse, RefreshRequest, LogoutResponse
+from .service import login_user, verify_inn, signup_user, update_tokens, logout_user
 from .service import InvalidPasswordError, UserAlreadyExistsError, CompanyAlreadyExistsError
 from .service import InvalidCredentialsError, UserIsInactiveError
 from app.database.repositories.refresh_token import TokenReuseDetection, RefreshTokenNotFound
@@ -11,6 +11,16 @@ from sqlalchemy.exc import IntegrityError
 
 auth_router = APIRouter()
 
+@auth_router.post("/auth/logout", response_model=LogoutResponse)
+async def logout(input: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    try:
+        return await logout_user(db, input.refresh_token)
+
+    except RefreshTokenNotFound:
+        raise HTTPException(status_code=401, detail="Refresh token not found")   
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__} = {e}")
 
 @auth_router.post("/auth/login", response_model=Token)
 async def login(input: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)):

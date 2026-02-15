@@ -23,7 +23,7 @@ async def get_user_by_id(session, id):
 
 async def create_user(session, login, password, name, surname, position, new_company):
     user = User(
-        company=new_company,
+        branch=new_company,
         name=name,
         surname=surname,
         position=position, 
