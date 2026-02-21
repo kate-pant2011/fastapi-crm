@@ -1,99 +1,88 @@
 # business logic
-from app.config.security import verify_password, hash_password, check_password, JWTService
-from app.database.repositories.branch import get_company_by_inn, create_company
-from app.database.repositories.user import get_user_by_email, create_user, add_user_role, get_user_by_id
-from app.database.repositories.refresh_token import add_refresh_jwt, verify_refresh_jwt, get_refresh_by_jwt, deactivate_user_refresh, deactivate_all_user_refresh
-from app.database.repositories.refresh_token import TokenReuseDetection
-from sqlalchemy.exc import IntegrityError
+from app.config.security import verify_password, hash_password, JWTService
+from app.config.config import ApplicationException
+from app.database.branch import add_branch
+from app.database.user import get_user_by_email, add_user, add_user_role, get_user_by_id, update_user_password
+from app.database.refresh_token import add_refresh_jwt, verify_refresh_jwt, get_refresh_by_jwt
+from app.database.refresh_token import deactivate_user_refresh, deactivate_all_user_refresh, TokenReuseDetection
 import uuid
 from dataclasses import dataclass
 
 @dataclass
 class AuthTokensDTO:
   access: str
-  refresh: str
-
-class InvalidPasswordError(Exception):
-    pass
-
-class UserAlreadyExistsError(Exception):
-    pass
-
-class CompanyAlreadyExistsError(Exception):
-    pass
-
-class InvalidCredentialsError(Exception):
-    pass
-
-class UserIsInactiveError(Exception):
-    pass
-
-async def logout_user(session, refresh_jwt):
-    try:
-        decoded = JWTService().decode_token(refresh_jwt)
-        refresh = await get_refresh_by_jwt(session, decoded.jti)
-
-        await deactivate_user_refresh(session, refresh.user_id, refresh.jti) 
-        await session.commit()      
-
-    except IntegrityError:
-        await session.rollback()
-        raise
-
-    return {"result": True} 
+  refresh: str | None
+  change_password: bool
 
 async def login_user(session, email, password, device):
+
     user = await get_user_by_email(session, email)
     if not user:
-        raise InvalidCredentialsError(f"User {email} Not Found")
+        raise ApplicationException("invalid Credentials: login or password", 401)
 
+    if not user.is_active:
+        raise ApplicationException("User is archived", 400, {"id": user.id})
+    
     if not verify_password(password, user.password_hash):
-        raise InvalidCredentialsError("invalid password")
+        raise ApplicationException("invalid Credentials: login or password", 401)
     
     roles = [role.name for role in user.roles]
 
-    jti = str(uuid.uuid4())
-
     jwt = JWTService()
     access_token = jwt.create_access(user.id, roles)
+    
+    if user.must_change_password:
+        return AuthTokensDTO(
+            access=access_token,
+            refresh=None,
+            change_password=True
+        )
+
+    jti = str(uuid.uuid4())
     refresh = jwt.create_refresh(user.id, jti)
     exp = refresh.exp
 
-    try:
-        await add_refresh_jwt(session, user.id, exp, jti, device)
-        await session.commit()
-
-    except IntegrityError:
-        await session.rollback()
-        raise UserIsInactiveError
+    await add_refresh_jwt(session, user.id, exp, jti, device)    
 
     return AuthTokensDTO(
       access=access_token,
-      refresh=refresh.token
+      refresh=refresh.token,
+      change_password=False
     )
+
+async def logout_user(session, refresh_jwt):
+
+    decoded = JWTService().decode_token(refresh_jwt)
+    refresh = await get_refresh_by_jwt(session, decoded.jti)
+
+    if not refresh:
+        raise ApplicationException("Refresh token not found", 401)
+
+    await deactivate_user_refresh(session, refresh.user_id, refresh.jti)       
+
+    return {"result": True} 
 
 async def update_tokens(session, refresh_jwt, device):
     try:
+
         decoded = JWTService().decode_token(refresh_jwt)
         old_refresh = await verify_refresh_jwt(session, decoded.jti)
+
+        if not old_refresh:
+            raise ApplicationException("Refresh token not found", 401)
 
         user_id = old_refresh.user_id
         user = await get_user_by_id(session, user_id)
 
         if not user.is_active:
-            raise UserIsInactiveError
+            raise ApplicationException("User is inactive error", 403)
 
         roles = [role.name for role in user.roles]  
-    
-    except IntegrityError:
-        await session.rollback()
-        raise
 
     except TokenReuseDetection as e:
-        await session.rollback()
-        await deactivate_all_user_refresh(session, e.user_id)
-        await session.commit()
-        raise 
+        async with session.begin():
+            await deactivate_all_user_refresh(session, e.user_id)
+        raise
 
     jti = str(uuid.uuid4())
 
@@ -101,56 +90,82 @@ async def update_tokens(session, refresh_jwt, device):
     access_token = jwt.create_access(user_id, roles)
     refresh = jwt.create_refresh(user_id, jti)
 
-    try:
-        await add_refresh_jwt(session, user_id, refresh.exp, jti, device)
-        await session.commit()
 
-    except IntegrityError:
-        await session.rollback()
-        raise
+    await add_refresh_jwt(session, user_id, refresh.exp, jti, device)
 
     return AuthTokensDTO(
       access=access_token,
-      refresh=refresh.token
+      refresh=refresh.token,
+      change_password=False
     )
+ 
+async def signup_user(session, user_data) -> dict:
 
 
-async def verify_inn(session, inn: int) -> dict:
-    company = await get_company_by_inn(session, inn)
-    if company:
-        raise CompanyAlreadyExistsError(f"A company with INN '{inn}' already exists")
-
-    return {
-        "inn": inn,
-        "can_signup": True,
-        "company": None,
-        "reason": None
-    }
-
-    
-async def signup_user(db, inn, company, login, password, name, surname, position) -> dict:
-    user_exists = await get_user_by_email(db, login)
+    user_exists = await get_user_by_email(session, user_data.login)
     if user_exists:
-        raise UserAlreadyExistsError(f"Email {login} is already used")
+        raise ApplicationException(f"Email {user_data.login} is already used", 400)
 
-    password_invalid = check_password(password)
-    if password_invalid:
-        raise InvalidPasswordError(password_invalid)
+    password_validity = check_password(user_data.password)
+    if password_validity:
+        raise ApplicationException(f"The password is weak: {password_validity}", 400)
 
-    try:
-        new_company = await create_company(db, inn, company)
-        hashed_password = hash_password(password)
-        new_user = await create_user(db, login, hashed_password, name, surname, position, new_company)
-        await add_user_role(db, new_user)
-        await db.commit()
-
-    except IntegrityError:
-        await db.rollback()
-        raise
+    new_company = await add_branch(session, user_data.inn, user_data.company)
+    hashed_password = hash_password(user_data.password)
+    new_user = await add_user(
+        session, 
+        user_data.login, 
+        hashed_password, 
+        user_data.name, 
+        user_data.surname, 
+        user_data.position, 
+        new_company.id, 
+        password_change=False 
+    )
+    await add_user_role(session, new_user, ["owner"])
 
     return {
-        "company": company,
-        "login": login,
+        "company": user_data.company,
+        "login": user_data.login,
         "reason": None
     }
 
+async def change_user_password(session, user_id, password):
+    user = await get_user_by_id(session, user_id)
+    if not user:
+        raise ApplicationException("invalid Credentials: login or password", 401)
+    
+    if not user.is_active:
+        raise ApplicationException("User is archived", 400, {"id": user.id})
+    
+    if not user.must_change_password:
+        raise ApplicationException(f"User {user.email} has not applied for password-change", 400)
+
+    password_validity = check_password(password)
+    if password_validity:
+        raise ApplicationException(f"The password is weak: {password_validity}", 400)    
+
+    hashed_password = hash_password(password)
+
+    await update_user_password(session, user, hashed_password)
+
+    return user.email
+
+def check_password(password):
+    
+    if len(password) < 8:
+        return "too short"
+    
+    if len(password) > 16:
+        return " too long"
+    
+    if not str.isascii(password):
+        return "includes forbidden symbols"
+    
+    if not any(c.isdigit() for c in password):
+        return "doesn't include digit"
+    
+    if not any(c.isalpha() for c in password):
+        return "doesn't include letter"
+    
+    return None

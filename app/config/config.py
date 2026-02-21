@@ -1,21 +1,44 @@
 import os
 from dotenv import load_dotenv
 from datetime import datetime
-load_dotenv()
+
+class ApplicationException(Exception):
+    def __init__(self, error_name: str, error_code: int, payload: dict | None = None):
+        super().__init__(error_name)
+        self.name = error_name
+        self.code = error_code
+        self.payload = payload
 
 now = datetime.utcnow()
 
 class Settings:
     def __init__(self):
-        self.SECRET_KEY = os.getenv("SECRET_KEY")
-        if not self.SECRET_KEY:
-            raise RuntimeError("No secret_key")
+        load_dotenv()
+        secret = os.environ.pop("SECRET_KEY")
+        if not secret:
+            raise RuntimeError("No secret_key")        
+        self._secret_key = secret
+
+        database = os.environ.pop("DATABASE_URL")
+        if not database:
+            raise RuntimeError("No data base url")        
+        self._database_url = database
         
         self.PROJECT_NAME: str = "My CRM"       
         self.ALGORITHM: str = "HS256" 
-        self.ACCESS_TOKEN_EXPIRE_MINUTES: int = 5
+        self.ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
         self.REFRESH_TOKEN_EXPIRE_DAYS: int = 3
-        self.DATABASE_URL: str = os.getenv("DATABASE_URL")
+
+    @property
+    def SECRET_KEY(self):
+        return self._secret_key
+    
+    @property
+    def DATABASE_URL(self):
+        return self._database_url
+
+        
 
 settings = Settings()
+
 

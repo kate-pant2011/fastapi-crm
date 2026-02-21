@@ -6,7 +6,8 @@ class Branch(BaseModel):
     __tablename__ = "branches"
 
     name = Column(String, unique=True, nullable=False)
-    main_branch = Column(Boolean, default=False, nullable=False)
-    inn = Column(Integer, unique=True, nullable=True)
+    inn = Column(String, unique=True, nullable=False)
     users = relationship("User", back_populates="branch")
     is_deleted = Column(Boolean, default=False, nullable=False)
+
+    contractor_branches_link = relationship("ContractorBranch", back_populates="branch")

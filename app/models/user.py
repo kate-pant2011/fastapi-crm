@@ -1,11 +1,11 @@
 from .base import BaseModel, user_roles
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
 class User(BaseModel):
     __tablename__ = "users"
 
-    company_id = Column(Integer, ForeignKey("branches.id"), nullable=False, index=True)
+    branch_id = Column(Integer, ForeignKey("branches.id"), index=True)
 
     name = Column(String, nullable=False)
     surname = Column(String, nullable=False)
@@ -13,7 +13,8 @@ class User(BaseModel):
     email = Column(String, unique=True, index=True)
     password_hash = Column(String, nullable=False)
     
-    is_active = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    must_change_password = Column(Boolean, default=True)
 
     refresh_tokens =  relationship("RefreshToken", back_populates="user")
 
@@ -21,4 +22,5 @@ class User(BaseModel):
     roles = relationship("Role", secondary=user_roles, back_populates="users")
     assignments = relationship("Assignment", back_populates="user")
     clients = relationship("Client", back_populates="manager")
+
 

@@ -70,24 +70,3 @@ def hash_password(password):
 def verify_password(password, stored_hash):
     ans = bcrypt.verify(password, stored_hash)
     return ans
-
-def check_password(password):
-    letter = 0
-    digit = 0
-
-    if len(password) >= 8 and len(password) <= 16:
-        if str.isascii(password):
-            for p in password:
-                if p.isdigit():
-                    digit += 1
-                elif p.isalpha:
-                    letter += 1
-        else:
-            return "includes forbidden symbols"
-    else:
-        return "is too short/long"
-
-    if letter > 0 and digit > 0:
-        return None
-    else:
-        return "does not include letters/digits"

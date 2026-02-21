@@ -1,13 +1,10 @@
 from app.models_loader import RefreshToken
-from sqlalchemy import select, delete, update
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select, update
 
 class TokenReuseDetection(Exception):
     def __init__(self, user_id):
         self.user_id = user_id
 
-class RefreshTokenNotFound(Exception):
-    pass
 
 async def add_refresh_jwt(session, user_id, exp, jti, device):
     refresh = RefreshToken(
@@ -32,7 +29,7 @@ async def verify_refresh_jwt(session, jti):
     refresh = result.scalar_one_or_none()
 
     if not refresh:
-        raise RefreshTokenNotFound()
+        return None
 
     if not refresh.is_active:
         raise TokenReuseDetection(refresh.user_id)
@@ -65,6 +62,6 @@ async def get_refresh_by_jwt(session, jti):
 
     refresh = result.scalar_one_or_none()
     if not refresh:
-        raise RefreshTokenNotFound()
+        return None
 
     return refresh

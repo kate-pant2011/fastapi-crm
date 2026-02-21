@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, DateTime, ForeignKey, Table
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Table
+from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
 
 Base = declarative_base()
@@ -17,3 +17,6 @@ user_roles = Table(
     Column("role_id", ForeignKey("roles.id"), primary_key=True),
     Column("user_id", ForeignKey("users.id"), primary_key=True),
 )
+
+
+
