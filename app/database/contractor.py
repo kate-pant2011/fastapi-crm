@@ -2,53 +2,42 @@ from sqlalchemy import select, update
 from app.models.contractor import Contractor
 from sqlalchemy.orm import selectinload
 
+
 async def get_all_contractors(session):
     result = await session.execute(
-        select(Contractor)
-        .where(Contractor.is_deleted == False)
+        select(Contractor).where(Contractor.is_archived == False)
     )
     return result.scalars().all()
 
+
 async def get_contractor_by_name(session, name):
-    
     result = await session.execute(
         select(Contractor)
+        .options(selectinload(Contractor.contracts))
         .where(Contractor.name == name)
     )
     return result.scalar_one_or_none()
 
+
 async def get_contractor_by_id(session, id):
-    
+
     result = await session.execute(
         select(Contractor)
-        .options(selectinload(Contractor.contract))
+        .options(selectinload(Contractor.contracts))
         .where(Contractor.id == id)
     )
     return result.scalar_one_or_none()
+
 
 async def add_contractor(session, data):
     contractor = Contractor(
         name=data.name,
         email=data.email,
         description=data.description,
-        contractor_company=data.contractor_company,
-        contractor_inn=data.contractor_inn 
     )
 
     session.add(contractor)
     await session.flush()
     return contractor
 
-async def archive_contractor(session, contractor):
-    await session.execute(
-        update(Contractor)
-        .where(Contractor.id == contractor.id)
-        .values(is_deleted=True)
-    )
 
-async def activate_contractor(session, contractor):
-    await session.execute(
-        update(Contractor)
-        .where(Contractor.id == contractor.id)
-        .values(is_deleted=False)
-    )

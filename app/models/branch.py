@@ -1,6 +1,7 @@
 from .base import BaseModel
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, String, Boolean
 from sqlalchemy.orm import relationship
+
 
 class Branch(BaseModel):
     __tablename__ = "branches"
@@ -8,6 +9,7 @@ class Branch(BaseModel):
     name = Column(String, unique=True, nullable=False)
     inn = Column(String, unique=True, nullable=False)
     users = relationship("User", back_populates="branch")
-    is_deleted = Column(Boolean, default=False, nullable=False)
+    is_archived = Column(Boolean, default=False, nullable=False)
 
-    contractor_branches_link = relationship("ContractorBranch", back_populates="branch")
+    contractor_contracts_link = relationship("ContractorContract", back_populates="branch")
+    client_contracts_link = relationship("Contract", back_populates="branch")

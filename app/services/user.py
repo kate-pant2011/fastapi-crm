@@ -1,70 +1,59 @@
 import secrets
 import string
-from app.database.user import get_all_users, get_user_by_email, get_user_by_id, add_user, add_user_role, archive_user, activate_user
-from app.database.branch import get_company_by_inn, get_company_by_id
-from dataclasses import dataclass
+from app.database.user import (
+    get_all_users,
+    get_user_by_email,
+    get_user_by_id,
+    add_user,
+    add_user_role,
+)
+from app.database.branch import get_branch_by_id
 from app.config.config import ApplicationException
 from app.config.security import hash_password
-
-@dataclass
-class NewUserDTO:
-    email: str
-    password: str
-
-@dataclass
-class GetUserDTO:
-    name: str
-    surname: str
-    position: str
-    email: str
-    branch: str
-    roles: list[str]
+from app.schemas.base import to_schema
+from app.schemas.user import UserItem
 
 
-async def form_user_list(session, user):
-    users = await get_all_users(session, user)
+async def get_user_list(session, roles):
+    admin_roles = {"owner", "admin"}
+    is_admin = bool(admin_roles.intersection(roles))
+
+    users = await get_all_users(session, is_admin)
 
     if not users:
         raise ApplicationException("User List Not found", 404)
 
     return users
 
-async def get_user(session, user_id, requester):
 
+async def get_user(session, user_id, roles):
     user = await get_user_by_id(session, user_id)
     if not user:
         raise ApplicationException("User Not found", 404)
-        
+
     if not user.is_active:
-        raise ApplicationException("User is deleted", 400)   
-    
-    requester_roles = {role.name for role in requester.roles}
+        raise ApplicationException("User is archived", 400)
+
     target_roles = list({role.name for role in user.roles})
 
     if not target_roles:
-        raise ApplicationException("Roles Not found", 404)      
-    
-    is_admin = bool({"owner", "admin"}.intersection(requester_roles))
+        raise ApplicationException("Roles Not found", 404)
+
+    is_admin = bool({"owner", "admin"}.intersection(roles))
     is_executor = "executor" in target_roles
 
     if not is_admin and not is_executor:
-        raise ApplicationException(f"Cannot access user with {target_roles} status", 403)
+        raise ApplicationException(
+            f"Cannot access user with {target_roles} status", 403
+        )
 
     if not user.branch_id:
         raise ApplicationException("Company Not found", 404)
-    
-    if user.branch.is_deleted:
-        raise ApplicationException(f"A company {user.branch.name} is deleted", 400)     
- 
-    return GetUserDTO(
-        name=user.name,
-        surname=user.surname,
-        position=user.position,
-        email=user.email,
-        branch=user.branch.name,
-        roles=target_roles
-    )
 
+    if user.branch.is_archived:
+        raise ApplicationException(f"A company {user.branch.name} is archived", 400)
+
+    return to_schema(UserItem, user)
 
 
 async def create_user(session, data):
@@ -72,61 +61,62 @@ async def create_user(session, data):
     if user:
         if not user.is_active:
             raise ApplicationException("User is archived", 400, {"id": user.id})
-        
+
         raise ApplicationException(f"Email {data.email} is already used", 400)
-    
-    branch = await get_company_by_inn(session, data.branch_inn)
+
+    branch = await get_branch_by_id(session, data.branch_id)
     if not branch:
         raise ApplicationException("Company Not found", 404)
-    if branch.is_deleted:
-        raise ApplicationException(f"A company with INN {branch.inn} is deleted", 400)        
     
+    if branch.is_archived:
+        raise ApplicationException(f"A company with INN {branch.inn} is archived", 400)
+
     password = generate_password()
     hashed_password = hash_password(password)
 
     new_user = await add_user(
         session, 
-        data.email, 
+        data, 
         hashed_password, 
-        data.name, 
-        data.surname, 
-        data.position, 
         branch.id, 
         password_change=True
     )
 
     await add_user_role(session, new_user, data.role)
 
-    return NewUserDTO(
-        email=new_user.email,
-        password=password
-    )
+    return {
+        "name": new_user.name,
+        "password": password
+    }
+
 
 def generate_password():
     symbols = string.ascii_letters + string.digits
     password = "".join(secrets.choice(symbols) for i in range(10))
     return password
 
-async def delete_user(session, user_id):
+
+async def archive_user(session, user_id):
     user = await get_user_by_id(session, user_id)
 
     if not user:
         raise ApplicationException("User Not found", 404)
-    
-    if not user.is_active:
-        raise ApplicationException("User is already deleted", 400)    
 
-    await archive_user(session,user)   
-    return True
+    if not user.is_active:
+        raise ApplicationException("User is already archived", 400)
+
+    user.is_active = False
+    return user
+
 
 async def restore_user(session, user_id):
     user = await get_user_by_id(session, user_id)
 
     if not user:
         raise ApplicationException("User Not found", 404)
-    
-    if user.is_active:
-        raise ApplicationException("CUser is already active", 400)    
 
-    await activate_user(session, user)   
-    return True
+    if user.is_active:
+        raise ApplicationException("User is already active", 400)
+
+    user.is_acrive = True
+    return user

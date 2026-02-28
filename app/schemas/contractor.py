@@ -1,30 +1,24 @@
 from pydantic import BaseModel, EmailStr
+from app.schemas.base import ShortItem
+
+
+class ContractorContractItem(BaseModel):
+    id: int
+    contract_name: str | None
 
 class ContractorItem(BaseModel):
-    id: int
     name: str
-    
+    email: list[str] | None
+    description: str
+    contracts: list[ContractorContractItem] | None
+
     class Config:
         from_attributes = True
 
-class GetContractor(BaseModel):
-    name: str
-    email: list[str] | None 
-    description: str
-    contractor_companies: list[str] | None 
 
 class ContractorCreation(BaseModel):
     name: str
     email: list[EmailStr] | None
     description: str
-    contractor_inn: str | None
 
-class CreationResponse(BaseModel):
-    contractor_id: int
-    name: str
 
-class DeletionResponse(BaseModel):
-    result: bool
-
-class RecoveryResponse(BaseModel):
-    result: bool

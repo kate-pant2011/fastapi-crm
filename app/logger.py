@@ -7,7 +7,7 @@ logging.basicConfig(
 
 logger = logging.getLogger("app")
 
-'''
+"""
 Пример использования
 from app.logger import logger
 
@@ -16,4 +16,4 @@ logger.debug("Тело запроса такое-то")
 logger.warning("Что-то подозрительное")
 logger.error("Ошибка подключения к БД")
 
-'''
+"""

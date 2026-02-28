@@ -1,34 +1,52 @@
 from fastapi import HTTPException, APIRouter, Depends, Request
-from .schemas import Token, LoginRequest, SignupRequest, SignupResponse, RefreshRequest, LogoutResponse, ChangePasswordRequest, ChangePasswordResponse
-from .service import login_user, signup_user, update_tokens, logout_user, change_user_password
-from .dependencies import get_current_user
+from .schemas import (
+    Token,
+    LoginRequest,
+    SignupRequest,
+    SignupResponse,
+    RefreshRequest,
+    LogoutResponse,
+    ChangePasswordRequest,
+    ChangePasswordResponse,
+)
+from .service import (
+    login_user,
+    signup_user,
+    update_tokens,
+    logout_user,
+    change_user_password,
+)
+from .dependencies import get_current_user, UserDTO
 from app.config.config import ApplicationException
 from app.config.connection import get_db
-from app.models.user import User
 from app.database.refresh_token import TokenReuseDetection
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 auth_router = APIRouter()
 
+
 @auth_router.post("/auth/login", response_model=Token)
-async def login(input: LoginRequest, request: Request, session: AsyncSession = Depends(get_db)):
+async def login(
+    input: LoginRequest, request: Request, session: AsyncSession = Depends(get_db)
+):
     try:
         device = request.headers.get("user-agent")
         result = await login_user(session, input.email, input.password, device)
-  
+
         return {
-            "access_token": result.access, 
-            "refresh_token": result.refresh, 
+            "access_token": result.access,
+            "refresh_token": result.refresh,
             "token_type": "JWT",
-            "change_password": result.change_password
+            "change_password": result.change_password,
         }
-    
+
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code,detail=e.name)
+        raise HTTPException(status_code=e.code, detail=e.name)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
+
 
 @auth_router.post("/auth/logout", response_model=LogoutResponse)
 async def logout(input: RefreshRequest, session: AsyncSession = Depends(get_db)):
@@ -36,11 +54,12 @@ async def logout(input: RefreshRequest, session: AsyncSession = Depends(get_db))
         return await logout_user(session, input.refresh_token)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)   
-    
+        raise HTTPException(status_code=e.code, detail=e.name)
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} = {e}")
-    
+
+
 @auth_router.post("/auth/refresh", response_model=Token)
 async def jwt_rotation(
     input: RefreshRequest,
@@ -52,21 +71,21 @@ async def jwt_rotation(
         token = await update_tokens(session, input.refresh_token, device)
 
         return {
-            "access_token": token.access, 
-            "refresh_token": token.refresh, 
+            "access_token": token.access,
+            "refresh_token": token.refresh,
             "token_type": "JWT",
-            "change_password": False
-        } 
-    
+            "change_password": False,
+        }
+
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code,detail=e.name)
-    
+        raise HTTPException(status_code=e.code, detail=e.name)
+
     except TokenReuseDetection:
-        raise HTTPException(status_code=401, detail="Session compromised")    
-    
+        raise HTTPException(status_code=401, detail="Session compromised")
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error - {e}")  
-    
+        raise HTTPException(status_code=500, detail=f"Internal server error - {e}")
+
 
 @auth_router.post("/auth/signup", response_model=SignupResponse)
 async def signup(
@@ -75,28 +94,29 @@ async def signup(
 ):
     try:
         return await signup_user(session, data_to_signup)
-    
+
     except IntegrityError as e:
-        raise HTTPException(status_code=400,detail=f"Integrity Error - {e}")
-    
-    except  ApplicationException as e:
+        raise HTTPException(status_code=400, detail=f"Integrity Error - {e}")
+
+    except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error - {e}")
+
 
 @auth_router.patch("/auth/change-password", response_model=ChangePasswordResponse)
 async def change_password(
     new_data: ChangePasswordRequest,
     session: AsyncSession = Depends(get_db),
-    user: User = Depends(get_current_user)
+    user: UserDTO = Depends(get_current_user),
 ):
     try:
         email = await change_user_password(session, user.id, new_data.password)
         return {"email": email}
-    
+
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")

@@ -1,34 +1,36 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
+from app.config.config import ApplicationException
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.auth.dependencies import require_roles
 from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
-from app.config.config import ApplicationException
-from app.auth.dependencies import require_roles
 from app.schemas.base import ShortItem
-from app.schemas.contractor import (
-    ContractorItem,
-    ContractorCreation,
+from app.schemas.project import (
+    ProjectItem,
+    ProjectCreation,
 )
-from app.services.contractor import (
-    get_contractor_list,
-    get_contractor,
-    create_contractor,
-    archive_contractor,
-    restore_contractor,
+from app.services.project import (
+    get_project_list,
+    get_project,
+    create_project,
+    archive_project,
+    restore_project
 )
 
-contractor_router = APIRouter()
+project_router = APIRouter()
 
 
-@contractor_router.get("/contractor", response_model=list[ShortItem])
-async def get_contractor_list_router(
+@project_router.get("/project", response_model=list[ShortItem])
+async def get_project_list_router(
+    scope: str | None = Query(default=None, description="mine"),
+    client_id: int | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
+        require_roles("owner", "admin", "manager")
     ),
 ):
     try:
-        return await get_contractor_list(session)
+        return await get_project_list(session, user.roles, user.id, scope, client_id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -37,16 +39,16 @@ async def get_contractor_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@contractor_router.get("/contractor/{id}", response_model=ContractorItem)
-async def contractor_card(
+@project_router.get("/project/{id}", response_model=ProjectItem)
+async def get_project_router(
     id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
+        require_roles("owner", "admin", "manager")
     ),
 ):
     try:
-        return await get_contractor(session, id)
+        return await get_project(session, user.roles, user.id, id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -55,16 +57,16 @@ async def contractor_card(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@contractor_router.post("/contractor", response_model=ShortItem)
-async def contractor_creation(
-    data: ContractorCreation,
+@project_router.post("/project", response_model=ShortItem)
+async def create_project_router(
+    data: ProjectCreation,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
+        require_roles("manager")
     ),
 ):
     try:
-        return await create_contractor(session, data)
+        return await create_project(session, data, user.id)
 
     except ApplicationException as e:
         raise HTTPException(
@@ -74,17 +76,16 @@ async def contractor_creation(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
-
-@contractor_router.delete("/contractor/{id}", response_model=ShortItem)
-async def archive_contractor_router(
+@project_router.delete("/project/{id}", response_model=ShortItem)
+async def archive_project_router(
     id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
+        require_roles("manager")
     ),
 ):
     try:
-        return await archive_contractor(session, id)
+        return await archive_project(session, id, user.id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -93,16 +94,16 @@ async def archive_contractor_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@contractor_router.post("/contractor/{id}/restore", response_model=ShortItem)
-async def restore_contractor_router(
+@project_router.post("/project/{id}/restore", response_model=ShortItem)
+async def restore_project_router(
     id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
+        require_roles("owner", "admin", "manager")
     ),
 ):
     try:
-        return await restore_contractor(session, id)
+        return await restore_project(session, id, user.roles,  user.id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

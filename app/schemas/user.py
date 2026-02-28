@@ -1,21 +1,20 @@
 from pydantic import BaseModel, EmailStr
+from app.schemas.base import ShortItem
+
 
 class UserItem(BaseModel):
-    id: int
-    name: str
-    surname: str
-    position: str
-
-    class Config:
-        from_attributes = True
-
-class UserCard(BaseModel):
     name: str
     surname: str
     position: str
     email: str
-    branch: str
-    roles: list[str]
+    branch: ShortItem
+    roles: list[ShortItem]
+    clients: list[ShortItem] | None
+    assignments: list[ShortItem] | None
+
+    class Config:
+        from_attributes = True
+
 
 class UserCreationRequest(BaseModel):
     name: str
@@ -23,14 +22,12 @@ class UserCreationRequest(BaseModel):
     position: str
     email: EmailStr
     role: list[str]
-    branch_inn: str
+    branch_id: int
 
 class UserCreationResponse(BaseModel):
-    email: EmailStr
+    name: str
     password: str
 
-class UserDeletionResponse(BaseModel):
-    result: bool
 
-class RecoveryResponse(BaseModel):
-    result: bool
+
+

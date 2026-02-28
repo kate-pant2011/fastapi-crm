@@ -1,8 +1,8 @@
 """seed_roles
 
-Revision ID: 02b41a88173b
-Revises: baaa79b28e49
-Create Date: 2026-02-15 12:11:01.887789
+Revision ID: 20260228140415
+Revises: 20260228140316
+Create Date: 2026-02-28 14:04:16.517661
 
 """
 from typing import Sequence, Union
@@ -10,22 +10,21 @@ from typing import Sequence, Union
 from alembic import op
 import sqlalchemy as sa
 from app.config.config import now
-from sqlalchemy import String, DateTime
-from sqlalchemy.sql import table, column
+from sqlalchemy import DateTime, String
 
 
 # revision identifiers, used by Alembic.
-revision: str = '02b41a88173b'
-down_revision: Union[str, Sequence[str], None] = 'baaa79b28e49'
+revision: str = '20260228140415'
+down_revision: Union[str, Sequence[str], None] = '20260228140316'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-roles_table = table(
+roles_table = sa.table(
     "roles",
-    column("created_at", DateTime),
-    column("updated_at", DateTime),
-    column("name", String),
+    sa.column("created_at", DateTime),
+    sa.column("updated_at", DateTime),
+    sa.column("name", String),
 )
 
 def upgrade() -> None:
@@ -56,4 +55,4 @@ def upgrade() -> None:
     )
 
 def downgrade() -> None:
-    op.execute("DELETE FROM roles WHERE role_name IN ('owner', 'admin', 'manager', 'executor')")
+    op.execute("DELETE FROM roles WHERE name IN ('owner', 'admin', 'manager', 'executor')")
