@@ -28,4 +28,3 @@ class StageTemplate(BaseModel):
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     creator = relationship("User", back_populates="stage_templates")
-    

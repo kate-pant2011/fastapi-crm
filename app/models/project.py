@@ -2,15 +2,11 @@ from .base import BaseModel
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 from sqlalchemy.orm import relationship
 
+
 class Project(BaseModel):
     __tablename__ = "projects"
 
-    client_id = Column(
-        Integer, 
-        ForeignKey("clients.id"), 
-        nullable=False, 
-        index=True
-    )
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=False, index=True)
     contract_id = Column(Integer, ForeignKey("contracts.id"), nullable=True, index=True)
 
     name = Column(String, nullable=False, unique=True)

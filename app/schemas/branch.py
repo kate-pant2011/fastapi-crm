@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 
 
 class BranchItem(BaseModel):
@@ -14,6 +14,3 @@ class BranchItem(BaseModel):
 class BranchCreationRequest(BaseModel):
     inn: str
     name: str
-
-
-

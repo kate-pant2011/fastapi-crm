@@ -10,13 +10,13 @@ from app.database.user import (
 from app.database.branch import get_branch_by_id
 from app.config.config import ApplicationException
 from app.config.security import hash_password
-from app.schemas.base import to_schema
+from app.schemas.common import to_schema
 from app.schemas.user import UserItem
+from .common import Access
 
 
 async def get_user_list(session, roles):
-    admin_roles = {"owner", "admin"}
-    is_admin = bool(admin_roles.intersection(roles))
+    is_admin = Access(roles).is_admin()
 
     users = await get_all_users(session, is_admin)
 
@@ -39,8 +39,8 @@ async def get_user(session, user_id, roles):
     if not target_roles:
         raise ApplicationException("Roles Not found", 404)
 
-    is_admin = bool({"owner", "admin"}.intersection(roles))
-    is_executor = "executor" in target_roles
+    is_admin = Access(roles).is_admin()
+    is_executor = Access(target_roles).is_executor()
 
     if not is_admin and not is_executor:
         raise ApplicationException(
@@ -67,7 +67,7 @@ async def create_user(session, data):
     branch = await get_branch_by_id(session, data.branch_id)
     if not branch:
         raise ApplicationException("Company Not found", 404)
-    
+
     if branch.is_archived:
         raise ApplicationException(f"A company with INN {branch.inn} is archived", 400)
 
@@ -75,19 +75,12 @@ async def create_user(session, data):
     hashed_password = hash_password(password)
 
     new_user = await add_user(
-        session, 
-        data, 
-        hashed_password, 
-        branch.id, 
-        password_change=True
+        session, data, hashed_password, branch.id, password_change=True, is_new=True
     )
 
     await add_user_role(session, new_user, data.role)
 
-    return {
-        "name": new_user.name,
-        "password": password
-    }
+    return {"name": new_user.name, "password": password}
 
 
 def generate_password():

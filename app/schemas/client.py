@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 
 
 class ClientItem(BaseModel):
@@ -17,5 +17,3 @@ class ClientCreation(BaseModel):
     name: str
     email: list[EmailStr] | None
     telephone: list[str] | None
-
-

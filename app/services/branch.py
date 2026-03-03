@@ -5,7 +5,7 @@ from app.database.branch import (
     get_all_branches,
 )
 from app.config.config import ApplicationException
-from app.schemas.base import to_schema
+from app.schemas.common import to_schema
 from app.schemas.branch import BranchItem
 
 
@@ -25,7 +25,7 @@ async def get_branch(session, id):
 
     if branch.is_archived:
         raise ApplicationException(f"A company '{branch.name}' is archived", 400)
-    
+
     return to_schema(BranchItem, branch)
 
 

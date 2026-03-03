@@ -6,12 +6,7 @@ from sqlalchemy.orm import relationship
 class Company(BaseModel):
     __tablename__ = "companies"
 
-    client_id = Column(
-        Integer, 
-        ForeignKey("clients.id"), 
-        nullable=False, 
-        index=True
-    )
+    client_id = Column(Integer, ForeignKey("clients.id"), nullable=False, index=True)
 
     name = Column(String, nullable=False)
     inn = Column(String, nullable=False, unique=True)

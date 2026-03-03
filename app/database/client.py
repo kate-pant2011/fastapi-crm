@@ -49,6 +49,3 @@ async def add_client(session, data, manager_id):
     session.add(client)
     await session.flush()
     return client
-
-
-

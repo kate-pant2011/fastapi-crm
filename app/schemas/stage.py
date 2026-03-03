@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 from datetime import datetime
 
 
@@ -9,6 +9,7 @@ class StageItem(BaseModel):
     start_date: datetime
     end_date: datetime
     project: ShortItem
+    assignments: list[ShortItem]
 
     class Config:
         from_attributes = True
@@ -19,14 +20,16 @@ class StageCreation(BaseModel):
     description: str
     start_date: datetime
     end_date: datetime
-    project_id: int 
+    project_id: int
+
 
 class StageTemplateItem(BaseModel):
     id: int
     name: str
-    
+
     class Config:
         from_attributes = True
+
 
 class StageTemplateCreation(BaseModel):
     name: str

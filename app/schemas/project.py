@@ -1,8 +1,7 @@
-
 from pydantic import BaseModel
 from datetime import datetime
 from app.schemas.contract import ContractItem
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 
 
 class ProjectItem(BaseModel):
@@ -24,5 +23,3 @@ class ProjectCreation(BaseModel):
     end_date: datetime
     client_id: int
     contract_id: int | None
-
-

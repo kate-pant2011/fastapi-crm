@@ -95,6 +95,7 @@ async def update_tokens(session, refresh_jwt, device):
         roles = list({role.name for role in user.roles})
         status = user.must_change_password
         active = user.is_active
+        is_new = user.is_new
 
     except TokenReuseDetection as e:
         async with session.begin():
@@ -104,7 +105,7 @@ async def update_tokens(session, refresh_jwt, device):
     jti = str(uuid.uuid4())
 
     jwt = JWTService()
-    access_token = jwt.create_access(user_id, roles, status, active)
+    access_token = jwt.create_access(user_id, roles, status, active, is_new)
     refresh = jwt.create_refresh(user_id, jti)
 
     await add_refresh_jwt(session, user_id, refresh.exp, jti, device)
@@ -131,6 +132,7 @@ async def signup_user(session, user_data) -> dict:
         hashed_password,
         new_company.id,
         password_change=False,
+        is_new=False
     )
     await add_user_role(session, new_user, ["owner"])
 

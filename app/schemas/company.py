@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from app.schemas.contract import ContractItem
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 
 
 class CompanyItem(BaseModel):
@@ -11,11 +11,8 @@ class CompanyItem(BaseModel):
     class Config:
         from_attributes = True
 
+
 class CompanyCreation(BaseModel):
     name: str
     inn: str
     client_id: int
-
-
-
-

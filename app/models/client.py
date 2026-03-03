@@ -17,9 +17,3 @@ class Client(BaseModel):
 
     projects = relationship("Project", back_populates="client")
     companies = relationship("Company", back_populates="client")
-
-
-
-
-
-

@@ -6,8 +6,7 @@ from app.database.contractor import (
 )
 from app.config.config import ApplicationException
 from app.schemas.contractor import ContractorItem
-from app.schemas.base import to_schema
-
+from app.schemas.common import to_schema
 
 
 async def get_contractor_list(session):

@@ -4,12 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import require_roles
 from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 from app.schemas.stage import (
     StageItem,
     StageCreation,
     StageTemplateItem,
-    StageTemplateCreation
+    StageTemplateCreation,
 )
 from app.services.stage import (
     get_stage_list,
@@ -17,7 +17,7 @@ from app.services.stage import (
     create_stage,
     create_stage_template,
     archive_stage,
-    restore_stage
+    restore_stage,
 )
 
 stage_router = APIRouter()
@@ -27,9 +27,7 @@ stage_router = APIRouter()
 async def get_stage_list_router(
     project_id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
         return await get_stage_list(session, user.roles, user.id, project_id)
@@ -46,9 +44,7 @@ async def get_stage_router(
     project_id: int,
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
         return await get_stage(session, user.roles, user.id, project_id, id)
@@ -64,9 +60,7 @@ async def get_stage_router(
 async def create_stage_router(
     data: StageCreation,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("manager")
-    ),
+    user: UserDTO = Depends(require_roles("manager")),
 ):
     try:
         return await create_stage(session, data, user.id)
@@ -78,14 +72,13 @@ async def create_stage_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
-    
+
+
 @stage_router.post("/stage-template", response_model=StageTemplateItem)
 async def create_stage_template_router(
     data: StageTemplateCreation,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager")
-    )
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
         return await create_stage_template(session, data, user.id)
@@ -95,19 +88,17 @@ async def create_stage_template_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
-    
+
 
 @stage_router.delete("/project/{project_id}/stage/{id}", response_model=ShortItem)
 async def archive_stage_router(
     project_id: int,
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("manager")
-    ),
+    user: UserDTO = Depends(require_roles("manager")),
 ):
     try:
-        return await archive_stage(session, id, user.id, project_id)
+        return await archive_stage(session, id, user.id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -121,12 +112,10 @@ async def restore_stage_router(
     project_id: int,
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
-        return await restore_stage(session, id, user.roles,  user.id, project_id)
+        return await restore_stage(session, id, user.roles, user.id, project_id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

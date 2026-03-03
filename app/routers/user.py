@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config.config import ApplicationException
 from app.config.connection import get_db
 from app.auth.dependencies import require_roles
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 from app.services.user import (
     create_user,
     archive_user,
@@ -11,11 +11,7 @@ from app.services.user import (
     get_user_list,
     get_user,
 )
-from app.schemas.user import (
-    UserItem,
-    UserCreationRequest,
-    UserCreationResponse
-)
+from app.schemas.user import UserItem, UserCreationRequest, UserCreationResponse
 from app.auth.dependencies import UserDTO
 
 user_router = APIRouter()
@@ -76,7 +72,7 @@ async def archive_user_router(
 ):
     try:
         return await archive_user(session, id)
-    
+
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
 
@@ -91,7 +87,7 @@ async def restore_user_router(
     user_rights: UserDTO = Depends(require_roles("owner", "admin")),
 ):
     try:
-        return  await restore_user(session, id)
+        return await restore_user(session, id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

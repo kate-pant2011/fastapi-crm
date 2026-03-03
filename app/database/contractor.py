@@ -39,5 +39,3 @@ async def add_contractor(session, data):
     session.add(contractor)
     await session.flush()
     return contractor
-
-

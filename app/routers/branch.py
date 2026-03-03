@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from app.config.config import ApplicationException
 from app.auth.dependencies import require_roles
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 from app.schemas.branch import (
     BranchItem,
     BranchCreationRequest,
@@ -23,9 +23,7 @@ branch_router = APIRouter()
 @branch_router.get("/branch", response_model=list[ShortItem])
 async def branch_list(
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
         return await form_branch_list(session)
@@ -41,9 +39,7 @@ async def branch_list(
 async def get_branch_router(
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
         return await get_branch(session, id)

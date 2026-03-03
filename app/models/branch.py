@@ -11,5 +11,7 @@ class Branch(BaseModel):
     users = relationship("User", back_populates="branch")
     is_archived = Column(Boolean, default=False, nullable=False)
 
-    contractor_contracts_link = relationship("ContractorContract", back_populates="branch")
+    contractor_contracts_link = relationship(
+        "ContractorContract", back_populates="branch"
+    )
     client_contracts_link = relationship("Contract", back_populates="branch")

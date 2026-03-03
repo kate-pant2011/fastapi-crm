@@ -10,14 +10,14 @@ async def get_filtered_companies(session, manager_id, client_id):
 
     if manager_id is not None:
         stmt = stmt.where(Client.manager_id == manager_id)
-   
+
     if client_id is not None:
         stmt = stmt.where(Client.id == client_id)
-    
+
     result = await session.execute(stmt)
     return result.scalars().all()
-    
-    
+
+
 async def get_company_by_id(session, manager_id, company_id):
     stmt = (
         select(Company)
@@ -33,13 +33,12 @@ async def get_company_by_id(session, manager_id, company_id):
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
 
+
 async def get_company_by_inn(session, inn: str):
-    result = await session.execute(
-        select(Company)
-        .where(Company.inn == inn)
-    )
+    result = await session.execute(select(Company).where(Company.inn == inn))
 
     return result.scalar_one_or_none()
+
 
 async def add_company(session, data):
     company = Company(

@@ -37,7 +37,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserDTO:
 
     must_change_password = decoded.get("status")
     is_new = decoded.get("is_new", False)
-    
+
     if must_change_password and not is_new:
         raise HTTPException(status_code=403, detail="Password change required")
 

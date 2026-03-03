@@ -1,10 +1,11 @@
 from pydantic import BaseModel, EmailStr
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 
 
 class ContractorContractItem(BaseModel):
     id: int
     contract_name: str | None
+
 
 class ContractorItem(BaseModel):
     name: str
@@ -20,5 +21,3 @@ class ContractorCreation(BaseModel):
     name: str
     email: list[EmailStr] | None
     description: str
-
-

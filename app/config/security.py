@@ -33,7 +33,7 @@ class JWTService:
             "roles": roles,
             "status": status,
             "active": active,
-            "is_new": is_new
+            "is_new": is_new,
         }
         encoded = jwt.encode(payload, self.key, self.algorithm)
         return encoded

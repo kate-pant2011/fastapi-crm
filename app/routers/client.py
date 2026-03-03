@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import require_roles
 from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 from app.schemas.client import (
     ClientItem,
     ClientCreation,
@@ -24,9 +24,7 @@ client_router = APIRouter()
 async def client_list(
     scope: str | None = Query(default=None, description="mine"),
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
         return await form_client_list(session, user.roles, user.id, scope)
@@ -42,12 +40,10 @@ async def client_list(
 async def get_client_router(
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
-        return await get_client(session, user.roles, user.id, id) 
+        return await get_client(session, user.roles, user.id, id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -60,9 +56,7 @@ async def get_client_router(
 async def create_client_router(
     data: ClientCreation,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("manager")
-    ),
+    user: UserDTO = Depends(require_roles("manager")),
 ):
     try:
         return await create_client(session, data, user.id)
@@ -80,9 +74,7 @@ async def create_client_router(
 async def archive_client_router(
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("manager")
-    ),
+    user: UserDTO = Depends(require_roles("manager")),
 ):
     try:
         return await archive_client(session, id, user.id)
@@ -98,12 +90,10 @@ async def archive_client_router(
 async def restore_client_router(
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
-        return await restore_client(session, id, user.roles,  user.id)
+        return await restore_client(session, id, user.roles, user.id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

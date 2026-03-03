@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
+
 
 class ContractItem(BaseModel):
     id: int
@@ -9,6 +10,7 @@ class ContractItem(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class GetcontractItem(BaseModel):
     number: str
@@ -19,6 +21,8 @@ class GetcontractItem(BaseModel):
     valid_to: datetime
     branch: ShortItem
 
+    class Config:
+        from_attributes = True
 
 class contractCreation(BaseModel):
     number: str
@@ -29,4 +33,3 @@ class contractCreation(BaseModel):
     valid_to: datetime
     company_id: int
     branch_id: int
-

@@ -4,7 +4,7 @@ from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
 from app.config.config import ApplicationException
 from app.auth.dependencies import require_roles
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 from app.schemas.contractor import (
     ContractorItem,
     ContractorCreation,
@@ -23,9 +23,7 @@ contractor_router = APIRouter()
 @contractor_router.get("/contractor", response_model=list[ShortItem])
 async def get_contractor_list_router(
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
         return await get_contractor_list(session)
@@ -41,9 +39,7 @@ async def get_contractor_list_router(
 async def contractor_card(
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
         return await get_contractor(session, id)
@@ -59,9 +55,7 @@ async def contractor_card(
 async def contractor_creation(
     data: ContractorCreation,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
         return await create_contractor(session, data)
@@ -79,9 +73,7 @@ async def contractor_creation(
 async def archive_contractor_router(
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
         return await archive_contractor(session, id)
@@ -97,9 +89,7 @@ async def archive_contractor_router(
 async def restore_contractor_router(
     id: int,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(
-        require_roles("owner", "admin", "manager", "executor")
-    ),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
         return await restore_contractor(session, id)

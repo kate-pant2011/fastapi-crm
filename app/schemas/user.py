@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from app.schemas.base import ShortItem
+from app.schemas.common import ShortItem
 
 
 class UserItem(BaseModel):
@@ -24,10 +24,7 @@ class UserCreationRequest(BaseModel):
     role: list[str]
     branch_id: int
 
+
 class UserCreationResponse(BaseModel):
     name: str
     password: str
-
-
-
-

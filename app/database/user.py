@@ -3,7 +3,7 @@ from app.models.base import user_roles
 from sqlalchemy import insert, select, update
 from sqlalchemy.orm import (
     selectinload,
-) 
+)
 
 
 async def get_all_users(session, is_admin):
@@ -42,7 +42,7 @@ async def get_user_by_id(session, id):
     return user
 
 
-async def add_user(session, data, password, branch_id, password_change):
+async def add_user(session, data, password, branch_id, password_change, is_new):
     user = User(
         branch_id=branch_id,
         name=data.name,
@@ -77,5 +77,3 @@ async def update_user_password(session, user, password):
         .where(User.id == user.id)
         .values(password_hash=password, must_change_password=False, is_new=False)
     )
-
-
