@@ -9,6 +9,7 @@ class Stage(BaseModel):
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=False, index=True)
 
     name = Column(String(255), nullable=False)
+    position = Column(Integer, nullable=False, index=True)
     description = Column(String(500), nullable=False)
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)

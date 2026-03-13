@@ -74,9 +74,10 @@ async def create_stages_with_template(
     if not template:
         raise ApplicationException("Template Not found", 404)
 
-    for name in template.stage_list:
+    for position, name in enumerate(template.stage_list, start=1):
         stage = Stage(
             name=name,
+            position=position,
             description=name,
             start_date=now,
             end_date=now,

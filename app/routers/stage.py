@@ -6,7 +6,12 @@ from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
 from dataclasses import dataclass
 from app.schemas.common import BaseShortResponse, BaseListResponse
-from app.schemas.stage import StageItem, StageCreation, StagePatchRequest
+from app.schemas.stage import (
+    StageItem,
+    StageCreation,
+    StagePatchRequest,
+    StageReorderRequest,
+)
 from app.services.stage import (
     get_stage_list,
     get_stage,
@@ -14,6 +19,7 @@ from app.services.stage import (
     archive_stage,
     restore_stage,
     change_stage,
+    reorder_stages,
 )
 
 stage_router = APIRouter()
@@ -64,7 +70,7 @@ async def get_stage_router(
 
 
 @stage_router.patch("/project/{project_id}/stage/{stage_id}", response_model=StageItem)
-async def change_branch_router(
+async def change_stage_router(
     project_id: int,
     stage_id: int,
     item: StagePatchRequest,
@@ -75,6 +81,25 @@ async def change_branch_router(
         return await change_stage(
             session, user.roles, user.id, project_id, stage_id, item
         )
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+
+
+@stage_router.patch(
+    "/project/{project_id}/stages/reorder", response_model=list[BaseShortResponse]
+)
+async def reorder_stages_router(
+    item: StageReorderRequest,
+    project_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
+):
+    try:
+        return await reorder_stages(session, user.roles, user.id, project_id, item)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

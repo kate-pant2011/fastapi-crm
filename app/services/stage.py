@@ -96,6 +96,34 @@ async def change_stage(session, roles, user_id, project_id, stage_id, item):
     return to_schema(StageItem, stage)
 
 
+async def reorder_stages(session, roles, user_id, project_id, item):
+    access = Access(roles)
+    access.require_admin_or_manager()
+    manager_id = access.manager_id(user_id)
+
+    project = await get_project_by_id(session, project_id, manager_id)
+    if not project:
+        raise ApplicationException("Project Not Found", 404)
+
+    if project.is_archived:
+        raise ApplicationException("Project is archived", 400)
+
+    if len(item.stages) != len(project.stages):
+        raise ApplicationException("Invalid stages list", 400)
+
+    stages_map = {stage.id: stage for stage in project.stages}
+
+    for position, stage_id in enumerate(item.stages, start=1):
+        stage = stages_map.get(stage_id)
+
+        if not stage:
+            raise ApplicationException("Invalid stage id", 400)
+
+        stage.position = position
+
+    return project.stages
+
+
 async def create_stage(session, data, manager_id):
     project = await get_project_by_id(session, data.project_id, manager_id)
     if not project:
@@ -107,7 +135,9 @@ async def create_stage(session, data, manager_id):
     if data.start_date > data.end_date:
         raise ApplicationException("End-date cannot be less than start-date", 400)
 
-    new_stage = await add_stage(session, data)
+    position = max((stage.position for stage in project.stages), default=0) + 1
+
+    new_stage = await add_stage(session, data, position)
 
     return new_stage
 

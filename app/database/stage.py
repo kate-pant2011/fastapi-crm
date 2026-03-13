@@ -22,7 +22,7 @@ async def get_filtered_stages(session, manager_id, project_id, query):
     if query.sort:
         stmt = apply_sorting(stmt=stmt, model=Stage, sort=query.sort)
     else:
-        stmt = order(stmt=stmt, model=Stage)
+        stmt = stmt.order_by(Stage.position)
 
     result = await get_all_and_total(session, stmt, query.limit, query.offset)
     return result
@@ -51,9 +51,10 @@ async def get_stage_by_id(session, id, user_id, is_admin):
     return result.scalar_one_or_none()
 
 
-async def add_stage(session, data):
+async def add_stage(session, data, position):
     stage = Stage(
         name=data.name,
+        position=position,
         description=data.description,
         start_date=data.start_date,
         end_date=data.end_date,

@@ -1,8 +1,8 @@
 """seed_roles
 
-Revision ID: 20260228140415
-Revises: 20260228140316
-Create Date: 2026-02-28 14:04:16.517661
+Revision ID: bd41fa1b5c11
+Revises: 20260313155243
+Create Date: 2026-03-13 15:53:53.184132
 
 """
 
@@ -14,11 +14,10 @@ from app.config.config import now
 from sqlalchemy import DateTime, String
 
 # revision identifiers, used by Alembic.
-revision: str = "20260228140415"
-down_revision: Union[str, Sequence[str], None] = "20260228140316"
+revision: str = "bd41fa1b5c11"
+down_revision: Union[str, Sequence[str], None] = "20260313155243"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
-
 
 roles_table = sa.table(
     "roles",

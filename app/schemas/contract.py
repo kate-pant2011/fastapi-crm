@@ -35,7 +35,7 @@ class ContractPatchRequest(BaseModel):
 
 class GetContractItem(BaseModel):
     number: str
-    status: str
+    status: statusname
     name: str | None
     description: str | None
     valid_from: datetime | None

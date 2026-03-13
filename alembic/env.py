@@ -1,5 +1,5 @@
 from logging.config import fileConfig
-
+import app.models_loader
 
 from alembic import context
 from app.config.config import settings

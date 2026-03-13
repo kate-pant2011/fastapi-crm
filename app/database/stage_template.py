@@ -38,7 +38,7 @@ async def get_stage_template_by_id(session, id: int):
 
 async def add_stage_template(session, data, creator_id):
     template = StageTemplate(
-        name=data.name, stage_list=data.stage_list, user_id=creator_id
+        name=data.name, stage_list=data.stage_list, creator_id=creator_id
     )
 
     session.add(template)

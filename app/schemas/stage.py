@@ -30,3 +30,7 @@ class StageCreation(BaseModel):
     start_date: datetime
     end_date: datetime
     project_id: int
+
+
+class StageReorderRequest(BaseModel):
+    stages: list[int]
