@@ -1,13 +1,19 @@
 from sqlalchemy import select, update
 from app.models.contractor import Contractor
 from sqlalchemy.orm import selectinload
+from .common import order, get_all_and_total
+from app.config.config import ApplicationException
 
 
-async def get_all_contractors(session):
-    result = await session.execute(
+async def get_all_contractors(session, limit, offset):
+    stmt = (
         select(Contractor).where(Contractor.is_archived == False)
     )
-    return result.scalars().all()
+
+    stmt = order(stmt=stmt, model=Contractor)
+
+    result = await get_all_and_total(session, stmt, limit, offset)
+    return result
 
 
 async def get_contractor_by_name(session, name):

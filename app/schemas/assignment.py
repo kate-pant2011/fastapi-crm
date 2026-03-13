@@ -1,17 +1,23 @@
-from pydantic import BaseModel, EmailStr
-from app.schemas.common import ShortItem
+from pydantic import BaseModel, EmailStr, Field 
+from app.schemas.common import BaseShortResponse
 
 
 class AssignmentItem(BaseModel):
     name: str
     description: str 
-    stage: ShortItem 
-    contractor: ShortItem | None
-    user: ShortItem | None
+    stage: BaseShortResponse 
+    contractor: BaseShortResponse | None
+    user: BaseShortResponse | None
 
     class Config:
         from_attributes = True
 
+class AssignmentPatchRequest(BaseModel):
+    name: str | None = Field(None, min_length=1)
+    description: str | None = Field(None, min_length=1)
+    model_config = {
+        "extra": "forbid"
+    }
 
 class AssignmentCreation(BaseModel):
     name: str

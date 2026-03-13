@@ -4,33 +4,47 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import require_roles
 from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
-from app.schemas.common import ShortItem
+from dataclasses import dataclass
+from app.schemas.common import BaseShortResponse, BaseListResponse
 from app.schemas.stage import (
     StageItem,
     StageCreation,
-    StageTemplateItem,
-    StageTemplateCreation,
+    StagePatchRequest
 )
 from app.services.stage import (
     get_stage_list,
     get_stage,
     create_stage,
-    create_stage_template,
     archive_stage,
     restore_stage,
+    change_stage,
 )
 
 stage_router = APIRouter()
 
+@dataclass
+class QueryDTO:
+    sort: str | None
+    limit: int
+    offset: int
 
-@stage_router.get("/project/{project_id}/stage", response_model=list[ShortItem])
+
+@stage_router.get("/project/{project_id}/stage", response_model=BaseListResponse)
 async def get_stage_list_router(
     project_id: int,
+    sort: str | None= Query(default=None, description="- stands for desc"),
+    limit: int = Query(default=20, le=100),
+    offset: int = Query(default=0),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
-        return await get_stage_list(session, user.roles, user.id, project_id)
+        query = QueryDTO(
+            sort=sort,
+            limit=limit,
+            offset=offset
+        )
+        return await get_stage_list(session, user.roles, user.id, project_id, query)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -56,7 +70,25 @@ async def get_stage_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_router.post("/stage", response_model=ShortItem)
+@stage_router.patch("/project/{project_id}/stage/{stage_id}", response_model=StageItem)
+async def change_branch_router(
+    project_id: int,
+    stage_id: int,
+    item: StagePatchRequest,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor"))
+):
+    try: 
+        return await change_stage(session, user.roles, user.id, project_id, stage_id, item)
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+    
+
+@stage_router.post("/stage", response_model=BaseShortResponse)
 async def create_stage_router(
     data: StageCreation,
     session: AsyncSession = Depends(get_db),
@@ -74,31 +106,15 @@ async def create_stage_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@stage_router.post("/stage-template", response_model=StageTemplateItem)
-async def create_stage_template_router(
-    data: StageTemplateCreation,
-    session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
-):
-    try:
-        return await create_stage_template(session, data, user.id)
-
-    except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
-
-
-@stage_router.delete("/project/{project_id}/stage/{id}", response_model=ShortItem)
+@stage_router.delete("/project/{project_id}/stage/{stage_id}", response_model=BaseShortResponse)
 async def archive_stage_router(
     project_id: int,
-    id: int,
+    stage_id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("manager")),
 ):
     try:
-        return await archive_stage(session, id, user.id)
+        return await archive_stage(session, stage_id, user.id, project_id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -107,7 +123,7 @@ async def archive_stage_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@stage_router.post("/project/{project_id}/stage/{id}/restore", response_model=ShortItem)
+@stage_router.post("/project/{project_id}/stage/{id}/restore", response_model=BaseShortResponse)
 async def restore_stage_router(
     project_id: int,
     id: int,
@@ -122,3 +138,6 @@ async def restore_stage_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
+
+
+

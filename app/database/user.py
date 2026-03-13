@@ -1,23 +1,45 @@
 from app.models_loader import User, Role
-from app.models.base import user_roles
-from sqlalchemy import insert, select, update
+from app.models.branch import Branch
+from sqlalchemy import select, update
 from sqlalchemy.orm import (
     selectinload,
 )
+from app.config.config import ApplicationException
+from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_all_users(session, is_admin):
-    if is_admin:
-        result = await session.execute(select(User).where(User.is_active == True))
+
+async def get_all_users(session, is_admin, query):
+    stmt = select(User).join(User.roles)
+
+    if query.is_active is None:
+        stmt = stmt.where(User.is_active.is_(True))
     else:
-        result = await session.execute(
-            select(User)
-            .join(User.roles)
-            .where(User.is_active == True)
+        stmt = stmt.where(User.is_active.is_(False))
+    
+    if is_admin and query.role_name:
+        stmt = stmt.where(Role.name == query.role_name)
+        
+    if not is_admin:
+        stmt = (
+            stmt
             .where(Role.name == "executor")
         )
 
-    return result.scalars().all()
+    if query.branch_id is not None:
+        stmt = stmt.join(User.branch).where(Branch.id == query.branch_id)
+
+    if query.sort:
+        stmt = apply_sorting(
+            stmt=stmt, 
+            model=User, 
+            sort=query.sort
+        )
+    else:
+        stmt = order(stmt=stmt, model=User)
+
+    result = await get_all_and_total(session, stmt, query.limit, query.offset)
+    return result
 
 
 async def get_user_by_email(session, email):
@@ -59,16 +81,36 @@ async def add_user(session, data, password, branch_id, password_change, is_new):
     return user
 
 
-async def add_user_role(session, user, roles: list[str]):
-    for role in roles:
-        result = await session.execute(select(Role).where(Role.name == role))
-        user_role = result.scalar_one_or_none()
+async def add_user_role(session, is_owner: bool, user, new_roles: list[str]):
 
-        if not user_role:
-            raise RuntimeError(f"Role {user_role} not found")
+    existing_roles = {role.name for role in user.roles}
 
-        stmt = insert(user_roles).values(user_id=user.id, role_id=user_role.id)
-        await session.execute(stmt)
+    if "owner" in existing_roles and "owner" not in new_roles:
+        raise ApplicationException("Owner role cannot be removed", 403)
+    
+    if "owner" not in existing_roles and "owner" in new_roles:
+        raise ApplicationException(f"Owner role cannot be applied", 400)
+
+    for role in new_roles:
+        if role in {"admin"} and not is_owner:
+            raise ApplicationException(
+                "Only owner can assign admin roles",
+                403
+            )
+
+    result = await session.execute(
+    select(Role).where(Role.name.in_(new_roles))
+    )
+    role_objects = result.scalars().all()
+
+    found_role_names = {role.name for role in role_objects}
+    missing_roles = set(new_roles) - found_role_names
+    
+    if missing_roles:
+        raise RuntimeError(f"Roles not found: {missing_roles}")
+
+    user.roles = role_objects
+
 
 
 async def update_user_password(session, user, password):

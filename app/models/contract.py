@@ -32,12 +32,12 @@ class Contract(BaseModel):
         default=ContractStatus.DRAFT,
     )
 
-    description = Column(String, nullable=False)
-    number = Column(String, nullable=False)
-    name = Column(String, nullable=True)
+    description = Column(String(500), nullable=False)
+    number = Column(String(255), nullable=False)
+    name = Column(String(255), nullable=True)
     valid_from = Column(DateTime, nullable=True)
     valid_to = Column(DateTime, nullable=False)
-    is_archived = Column(Boolean, default=False, nullable=False)
+    is_archived = Column(Boolean, default=False, nullable=False, index=True)
 
     branch = relationship("Branch", back_populates="client_contracts_link")
     company = relationship("Company", back_populates="contracts")

@@ -1,12 +1,13 @@
-from sqlalchemy import select, update, or_
-from app.models.stage import Stage, StageTemplate
+from sqlalchemy import select, or_
+from app.models.stage import Stage
 from app.models.project import Project
 from app.models.client import Client
 from app.models.user import User
 from sqlalchemy.orm import selectinload
+from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_filtered_stages(session, manager_id, project_id):
+async def get_filtered_stages(session, manager_id, project_id, query):
     stmt = (
         select(Stage)
         .join(Stage.project)
@@ -18,8 +19,17 @@ async def get_filtered_stages(session, manager_id, project_id):
     if manager_id is not None:
         stmt = stmt.where(Client.manager_id == manager_id)
 
-    result = await session.execute(stmt)
-    return result.scalars().all()
+    if query.sort:
+        stmt = apply_sorting(
+            stmt=stmt, 
+            model=Stage, 
+            sort=query.sort
+        )
+    else:
+        stmt = order(stmt=stmt, model=Stage)
+
+    result = await get_all_and_total(session, stmt, query.limit, query.offset)
+    return result
 
 
 async def get_stage_by_id(session, id, user_id, is_admin):
@@ -59,11 +69,3 @@ async def add_stage(session, data):
     return stage
 
 
-async def add_stage_template(session, data, creator_id):
-    template = StageTemplate(
-        name=data.name, stage_list=data.stage_list, user_id=creator_id
-    )
-
-    session.add(template)
-    await session.flush()
-    return template

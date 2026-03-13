@@ -1,34 +1,65 @@
-from sqlalchemy import select, update
+from sqlalchemy import select, or_
 from app.models.project import Project
 from app.models.client import Client
+from app.models.stage import Stage
+from app.models.contract import Contract
+from app.models.assignment import Assignment
 from sqlalchemy.orm import selectinload
+from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_filtered_projects(session, manager_id, client_id):
-    stmt = select(Project).join(Project.client).where(Project.is_archived == False)
+async def get_filtered_projects(session, manager_id, query):
+    stmt = (
+        select(Project)
+        .join(Project.client)
+    )
+    if query.is_archived is None:
+        stmt = stmt.where(Project.is_archived.is_(False))
+    else:
+        stmt = stmt.where(Project.is_archived.is_(True))
 
     if manager_id is not None:
         stmt = stmt.where(Client.manager_id == manager_id)
 
-    if client_id is not None:
-        stmt = stmt.where(Client.id == client_id)
+    if query.client_id is not None:
+        stmt = stmt.where(Client.id == query.client_id)
+    
+    if query.contract_id is not None:
+        stmt = stmt.join(Project.contract).where(Contract.id == query.contract_id)
 
-    result = await session.execute(stmt)
-    return result.scalars().all()
+    if query.sort:
+        stmt = apply_sorting(
+            stmt=stmt, 
+            model=Project, 
+            sort=query.sort
+        )
+    else:
+        stmt = order(stmt=stmt, model=Project)
+
+    result = await get_all_and_total(session, stmt, query.limit, query.offset)
+    return result
 
 
-async def get_project_by_id(session, id, manager_id):
+async def get_project_by_id(session, id, manager_id, executor_id=None):
     stmt = (
         select(Project)
         .options(selectinload(Project.contract))
-        .options(selectinload(Project.client))
+        .options(selectinload(Project.client).selectinload(Client.manager))
         .options(selectinload(Project.stages))
         .join(Project.client)
         .where(Project.id == id)
     )
 
+    conditions = []
+
     if manager_id is not None:
-        stmt = stmt.where(Client.manager_id == manager_id)
+        conditions.append((Client.manager_id == manager_id))
+    
+    if executor_id is not None:
+        conditions.append(Project.stages.any((Stage.assignments.any(Assignment.user_id == executor_id))))
+
+    if conditions:
+        stmt = stmt.where(or_(*conditions))
 
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
@@ -36,7 +67,7 @@ async def get_project_by_id(session, id, manager_id):
 
 async def get_project_by_name(session, name):
     result = await session.execute(select(Project).where(Project.name == name))
-    return result.scalar_one_or_none()
+    return result.scalars().unique().one_or_none()
 
 
 async def add_project(session, data):

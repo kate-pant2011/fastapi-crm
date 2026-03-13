@@ -1,15 +1,20 @@
-from pydantic import BaseModel
-from app.schemas.common import ShortItem
+from pydantic import BaseModel, Field
+from app.schemas.common import BaseShortResponse
 
 
 class BranchItem(BaseModel):
     name: str
     inn: str
-    users: list[ShortItem] | None
+    users: list[BaseShortResponse] | None
 
     class Config:
         from_attributes = True
 
+class BranchPatchRequest(BaseModel):
+    name: str | None = Field(None, min_length=1)
+    model_config = {
+        "extra": "forbid"
+    }
 
 class BranchCreationRequest(BaseModel):
     inn: str

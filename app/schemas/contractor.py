@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
-from app.schemas.common import ShortItem
+from pydantic import BaseModel, EmailStr, Field
+from app.schemas.common import BaseShortResponse
 
 
 class ContractorContractItem(BaseModel):
@@ -15,6 +15,15 @@ class ContractorItem(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ContractorPatchRequest(BaseModel):
+    name: str | None = Field(None, min_length=1)
+    email: list[EmailStr] | None = Field(None, min_items=1)
+    description: str | None = Field(None, min_length=1)
+    model_config = {
+        "extra": "forbid"
+    }
 
 
 class ContractorCreation(BaseModel):

@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from app.schemas.common import ShortItem
+from pydantic import BaseModel, Field
+from app.schemas.common import BaseShortResponse
 from datetime import datetime
 
 
@@ -8,12 +8,22 @@ class StageItem(BaseModel):
     description: str
     start_date: datetime
     end_date: datetime
-    project: ShortItem
-    assignments: list[ShortItem]
+    project: BaseShortResponse
+    assignments: list[BaseShortResponse]
 
     class Config:
         from_attributes = True
 
+
+class StagePatchRequest(BaseModel):
+    name: str | None = Field(None, min_length=1)
+    description: str | None = Field(None, min_length=1)
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    
+    model_config = {
+        "extra": "forbid"
+    }
 
 class StageCreation(BaseModel):
     name: str
@@ -22,15 +32,3 @@ class StageCreation(BaseModel):
     end_date: datetime
     project_id: int
 
-
-class StageTemplateItem(BaseModel):
-    id: int
-    name: str
-
-    class Config:
-        from_attributes = True
-
-
-class StageTemplateCreation(BaseModel):
-    name: str
-    stage_list: list[str]

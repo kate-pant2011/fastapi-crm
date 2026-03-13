@@ -9,22 +9,38 @@ from app.schemas.common import to_schema
 from app.schemas.branch import BranchItem
 
 
-async def form_branch_list(session):
-    branches = await get_all_branches(session)
+async def get_branch_list(session, query):
+    branches = await get_all_branches(session, query)
 
     if not branches:
         raise ApplicationException("Company List Not found", 404)
 
-    return branches
+    return {"items": branches.items, "total": branches.total, "limit": query.limit, "offset": query.offset}
 
 
-async def get_branch(session, id):
-    branch = await get_branch_by_id(session, id)
+async def get_branch(session, branch_id):
+    branch = await get_branch_by_id(session, branch_id)
     if not branch:
         raise ApplicationException("Company Not found", 404)
 
     if branch.is_archived:
         raise ApplicationException(f"A company '{branch.name}' is archived", 400)
+
+    return to_schema(BranchItem, branch)
+
+
+async def change_branch(session, branch_id, item):
+    branch = await get_branch_by_id(session, branch_id)
+    if not branch:
+        raise ApplicationException("Company Not found", 404)
+
+    if branch.is_archived:
+        raise ApplicationException(f"A company '{branch.name}' is archived", 400)
+    
+    update_data = item.model_dump(exclude_unset=True)
+
+    for name, value in update_data.items():   
+        setattr(branch, name, value)
 
     return to_schema(BranchItem, branch)
 

@@ -13,8 +13,8 @@ class Assignment(BaseModel):
     )
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
 
-    name = Column(String, nullable=False)
-    description = Column(String)
+    name = Column(String(255), nullable=False)
+    description = Column(String(1000))
 
     contractor = relationship("Contractor", back_populates="assignments")
     stage = relationship("Stage", back_populates="assignments")

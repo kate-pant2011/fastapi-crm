@@ -1,11 +1,27 @@
 from app.models_loader import Branch
-from sqlalchemy import select, update
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
+from .common import apply_sorting, order, get_all_and_total
 
+async def get_all_branches(session, query):
+    stmt = (
+        select(Branch)
+        .where(Branch.is_archived.is_(False))
+    )
 
-async def get_all_branches(session):
-    result = await session.execute(select(Branch).where(Branch.is_archived == False))
-    return result.scalars().all()
+    if not query.sort:
+        stmt = order(stmt=stmt, model=Branch)
+
+    else:
+        stmt = apply_sorting(
+            stmt=stmt, 
+            model=Branch, 
+            sort=query.sort
+        )
+    
+    result = await get_all_and_total(session, stmt, query.limit, query.offset)
+    return result
+
 
 
 async def get_branch_by_inn(session, inn: str):

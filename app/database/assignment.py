@@ -6,7 +6,7 @@ from app.models.client import Client
 from sqlalchemy.orm import selectinload
 
 
-async def get_assignment_by_id(session, id, manager_id):
+async def get_assignment_by_id(session, id, manager_id=None):
     stmt = (
         select(Assignment)
         .options(selectinload(Assignment.stage))
@@ -25,7 +25,7 @@ async def get_assignment_by_id(session, id, manager_id):
     return result.scalar_one_or_none()
 
 
-async def add_assignment(session, data, manager_id):
+async def add_assignment(session, data):
     assignment = Assignment(
         name=data.name,
         description=data.description,

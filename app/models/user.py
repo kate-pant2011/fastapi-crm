@@ -8,13 +8,13 @@ class User(BaseModel):
 
     branch_id = Column(Integer, ForeignKey("branches.id"), index=True)
 
-    name = Column(String, nullable=False)
-    surname = Column(String, nullable=False)
-    position = Column(String, nullable=False)
-    email = Column(String, unique=True, index=True)
-    password_hash = Column(String, nullable=False)
+    name = Column(String(255), nullable=False)
+    surname = Column(String(255), nullable=False)
+    position = Column(String(255), nullable=False)
+    email = Column(String(255), unique=True, index=True)
+    password_hash = Column(String(255), nullable=False)
 
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, index=True)
     is_new = Column(Boolean, default=True)
     must_change_password = Column(Boolean, default=True)
 

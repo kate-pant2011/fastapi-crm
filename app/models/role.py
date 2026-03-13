@@ -6,6 +6,6 @@ from sqlalchemy.orm import relationship
 class Role(BaseModel):
     __tablename__ = "roles"
 
-    name = Column(String, nullable=False, unique=True)
+    name = Column(String, nullable=False, unique=True, index=True)
 
     users = relationship("User", secondary=user_roles, back_populates="roles")

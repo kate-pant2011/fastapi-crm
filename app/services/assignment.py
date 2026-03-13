@@ -22,6 +22,22 @@ async def get_assignment(session, roles, requester_id, assignment_id):
 
     return to_schema(AssignmentItem, assignment)
 
+async def change_assignment(session, assignment_id, item, roles, user_id):
+    manager_id = Access(roles).manager_id(user_id)
+
+    assignment = await get_assignment_by_id(session, assignment_id, manager_id)
+    if not assignment:
+        raise ApplicationException("Assignment Not found", 404)
+
+    if assignment.is_archived:
+        raise ApplicationException(f"Assignment '{assignment.name}' is archived", 400)
+    
+    update_data = item.model_dump(exclude_unset=True)
+
+    for name, value in update_data.items():   
+        setattr(assignment, name, value)
+
+    return to_schema(AssignmentItem, assignment)
 
 async def create_assignment(session, data, manager_id):
     stage = await get_stage_by_id(session, data.stage_id, manager_id, is_admin=False)
@@ -52,7 +68,7 @@ async def create_assignment(session, data, manager_id):
     if data.contractor_id is not None:
         contractor = await get_contractor(session, data.contractor_id)
 
-    new_assignment = await add_assignment(session, data, manager_id)
+    new_assignment = await add_assignment(session, data)
     return new_assignment
 
 

@@ -2,28 +2,43 @@ from sqlalchemy import select
 from app.models.contract import Contract
 from app.models.client import Client
 from app.models.company import Company
+from app.models.branch import Branch
 from sqlalchemy.orm import selectinload
+from .common import apply_sorting, get_all_and_total
 
 
-async def get_filtered_contracts(session, client_id, manager_id):
+async def get_filtered_contracts(session, manager_id, query):
     stmt = (
         select(Contract)
         .join(Contract.company)
         .join(Company.client)
+        .join(Contract.branch)
         .where(Contract.is_archived == False)
     )
 
     if manager_id is not None:
         stmt = stmt.where(Client.manager_id == manager_id)
+    
+    if query.branch_id is not None:
+        stmt = stmt.where(Branch.id == query.branch_id)
+    
+    if query.company_id is not None:
+        stmt = stmt.where(Company.id == query.company_id)
 
-    if client_id is not None:
-        stmt = stmt.where(Client.id == client_id)
+    if query.sort:
+        stmt = apply_sorting(
+            stmt=stmt, 
+            model=Contract, 
+            sort=query.sort
+        )
+    else:
+        stmt = stmt.order_by(Contract.created_at)
 
-    result = await session.execute(stmt)
-    return result.scalars().all()
+    result = await get_all_and_total(session, stmt, query.limit, query.offset)
+    return result
 
 
-async def get_contract_by_id(session, id, manager_id, client_id=None):
+async def get_contract_by_id(session, id, manager_id):
     stmt = (
         select(Contract)
         .options(selectinload(Contract.company).selectinload(Company.client))
@@ -37,16 +52,7 @@ async def get_contract_by_id(session, id, manager_id, client_id=None):
     if manager_id is not None:
         stmt = stmt.where(Client.manager_id == manager_id)
 
-    if client_id is not None:
-        stmt = stmt.where(Client.id == client_id)
-
     result = await session.execute(stmt)
-    return result.scalar_one_or_none()
-
-
-async def get_contract_by_number(session, number: str):
-    result = await session.execute(select(Contract).where(Contract.number == number))
-
     return result.scalar_one_or_none()
 
 

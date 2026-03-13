@@ -9,12 +9,12 @@ from app.schemas.contractor import ContractorItem
 from app.schemas.common import to_schema
 
 
-async def get_contractor_list(session):
-    contractors = await get_all_contractors(session)
+async def get_contractor_list(session, limit, offset):
+    contractors = await get_all_contractors(session, limit, offset)
     if not contractors:
         raise ApplicationException("Contractor List Not found", 404)
 
-    return contractors
+    return {"items": contractors.items, "total": contractors.total, "limit": limit, "offset": offset}
 
 
 async def get_contractor(session, contractor_id):
@@ -26,6 +26,22 @@ async def get_contractor(session, contractor_id):
         raise ApplicationException("Contractor is already archived", 400)
 
     return to_schema(ContractorItem, contractor)
+
+async def change_contractor(session, contractor_id, item):
+    contractor = await get_contractor_by_id(session, contractor_id)
+    if not contractor:
+        raise ApplicationException("Contractor Not found", 404)
+
+    if contractor.is_archived:
+        raise ApplicationException(f"A contractor '{contractor.name}' is archived", 400)
+    
+    update_data = item.model_dump(exclude_unset=True)
+
+    for name, value in update_data.items():   
+        setattr(contractor, name, value)
+
+    return to_schema(ContractorItem, contractor)
+
 
 
 async def create_contractor(session, data):

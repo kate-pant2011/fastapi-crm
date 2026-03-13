@@ -11,20 +11,22 @@ from app.schemas.common import to_schema
 from .common import Access
 
 
-async def get_company_list(session, roles, requester_id, scope, client_id):
+async def get_company_list(session, roles, requester_id, query):
     access = Access(roles)
     access.require_admin_or_manager()
     manager_id = access.manager_id_with_scope(
         user_id=requester_id, 
-        scope=scope
+        scope=query.scope
     )
 
-    companies = await get_filtered_companies(session, manager_id, client_id)
+    companies = await get_filtered_companies(
+        session=session, manager_id=manager_id, query=query
+    )
 
     if not companies:
         raise ApplicationException("Companies Not Found", 404)
 
-    return companies
+    return {"items": companies.items, "total": companies.total, "limit": query.limit, "offset": query.offset}
 
 
 async def get_company(session, roles, requester_id, company_id):
@@ -41,6 +43,22 @@ async def get_company(session, roles, requester_id, company_id):
 
     return to_schema(CompanyItem, company)
 
+async def change_company(session, roles, user_id, company_id, item):
+    manager_id = Access(roles).manager_id(user_id)
+    
+    company = await get_company_by_id(session, manager_id, company_id)
+    if not company:
+        raise ApplicationException("Company Not found", 404)
+
+    if company.is_archived:
+        raise ApplicationException(f"A company '{company.name}' is archived", 400)
+    
+    update_data = item.model_dump(exclude_unset=True)
+
+    for name, value in update_data.items():   
+        setattr(company, name, value)
+
+    return to_schema(CompanyItem, company)
 
 async def create_company(session, data, manager_id):
     company = await get_company_by_inn(session, data.inn)

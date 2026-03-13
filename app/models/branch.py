@@ -6,12 +6,9 @@ from sqlalchemy.orm import relationship
 class Branch(BaseModel):
     __tablename__ = "branches"
 
-    name = Column(String, unique=True, nullable=False)
-    inn = Column(String, unique=True, nullable=False)
+    name = Column(String(255), unique=True, nullable=False)
+    inn = Column(String(255), unique=True, nullable=False, index=True)
     users = relationship("User", back_populates="branch")
-    is_archived = Column(Boolean, default=False, nullable=False)
+    is_archived = Column(Boolean, default=False, nullable=False, index=True)
 
-    contractor_contracts_link = relationship(
-        "ContractorContract", back_populates="branch"
-    )
     client_contracts_link = relationship("Contract", back_populates="branch")

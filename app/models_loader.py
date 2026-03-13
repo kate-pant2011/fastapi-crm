@@ -3,10 +3,11 @@ from app.models.branch import Branch
 from app.models.client import Client
 from app.models.company import Company
 from app.models.contract import Contract
-from app.models.contractor import Contractor, ContractorContract
+from app.models.contractor import Contractor
 from app.models.project import Project
 from app.models.refresh_token import RefreshToken
 from app.models.role import Role
+from app.models.stage_template import StageTemplate
 from app.models.stage import Stage
 from app.models.user import User
 

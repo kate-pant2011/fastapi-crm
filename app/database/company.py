@@ -1,21 +1,30 @@
-from sqlalchemy import select, update
-from fastapi import HTTPException
+from sqlalchemy import select
 from app.models.company import Company
 from app.models.client import Client
 from sqlalchemy.orm import selectinload
+from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_filtered_companies(session, manager_id, client_id):
+async def get_filtered_companies(session, manager_id, query):
     stmt = select(Company).join(Company.client).where(Company.is_archived == False)
 
     if manager_id is not None:
         stmt = stmt.where(Client.manager_id == manager_id)
 
-    if client_id is not None:
-        stmt = stmt.where(Client.id == client_id)
+    if query.client_id is not None:
+        stmt = stmt.where(Client.id == query.client_id)
 
-    result = await session.execute(stmt)
-    return result.scalars().all()
+    if query.sort:
+        stmt = apply_sorting(
+            stmt=stmt, 
+            model=Company, 
+            sort=query.sort
+        )
+    else:
+        stmt = order(stmt=stmt, model=Company)
+
+    result = await get_all_and_total(session, stmt, query.limit, query.offset)
+    return result
 
 
 async def get_company_by_id(session, manager_id, company_id):
@@ -23,6 +32,7 @@ async def get_company_by_id(session, manager_id, company_id):
         select(Company)
         .join(Company.client)
         .options(selectinload(Company.contracts))
+        .options(selectinload(Company.client))
         .where(Company.id == company_id)
         .where(Company.is_archived == False)
     )
