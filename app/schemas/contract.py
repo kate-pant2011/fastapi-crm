@@ -25,7 +25,7 @@ class ContractListResponse(BaseModel):
 class ContractPatchRequest(BaseModel):
     name: str | None = Field(None, min_length=1)
     number: str | None = Field(None, min_length=1)
-    status: statusname | None = Field(None, min_length=1)
+    status: statusname | None
     description: str | None = Field(None, min_length=1)
     valid_from: datetime | None = None
     valid_to: datetime | None = None
@@ -47,12 +47,14 @@ class GetContractItem(BaseModel):
         from_attributes = True
 
 
-class contractCreation(BaseModel):
-    number: str
-    status: str
-    name: str | None
-    description: str | None
+class СontractCreation(BaseModel):
+    number: str = Field(min_length=1)
+    status: statusname
+    name: str | None = Field(None, min_length=1)
+    description: str | None = Field(None, min_length=1)
     valid_from: datetime | None
     valid_to: datetime
-    company_id: int
-    branch_id: int
+    company_id: int = Field(gt=0)
+    branch_id: int = Field(gt=0)
+
+    model_config = {"extra": "forbid"}

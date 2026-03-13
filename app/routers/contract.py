@@ -8,7 +8,7 @@ from app.services.contract import (
     change_contract,
 )
 from app.schemas.contract import (
-    contractCreation,
+    СontractCreation,
     ContractItem,
     ContractListResponse,
     GetContractItem,
@@ -100,7 +100,7 @@ async def change_contract_router(
 
 @contract_router.post("/contract", response_model=ContractItem)
 async def create_contract_router(
-    data: contractCreation,
+    data: СontractCreation,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("manager")),
 ):

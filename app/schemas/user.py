@@ -31,14 +31,17 @@ class UserPatchRequest(BaseModel):
 
 
 class UserCreationRequest(BaseModel):
-    name: str
-    surname: str
-    position: str
-    email: EmailStr
-    branch_id: int
-    role: list[rolename]
+    name: str = Field(min_length=1)
+    surname: str = Field(min_length=1)
+    position: str = Field(min_length=1)
+    email: EmailStr 
+    branch_id: int = Field(gt=0)
+    role: list[rolename] = Field(min_items=1)
+
+    model_config = {"extra": "forbid"}
 
 
 class UserCreationResponse(BaseModel):
     name: str
     password: str
+

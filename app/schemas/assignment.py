@@ -20,8 +20,10 @@ class AssignmentPatchRequest(BaseModel):
 
 
 class AssignmentCreation(BaseModel):
-    name: str
-    description: str
-    stage_id: int
-    user_id: int | None
-    contractor_id: int | None
+    name: str = Field(min_length=1)
+    description: str = Field(min_length=1)
+    stage_id: int = Field(gt=0)
+    user_id: int | None = Field(None, gt=0)
+    contractor_id: int | None = Field(None, gt=0)
+
+    model_config = {"extra": "forbid"}

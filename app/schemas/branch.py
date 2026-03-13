@@ -17,5 +17,7 @@ class BranchPatchRequest(BaseModel):
 
 
 class BranchCreationRequest(BaseModel):
-    inn: str
-    name: str
+    inn: str = Field(min_length=1)
+    name: str = Field(min_length=1)
+
+    model_config = {"extra": "forbid"}

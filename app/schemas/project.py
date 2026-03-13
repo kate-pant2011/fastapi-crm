@@ -27,9 +27,11 @@ class ProjectPatchRequest(BaseModel):
 
 
 class ProjectCreation(BaseModel):
-    name: str
-    description: str
+    name: str = Field(min_length=1)
+    description: str = Field(min_length=1)
     start_date: datetime
     end_date: datetime
-    client_id: int
+    client_id: int = Field(gt=0)
     contract_id: int | None
+
+    model_config = {"extra": "forbid"}

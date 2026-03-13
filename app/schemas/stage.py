@@ -25,11 +25,13 @@ class StagePatchRequest(BaseModel):
 
 
 class StageCreation(BaseModel):
-    name: str
-    description: str
+    name: str = Field(min_length=1)
+    description: str = Field(min_length=1)
     start_date: datetime
     end_date: datetime
-    project_id: int
+    project_id: int = Field(gt=0)
+
+    model_config = {"extra": "forbid"}
 
 
 class StageReorderRequest(BaseModel):

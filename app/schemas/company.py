@@ -19,6 +19,7 @@ class CompanyPatchRequest(BaseModel):
 
 
 class CompanyCreation(BaseModel):
-    name: str
-    inn: str
-    client_id: int
+    name: str = Field(min_length=1)
+    inn: str = Field(min_length=1)
+    client_id: int = Field(gt=0)
+    model_config = {"extra": "forbid"}

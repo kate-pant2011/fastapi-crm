@@ -23,6 +23,7 @@ class ClientPatchRequest(BaseModel):
 
 
 class ClientCreation(BaseModel):
-    name: str
-    email: list[EmailStr] | None
-    telephone: list[str] | None
+    name: str = Field(min_length=1)
+    email: list[EmailStr] | None = Field(None, min_items=1)
+    telephone: list[str] | None = Field(None, min_items=1)
+    model_config = {"extra": "forbid"}

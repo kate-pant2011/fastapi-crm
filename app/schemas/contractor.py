@@ -24,6 +24,7 @@ class ContractorPatchRequest(BaseModel):
 
 
 class ContractorCreation(BaseModel):
-    name: str
-    email: list[EmailStr] | None
-    description: str
+    name: str = Field(min_length=1)
+    email: list[EmailStr] | None = Field(None, min_items=1)
+    description: str = Field(min_length=1)
+    model_config = {"extra": "forbid"}
