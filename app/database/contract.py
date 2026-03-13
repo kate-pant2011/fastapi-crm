@@ -18,19 +18,15 @@ async def get_filtered_contracts(session, manager_id, query):
 
     if manager_id is not None:
         stmt = stmt.where(Client.manager_id == manager_id)
-    
+
     if query.branch_id is not None:
         stmt = stmt.where(Branch.id == query.branch_id)
-    
+
     if query.company_id is not None:
         stmt = stmt.where(Company.id == query.company_id)
 
     if query.sort:
-        stmt = apply_sorting(
-            stmt=stmt, 
-            model=Contract, 
-            sort=query.sort
-        )
+        stmt = apply_sorting(stmt=stmt, model=Contract, sort=query.sort)
     else:
         stmt = stmt.order_by(Contract.created_at)
 

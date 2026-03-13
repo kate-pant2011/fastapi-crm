@@ -15,11 +15,7 @@ async def get_filtered_companies(session, manager_id, query):
         stmt = stmt.where(Client.id == query.client_id)
 
     if query.sort:
-        stmt = apply_sorting(
-            stmt=stmt, 
-            model=Company, 
-            sort=query.sort
-        )
+        stmt = apply_sorting(stmt=stmt, model=Company, sort=query.sort)
     else:
         stmt = order(stmt=stmt, model=Company)
 

@@ -9,10 +9,7 @@ from .common import apply_sorting, order, get_all_and_total
 
 
 async def get_filtered_projects(session, manager_id, query):
-    stmt = (
-        select(Project)
-        .join(Project.client)
-    )
+    stmt = select(Project).join(Project.client)
     if query.is_archived is None:
         stmt = stmt.where(Project.is_archived.is_(False))
     else:
@@ -23,16 +20,12 @@ async def get_filtered_projects(session, manager_id, query):
 
     if query.client_id is not None:
         stmt = stmt.where(Client.id == query.client_id)
-    
+
     if query.contract_id is not None:
         stmt = stmt.join(Project.contract).where(Contract.id == query.contract_id)
 
     if query.sort:
-        stmt = apply_sorting(
-            stmt=stmt, 
-            model=Project, 
-            sort=query.sort
-        )
+        stmt = apply_sorting(stmt=stmt, model=Project, sort=query.sort)
     else:
         stmt = order(stmt=stmt, model=Project)
 
@@ -54,9 +47,13 @@ async def get_project_by_id(session, id, manager_id, executor_id=None):
 
     if manager_id is not None:
         conditions.append((Client.manager_id == manager_id))
-    
+
     if executor_id is not None:
-        conditions.append(Project.stages.any((Stage.assignments.any(Assignment.user_id == executor_id))))
+        conditions.append(
+            Project.stages.any(
+                (Stage.assignments.any(Assignment.user_id == executor_id))
+            )
+        )
 
     if conditions:
         stmt = stmt.where(or_(*conditions))

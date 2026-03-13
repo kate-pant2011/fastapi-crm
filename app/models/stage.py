@@ -16,5 +16,3 @@ class Stage(BaseModel):
 
     project = relationship("Project", back_populates="stages")
     assignments = relationship("Assignment", back_populates="stage")
-
-

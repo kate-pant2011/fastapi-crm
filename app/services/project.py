@@ -2,7 +2,6 @@ from app.config.config import ApplicationException
 from app.database.contract import get_contract_by_id
 from app.database.client import get_client_by_id
 from app.database.user import get_user_by_id
-from app.database.assignment import get_assignment_by_id
 from app.database.project import (
     get_filtered_projects,
     add_project,
@@ -14,30 +13,23 @@ from app.schemas.contract import ContractItem
 from .common import Access
 
 
-async def get_project_list(
-        session, roles, requester_id, query
-):
+async def get_project_list(session, roles, requester_id, query):
     access = Access(roles)
     access.require_admin_or_manager()
-    manager_id = access.manager_id_with_scope(
-        user_id=requester_id, 
-        scope=query.scope
-    )
+    manager_id = access.manager_id_with_scope(user_id=requester_id, scope=query.scope)
 
     projects = await get_filtered_projects(
-        session=session, 
-        manager_id=manager_id, 
-        query=query
+        session=session, manager_id=manager_id, query=query
     )
 
     if not projects:
         raise ApplicationException("projects Not Found", 404)
 
     return {
-        "items": projects.items, 
-        "total": projects.total, 
-        "limit": query.limit, 
-        "offset": query.offset
+        "items": projects.items,
+        "total": projects.total,
+        "limit": query.limit,
+        "offset": query.offset,
     }
 
 
@@ -53,7 +45,7 @@ async def get_project(session, roles, requester_id, project_id):
     if project.is_archived:
         raise ApplicationException("project is deleted", 400)
 
-    manager = project.client.manager 
+    manager = project.client.manager
     if not manager:
         raise ApplicationException("manager Not found", 404)
 
@@ -71,6 +63,7 @@ async def get_project(session, roles, requester_id, project_id):
         "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages],
     }
 
+
 async def change_project(session, roles, user_id, project_id, item):
     access = Access(roles)
     access.require_admin_or_manager()
@@ -83,11 +76,11 @@ async def change_project(session, roles, user_id, project_id, item):
 
     if project.is_archived:
         raise ApplicationException(f"A project '{project.name}' is archived", 400)
-    
+
     manager = await get_user_by_id(session, project.client.manager_id)
     if not manager:
         raise ApplicationException("manager Not found", 404)
-   
+
     update_data = item.model_dump(exclude_unset=True)
 
     start_date = update_data.get("start_date", None) or project.start_date
@@ -95,8 +88,8 @@ async def change_project(session, roles, user_id, project_id, item):
 
     if start_date > end_date:
         raise ApplicationException("End-date cannot be less than start-date", 400)
-    
-    for name, value in update_data.items():   
+
+    for name, value in update_data.items():
         setattr(project, name, value)
 
     return {
@@ -142,10 +135,9 @@ async def create_project(session, data, manager_id):
         if contract.is_archived:
             raise ApplicationException("project is deleted", 400)
 
-    
     if data.start_date > data.end_date:
         raise ApplicationException("End-date cannot be less than start-date", 400)
-    
+
     new_project = await add_project(session, data)
 
     return new_project

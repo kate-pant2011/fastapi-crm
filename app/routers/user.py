@@ -13,15 +13,16 @@ from app.services.user import (
     change_user,
 )
 from app.schemas.user import (
-    UserItem, 
-    UserCreationRequest, 
+    UserItem,
+    UserCreationRequest,
     UserCreationResponse,
-    UserPatchRequest
+    UserPatchRequest,
 )
 from app.auth.dependencies import UserDTO
 from dataclasses import dataclass
 
 user_router = APIRouter()
+
 
 @dataclass
 class QueryDTO:
@@ -32,12 +33,13 @@ class QueryDTO:
     limit: int
     offset: int
 
+
 @user_router.get("/user", response_model=BaseListResponse)
 async def get_user_list_router(
     branch_id: int | None = Query(default=None),
     is_active: bool | None = Query(default=None),
     role_name: str | None = Query(default=None),
-    sort: str | None= Query(default=None, description="- stands for desc"),
+    sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
     session: AsyncSession = Depends(get_db),
@@ -50,13 +52,9 @@ async def get_user_list_router(
             role_name=role_name,
             sort=sort,
             limit=limit,
-            offset=offset
+            offset=offset,
         )
-        return await get_user_list(
-            session=session, 
-            roles=user.roles, 
-            query=query
-        )
+        return await get_user_list(session=session, roles=user.roles, query=query)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -86,9 +84,9 @@ async def change_user_router(
     id: int,
     item: UserPatchRequest,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin"))
+    user: UserDTO = Depends(require_roles("owner", "admin")),
 ):
-    try: 
+    try:
         return await change_user(session, user.roles, id, item)
 
     except ApplicationException as e:

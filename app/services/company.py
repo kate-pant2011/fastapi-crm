@@ -14,10 +14,7 @@ from .common import Access
 async def get_company_list(session, roles, requester_id, query):
     access = Access(roles)
     access.require_admin_or_manager()
-    manager_id = access.manager_id_with_scope(
-        user_id=requester_id, 
-        scope=query.scope
-    )
+    manager_id = access.manager_id_with_scope(user_id=requester_id, scope=query.scope)
 
     companies = await get_filtered_companies(
         session=session, manager_id=manager_id, query=query
@@ -26,7 +23,12 @@ async def get_company_list(session, roles, requester_id, query):
     if not companies:
         raise ApplicationException("Companies Not Found", 404)
 
-    return {"items": companies.items, "total": companies.total, "limit": query.limit, "offset": query.offset}
+    return {
+        "items": companies.items,
+        "total": companies.total,
+        "limit": query.limit,
+        "offset": query.offset,
+    }
 
 
 async def get_company(session, roles, requester_id, company_id):
@@ -43,22 +45,24 @@ async def get_company(session, roles, requester_id, company_id):
 
     return to_schema(CompanyItem, company)
 
+
 async def change_company(session, roles, user_id, company_id, item):
     manager_id = Access(roles).manager_id(user_id)
-    
+
     company = await get_company_by_id(session, manager_id, company_id)
     if not company:
         raise ApplicationException("Company Not found", 404)
 
     if company.is_archived:
         raise ApplicationException(f"A company '{company.name}' is archived", 400)
-    
+
     update_data = item.model_dump(exclude_unset=True)
 
-    for name, value in update_data.items():   
+    for name, value in update_data.items():
         setattr(company, name, value)
 
     return to_schema(CompanyItem, company)
+
 
 async def create_company(session, data, manager_id):
     company = await get_company_by_inn(session, data.inn)
@@ -70,7 +74,7 @@ async def create_company(session, data, manager_id):
 
     client = await get_client_by_id(session, data.client_id, manager_id)
     if not client:
-        raise ApplicationException(f"Client Not Found or Client Access Forbidden ", 404)
+        raise ApplicationException("Client Not Found or Client Access Forbidden ", 404)
 
     new_company = await add_company(session, data)
 
@@ -94,7 +98,7 @@ async def restore_company(session, company_id, roles, requester_id):
     access = Access(roles)
     access.require_admin_or_manager()
     manager_id = access.manager_id(requester_id)
-    
+
     company = await get_company_by_id(session, manager_id, company_id)
 
     if not company:

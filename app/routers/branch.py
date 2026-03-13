@@ -2,18 +2,14 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from app.config.config import ApplicationException
 from app.auth.dependencies import require_roles
 from app.schemas.common import BaseShortResponse, BaseListResponse
-from app.schemas.branch import (
-    BranchItem,
-    BranchCreationRequest,
-    BranchPatchRequest
-)
+from app.schemas.branch import BranchItem, BranchCreationRequest, BranchPatchRequest
 from app.services.branch import (
     create_branch,
     archive_branch,
     restore_branch,
     get_branch_list,
     get_branch,
-    change_branch
+    change_branch,
 )
 from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
@@ -21,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from dataclasses import dataclass
 
 branch_router = APIRouter()
+
 
 @dataclass
 class QueryDTO:
@@ -43,7 +40,7 @@ async def get_branch_list_router(
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
@@ -69,9 +66,9 @@ async def change_branch_router(
     id: int,
     item: BranchPatchRequest,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin"))
+    user: UserDTO = Depends(require_roles("owner", "admin")),
 ):
-    try: 
+    try:
         return await change_branch(session, id, item)
 
     except ApplicationException as e:
@@ -79,6 +76,7 @@ async def change_branch_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+
 
 @branch_router.post("/branch", response_model=BaseShortResponse)
 async def create_branch_router(
@@ -94,6 +92,7 @@ async def create_branch_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+
 
 @branch_router.delete("/branch/{id}", response_model=BaseShortResponse)
 async def archive_branch_router(
@@ -125,4 +124,3 @@ async def restore_branch_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
-

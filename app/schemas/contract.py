@@ -3,13 +3,7 @@ from datetime import datetime
 from app.schemas.common import BaseShortResponse
 from typing import Literal
 
-statusname = Literal[
-    "draft",
-    "pending",
-    "signed",
-    "expired",
-    "terminated"
-]
+statusname = Literal["draft", "pending", "signed", "expired", "terminated"]
 
 
 class ContractItem(BaseModel):
@@ -20,11 +14,13 @@ class ContractItem(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ContractListResponse(BaseModel):
-    items: list[ContractItem] 
+    items: list[ContractItem]
     total: int
     limit: int
     offset: int
+
 
 class ContractPatchRequest(BaseModel):
     name: str | None = Field(None, min_length=1)
@@ -34,9 +30,7 @@ class ContractPatchRequest(BaseModel):
     valid_from: datetime | None = None
     valid_to: datetime | None = None
 
-    model_config = {
-        "extra": "forbid"
-    }
+    model_config = {"extra": "forbid"}
 
 
 class GetContractItem(BaseModel):
@@ -47,7 +41,7 @@ class GetContractItem(BaseModel):
     valid_from: datetime | None
     valid_to: datetime
     branch: BaseShortResponse
-    company: BaseShortResponse 
+    company: BaseShortResponse
 
     class Config:
         from_attributes = True

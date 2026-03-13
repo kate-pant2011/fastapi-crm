@@ -8,7 +8,7 @@ from app.schemas.common import BaseShortResponse, BaseListResponse
 from app.schemas.contractor import (
     ContractorItem,
     ContractorCreation,
-    ContractorPatchRequest
+    ContractorPatchRequest,
 )
 from app.services.contractor import (
     get_contractor_list,
@@ -16,7 +16,7 @@ from app.services.contractor import (
     create_contractor,
     archive_contractor,
     restore_contractor,
-    change_contractor
+    change_contractor,
 )
 
 contractor_router = APIRouter()
@@ -25,7 +25,7 @@ contractor_router = APIRouter()
 @contractor_router.get("/contractor", response_model=BaseListResponse)
 async def get_contractor_list_router(
     limit: int = Query(default=20, le=100),
-    offset: int = Query(default=0),    
+    offset: int = Query(default=0),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
@@ -54,14 +54,15 @@ async def get_contractor_router(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
+
 @contractor_router.patch("/contractor/{id}", response_model=ContractorItem)
 async def change_branch_router(
     id: int,
     item: ContractorPatchRequest,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor"))
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
-    try: 
+    try:
         return await change_contractor(session, id, item)
 
     except ApplicationException as e:
@@ -69,7 +70,8 @@ async def change_branch_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
-    
+
+
 @contractor_router.post("/contractor", response_model=BaseShortResponse)
 async def create_contractor_router(
     data: ContractorCreation,

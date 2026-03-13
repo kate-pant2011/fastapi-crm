@@ -4,7 +4,6 @@ from logging.config import fileConfig
 from alembic import context
 from app.config.config import settings
 from sqlalchemy import create_engine
-import app.models_loader
 from app.models.base import Base
 
 # this is the Alembic Config object, which provides access to the values within the .ini file in use.

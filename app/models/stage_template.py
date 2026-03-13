@@ -1,5 +1,5 @@
 from .base import BaseModel
-from sqlalchemy import Column, ForeignKey, String, Integer, Boolean
+from sqlalchemy import Column, ForeignKey, String, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import ARRAY
 

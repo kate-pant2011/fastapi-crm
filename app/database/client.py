@@ -11,11 +11,7 @@ async def get_filtered_clients(session, manager_id, query):
         stmt = stmt.where(Client.manager_id == manager_id)
 
     if query.sort:
-        stmt = apply_sorting(
-            stmt=stmt, 
-            model=Client, 
-            sort=query.sort
-        )
+        stmt = apply_sorting(stmt=stmt, model=Client, sort=query.sort)
     else:
         stmt = order(stmt=stmt, model=Client)
 

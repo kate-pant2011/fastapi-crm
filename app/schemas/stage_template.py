@@ -7,7 +7,6 @@ class StageTemplateItem(BaseModel):
     stage_list: list[str]
     creator: BaseShortResponse
 
-
     class Config:
         from_attributes = True
 
@@ -15,6 +14,7 @@ class StageTemplateItem(BaseModel):
 class StageTemplateCreation(BaseModel):
     name: str
     stage_list: list[str]
+
 
 class StageTemplatePatchRequest(BaseModel):
     stage_list: list[str]

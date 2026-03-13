@@ -20,11 +20,7 @@ async def get_filtered_stages(session, manager_id, project_id, query):
         stmt = stmt.where(Client.manager_id == manager_id)
 
     if query.sort:
-        stmt = apply_sorting(
-            stmt=stmt, 
-            model=Stage, 
-            sort=query.sort
-        )
+        stmt = apply_sorting(stmt=stmt, model=Stage, sort=query.sort)
     else:
         stmt = order(stmt=stmt, model=Stage)
 
@@ -67,5 +63,3 @@ async def add_stage(session, data):
     session.add(stage)
     await session.flush()
     return stage
-
-

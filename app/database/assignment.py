@@ -1,4 +1,4 @@
-from sqlalchemy import select, update
+from sqlalchemy import select
 from app.models.assignment import Assignment
 from app.models.stage import Stage
 from app.models.project import Project
@@ -31,7 +31,7 @@ async def add_assignment(session, data):
         description=data.description,
         stage_id=data.stage_id,
         user_id=data.user_id,
-        contractor_id=data.contractor_id
+        contractor_id=data.contractor_id,
     )
 
     session.add(assignment)

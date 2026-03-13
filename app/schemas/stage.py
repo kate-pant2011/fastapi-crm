@@ -20,10 +20,9 @@ class StagePatchRequest(BaseModel):
     description: str | None = Field(None, min_length=1)
     start_date: datetime | None = None
     end_date: datetime | None = None
-    
-    model_config = {
-        "extra": "forbid"
-    }
+
+    model_config = {"extra": "forbid"}
+
 
 class StageCreation(BaseModel):
     name: str
@@ -31,4 +30,3 @@ class StageCreation(BaseModel):
     start_date: datetime
     end_date: datetime
     project_id: int
-

@@ -5,14 +5,14 @@ from app.services.contract import (
     create_contract,
     archive_contract,
     restore_contract,
-    change_contract
+    change_contract,
 )
 from app.schemas.contract import (
-    contractCreation, 
+    contractCreation,
     ContractItem,
-    ContractListResponse, 
+    ContractListResponse,
     GetContractItem,
-    ContractPatchRequest
+    ContractPatchRequest,
 )
 from app.auth.dependencies import require_roles, UserDTO
 from app.config.connection import get_db
@@ -22,6 +22,7 @@ from app.schemas.common import BaseShortResponse
 from dataclasses import dataclass
 
 contract_router = APIRouter()
+
 
 @dataclass
 class QueryDTO:
@@ -38,7 +39,7 @@ async def get_contract_list_router(
     scope: str | None = Query(default=None, description="mine"),
     branch_id: int | None = Query(default=None),
     company_id: int | None = Query(default=None),
-    sort: str | None= Query(default=None, description="- stands for desc"),
+    sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
     session: AsyncSession = Depends(get_db),
@@ -54,10 +55,7 @@ async def get_contract_list_router(
     )
     try:
         return await get_contract_list(
-            session=session, 
-            roles=user.roles, 
-            requester_id=user.id, 
-            query=query
+            session=session, roles=user.roles, requester_id=user.id, query=query
         )
 
     except ApplicationException as e:
@@ -82,14 +80,15 @@ async def get_contract_router(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
+
 @contract_router.patch("/contract/{id}", response_model=GetContractItem)
 async def change_contract_router(
     id: int,
     item: ContractPatchRequest,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager"))
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
-    try: 
+    try:
         return await change_contract(session, user.roles, user.id, id, item)
 
     except ApplicationException as e:
@@ -97,6 +96,7 @@ async def change_contract_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+
 
 @contract_router.post("/contract", response_model=ContractItem)
 async def create_contract_router(

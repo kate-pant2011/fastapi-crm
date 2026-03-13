@@ -14,7 +14,12 @@ async def get_contractor_list(session, limit, offset):
     if not contractors:
         raise ApplicationException("Contractor List Not found", 404)
 
-    return {"items": contractors.items, "total": contractors.total, "limit": limit, "offset": offset}
+    return {
+        "items": contractors.items,
+        "total": contractors.total,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 async def get_contractor(session, contractor_id):
@@ -27,6 +32,7 @@ async def get_contractor(session, contractor_id):
 
     return to_schema(ContractorItem, contractor)
 
+
 async def change_contractor(session, contractor_id, item):
     contractor = await get_contractor_by_id(session, contractor_id)
     if not contractor:
@@ -34,14 +40,13 @@ async def change_contractor(session, contractor_id, item):
 
     if contractor.is_archived:
         raise ApplicationException(f"A contractor '{contractor.name}' is archived", 400)
-    
+
     update_data = item.model_dump(exclude_unset=True)
 
-    for name, value in update_data.items():   
+    for name, value in update_data.items():
         setattr(contractor, name, value)
 
     return to_schema(ContractorItem, contractor)
-
 
 
 async def create_contractor(session, data):

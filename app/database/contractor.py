@@ -1,14 +1,11 @@
-from sqlalchemy import select, update
+from sqlalchemy import select
 from app.models.contractor import Contractor
 from sqlalchemy.orm import selectinload
 from .common import order, get_all_and_total
-from app.config.config import ApplicationException
 
 
 async def get_all_contractors(session, limit, offset):
-    stmt = (
-        select(Contractor).where(Contractor.is_archived == False)
-    )
+    stmt = select(Contractor).where(Contractor.is_archived == False)
 
     stmt = order(stmt=stmt, model=Contractor)
 

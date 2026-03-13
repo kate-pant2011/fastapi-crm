@@ -10,11 +10,11 @@ class BranchItem(BaseModel):
     class Config:
         from_attributes = True
 
+
 class BranchPatchRequest(BaseModel):
     name: str | None = Field(None, min_length=1)
-    model_config = {
-        "extra": "forbid"
-    }
+    model_config = {"extra": "forbid"}
+
 
 class BranchCreationRequest(BaseModel):
     inn: str

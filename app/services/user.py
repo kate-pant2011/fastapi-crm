@@ -19,14 +19,21 @@ async def get_user_list(session, roles, query):
     is_admin = Access(roles).is_admin()
 
     if query.role_name is not None and query.role_name not in ROLES:
-        raise ApplicationException(f"Role named '{query.role_name}' does not exist", 400)
-    
+        raise ApplicationException(
+            f"Role named '{query.role_name}' does not exist", 400
+        )
+
     users = await get_all_users(session, is_admin, query)
 
     if not users:
         raise ApplicationException("User List Not found", 404)
 
-    return {"items": users.items, "total": users.total, "limit": query.limit, "offset": query.offset}
+    return {
+        "items": users.items,
+        "total": users.total,
+        "limit": query.limit,
+        "offset": query.offset,
+    }
 
 
 async def get_user(session, user_id, roles):
@@ -68,35 +75,36 @@ async def change_user(session, roles, user_id, item):
 
     if not user.is_active:
         raise ApplicationException(f"A user '{user.name}' is archived", 400)
-    
+
     update_data = item.model_dump(exclude_unset=True)
 
     if "branch_id" in update_data:
-        branch = await get_branch_by_id(session, update_data.get("branch_id")) 
+        branch = await get_branch_by_id(session, update_data.get("branch_id"))
         if not branch:
             raise ApplicationException("Company Not found", 404)
 
         if branch.is_archived:
-            raise ApplicationException(f"A company with INN {branch.inn} is archived", 400)
-    
-    if "role" in update_data: 
+            raise ApplicationException(
+                f"A company with INN {branch.inn} is archived", 400
+            )
+
+    if "role" in update_data:
         new_roles = update_data.get("role")
-        
+
         await add_user_role(
-            session=session, 
-            is_owner=is_owner, 
-            user=user, 
-            new_roles=new_roles, 
-        ) 
+            session=session,
+            is_owner=is_owner,
+            user=user,
+            new_roles=new_roles,
+        )
 
     for name, value in update_data.items():
-        if name == "role": 
+        if name == "role":
             continue
 
         setattr(user, name, value)
 
     return to_schema(UserItem, user)
-
 
 
 async def create_user(session, roles, data):
@@ -123,8 +131,8 @@ async def create_user(session, roles, data):
         session, data, hashed_password, branch.id, password_change=True, is_new=True
     )
     if "owner" in data.roles:
-            raise ApplicationException(f"Role owner cannot be applied", 400)
-    
+        raise ApplicationException("Role owner cannot be applied", 400)
+
     await add_user_role(session, is_owner, new_user, data.role)
 
     return {"name": new_user.name, "password": password}

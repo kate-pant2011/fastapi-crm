@@ -15,6 +15,7 @@ class ProjectItem(BaseModel):
     manager: BaseShortResponse
     stages: list[BaseShortResponse] | None
 
+
 class ProjectPatchRequest(BaseModel):
     name: str | None = Field(None, min_length=1)
     description: str | None = Field(None, min_length=1)
@@ -22,9 +23,8 @@ class ProjectPatchRequest(BaseModel):
     end_date: datetime | None = None
     contract_id: int | None = Field(None, gt=0)
 
-    model_config = {
-        "extra": "forbid"
-    }
+    model_config = {"extra": "forbid"}
+
 
 class ProjectCreation(BaseModel):
     name: str

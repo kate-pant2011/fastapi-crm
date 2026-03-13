@@ -10,6 +10,7 @@ from app.database.stage import get_stage_by_id
 from app.database.user import get_user_by_id
 from .contractor import get_contractor
 
+
 async def get_assignment(session, roles, requester_id, assignment_id):
     access = Access(roles)
     access.require_admin_or_manager()
@@ -22,6 +23,7 @@ async def get_assignment(session, roles, requester_id, assignment_id):
 
     return to_schema(AssignmentItem, assignment)
 
+
 async def change_assignment(session, assignment_id, item, roles, user_id):
     manager_id = Access(roles).manager_id(user_id)
 
@@ -31,13 +33,14 @@ async def change_assignment(session, assignment_id, item, roles, user_id):
 
     if assignment.is_archived:
         raise ApplicationException(f"Assignment '{assignment.name}' is archived", 400)
-    
+
     update_data = item.model_dump(exclude_unset=True)
 
-    for name, value in update_data.items():   
+    for name, value in update_data.items():
         setattr(assignment, name, value)
 
     return to_schema(AssignmentItem, assignment)
+
 
 async def create_assignment(session, data, manager_id):
     stage = await get_stage_by_id(session, data.stage_id, manager_id, is_admin=False)
@@ -60,15 +63,15 @@ async def create_assignment(session, data, manager_id):
             raise ApplicationException("Roles Not found", 404)
 
         is_executor = Access(target_roles).is_executor()
-        if  not is_executor:
+        if not is_executor:
             raise ApplicationException(
                 f"Cannot assign user with {target_roles} status", 403
             )
 
     if data.contractor_id is not None:
         contractor = await get_contractor(session, data.contractor_id)
+        if not contractor:
+            raise ApplicationException("Contractor Not found", 404)
 
     new_assignment = await add_assignment(session, data)
     return new_assignment
-
-

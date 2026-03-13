@@ -8,7 +8,6 @@ from app.config.config import ApplicationException
 from .common import apply_sorting, order, get_all_and_total
 
 
-
 async def get_all_users(session, is_admin, query):
     stmt = select(User).join(User.roles)
 
@@ -16,25 +15,18 @@ async def get_all_users(session, is_admin, query):
         stmt = stmt.where(User.is_active.is_(True))
     else:
         stmt = stmt.where(User.is_active.is_(False))
-    
+
     if is_admin and query.role_name:
         stmt = stmt.where(Role.name == query.role_name)
-        
+
     if not is_admin:
-        stmt = (
-            stmt
-            .where(Role.name == "executor")
-        )
+        stmt = stmt.where(Role.name == "executor")
 
     if query.branch_id is not None:
         stmt = stmt.join(User.branch).where(Branch.id == query.branch_id)
 
     if query.sort:
-        stmt = apply_sorting(
-            stmt=stmt, 
-            model=User, 
-            sort=query.sort
-        )
+        stmt = apply_sorting(stmt=stmt, model=User, sort=query.sort)
     else:
         stmt = order(stmt=stmt, model=User)
 
@@ -87,30 +79,24 @@ async def add_user_role(session, is_owner: bool, user, new_roles: list[str]):
 
     if "owner" in existing_roles and "owner" not in new_roles:
         raise ApplicationException("Owner role cannot be removed", 403)
-    
+
     if "owner" not in existing_roles and "owner" in new_roles:
-        raise ApplicationException(f"Owner role cannot be applied", 400)
+        raise ApplicationException("Owner role cannot be applied", 400)
 
     for role in new_roles:
         if role in {"admin"} and not is_owner:
-            raise ApplicationException(
-                "Only owner can assign admin roles",
-                403
-            )
+            raise ApplicationException("Only owner can assign admin roles", 403)
 
-    result = await session.execute(
-    select(Role).where(Role.name.in_(new_roles))
-    )
+    result = await session.execute(select(Role).where(Role.name.in_(new_roles)))
     role_objects = result.scalars().all()
 
     found_role_names = {role.name for role in role_objects}
     missing_roles = set(new_roles) - found_role_names
-    
+
     if missing_roles:
         raise RuntimeError(f"Roles not found: {missing_roles}")
 
     user.roles = role_objects
-
 
 
 async def update_user_password(session, user, password):

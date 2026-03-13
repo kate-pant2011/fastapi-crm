@@ -6,21 +6,18 @@ from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
 from dataclasses import dataclass
 from app.schemas.common import BaseShortResponse, BaseListResponse
-from app.schemas.project import (
-    ProjectItem,
-    ProjectCreation,
-    ProjectPatchRequest
-)
+from app.schemas.project import ProjectItem, ProjectCreation, ProjectPatchRequest
 from app.services.project import (
     get_project_list,
     get_project,
     create_project,
     archive_project,
     restore_project,
-    change_project
+    change_project,
 )
 
 project_router = APIRouter()
+
 
 @dataclass
 class QueryDTO:
@@ -31,11 +28,11 @@ class QueryDTO:
     sort: str | None
     limit: int
     offset: int
-    
+
 
 @project_router.get("/project", response_model=BaseListResponse)
 async def get_project_list_router(
-    sort: str | None= Query(default=None, description="- stands for desc"),
+    sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
     scope: str | None = Query(default=None, description="mine"),
@@ -47,19 +44,16 @@ async def get_project_list_router(
 ):
     try:
         project = QueryDTO(
-            scope=scope, 
+            scope=scope,
             client_id=client_id,
             contract_id=contract_id,
             is_archived=is_archived,
             sort=sort,
             limit=limit,
-            offset=offset
+            offset=offset,
         )
         return await get_project_list(
-            session=session, 
-            roles=user.roles, 
-            requester_id=user.id, 
-            query=project
+            session=session, roles=user.roles, requester_id=user.id, query=project
         )
 
     except ApplicationException as e:
@@ -90,9 +84,9 @@ async def change_project_router(
     id: int,
     item: ProjectPatchRequest,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager"))
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
-    try: 
+    try:
         return await change_project(session, user.roles, user.id, id, item)
 
     except ApplicationException as e:
@@ -100,6 +94,7 @@ async def change_project_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+
 
 @project_router.post("/project", response_model=BaseShortResponse)
 async def create_project_router(

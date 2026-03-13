@@ -9,17 +9,18 @@ from app.schemas.project import ProjectItem
 from app.schemas.stage_template import (
     StageTemplateItem,
     StageTemplateCreation,
-    StageTemplatePatchRequest
+    StageTemplatePatchRequest,
 )
 from app.services.stage_template import (
     get_stage_template_list,
     get_stage_template,
     create_stage_template,
     change_stage_template,
-    create_stages_with_template
+    create_stages_with_template,
 )
 
 stage_template_router = APIRouter()
+
 
 @stage_template_router.get("/stage-template", response_model=BaseListResponse)
 async def get_stage_template_list_router(
@@ -31,10 +32,7 @@ async def get_stage_template_list_router(
 ):
     try:
         return await get_stage_template_list(
-            session=session, 
-            creator_id=creator_id, 
-            limit=limit, 
-            offset=offset
+            session=session, creator_id=creator_id, limit=limit, offset=offset
         )
 
     except ApplicationException as e:
@@ -75,6 +73,7 @@ async def create_stage_template_router(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
+
 @stage_template_router.patch("/stage-template/{id}", response_model=StageTemplateItem)
 async def change_stage_template_router(
     data: StageTemplatePatchRequest,
@@ -93,8 +92,8 @@ async def change_stage_template_router(
 
 
 @stage_template_router.post(
-        "/project/{project_id}/stage-template/{stage_template_id}", 
-        response_model=ProjectItem
+    "/project/{project_id}/stage-template/{stage_template_id}",
+    response_model=ProjectItem,
 )
 async def create_stages_with_template_router(
     project_id: int,
@@ -103,7 +102,9 @@ async def create_stages_with_template_router(
     user: UserDTO = Depends(require_roles("manager")),
 ):
     try:
-        return await create_stages_with_template(session, user.id, project_id, stage_template_id)
+        return await create_stages_with_template(
+            session, user.id, project_id, stage_template_id
+        )
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

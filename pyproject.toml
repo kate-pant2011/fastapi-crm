@@ -1,0 +1,7 @@
+[tool.ruff]
+line-length = 100
+ignore = ["E712"]
+
+[tool.ruff.per-file-ignores]
+"app/models_loader.py" = ["F401"]
+"app/main.py" = ["F401"]

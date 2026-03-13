@@ -14,6 +14,3 @@ class Contractor(BaseModel):
     is_archived = Column(Boolean, default=False, nullable=False, index=True)
 
     assignments = relationship("Assignment", back_populates="contractor")
-
-
-

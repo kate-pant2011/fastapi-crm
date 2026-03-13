@@ -132,7 +132,7 @@ async def signup_user(session, user_data) -> dict:
         hashed_password,
         new_company.id,
         password_change=False,
-        is_new=False
+        is_new=False,
     )
     await add_user_role(session, new_user, ["owner"])
 

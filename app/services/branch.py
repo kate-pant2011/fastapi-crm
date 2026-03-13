@@ -15,7 +15,12 @@ async def get_branch_list(session, query):
     if not branches:
         raise ApplicationException("Company List Not found", 404)
 
-    return {"items": branches.items, "total": branches.total, "limit": query.limit, "offset": query.offset}
+    return {
+        "items": branches.items,
+        "total": branches.total,
+        "limit": query.limit,
+        "offset": query.offset,
+    }
 
 
 async def get_branch(session, branch_id):
@@ -36,10 +41,10 @@ async def change_branch(session, branch_id, item):
 
     if branch.is_archived:
         raise ApplicationException(f"A company '{branch.name}' is archived", 400)
-    
+
     update_data = item.model_dump(exclude_unset=True)
 
-    for name, value in update_data.items():   
+    for name, value in update_data.items():
         setattr(branch, name, value)
 
     return to_schema(BranchItem, branch)

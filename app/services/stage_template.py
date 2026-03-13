@@ -8,22 +8,24 @@ from app.database.stage_template import (
     add_stage_template,
     get_all_stage_templates,
     get_stage_template_by_id,
-    get_stage_template_by_name
+    get_stage_template_by_name,
 )
 from app.config.config import now
 
 
 async def get_stage_template_list(session, creator_id, limit, offset):
     templates = await get_all_stage_templates(
-        session=session, 
-        creator_id=creator_id,
-        limit=limit,
-        offset=offset
+        session=session, creator_id=creator_id, limit=limit, offset=offset
     )
     if not templates:
         raise ApplicationException("Templates Not Found", 404)
-    
-    return {"items": templates.items, "total": templates.total, "limit": limit, "offset": offset}
+
+    return {
+        "items": templates.items,
+        "total": templates.total,
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 async def get_stage_template(session, id):
@@ -38,7 +40,7 @@ async def change_stage_template(session, data, user_id, id):
     template = await get_stage_template_by_id(session, id)
     if not template:
         raise ApplicationException("Template Not found", 404)
-    
+
     if user_id != template.creator.id:
         raise ApplicationException("Only template-creator can make changes", 403)
 
@@ -50,20 +52,24 @@ async def change_stage_template(session, data, user_id, id):
 async def create_stage_template(session, data, creator_id):
     template = await get_stage_template_by_name(session, data.name)
     if template:
-        raise ApplicationException(f"Stage-template named {data.name} already exists", 400)
-    
+        raise ApplicationException(
+            f"Stage-template named {data.name} already exists", 400
+        )
+
     new_template = await add_stage_template(session, data, creator_id)
     return new_template
 
 
-async def create_stages_with_template(session, manager_id, project_id, stage_template_id):
+async def create_stages_with_template(
+    session, manager_id, project_id, stage_template_id
+):
     project = await get_project_by_id(session, project_id, manager_id)
     if not project:
         raise ApplicationException("project Not found", 404)
 
     if project.is_archived:
         raise ApplicationException("project is archived", 400)
-    
+
     template = await get_stage_template_by_id(session, stage_template_id)
     if not template:
         raise ApplicationException("Template Not found", 404)
@@ -74,11 +80,11 @@ async def create_stages_with_template(session, manager_id, project_id, stage_tem
             description=name,
             start_date=now,
             end_date=now,
-            project_id=project_id
+            project_id=project_id,
         )
-        
+
         session.add(stage)
-        
+
     await session.flush()
 
     return {
@@ -94,4 +100,3 @@ async def create_stages_with_template(session, manager_id, project_id, stage_tem
         "manager": to_schema(BaseShortResponse, project.client.manager),
         "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages],
     }
-

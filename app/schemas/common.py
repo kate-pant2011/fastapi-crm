@@ -13,9 +13,9 @@ class BaseShortResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class BaseListResponse(BaseModel):
-    items: list[BaseShortResponse] 
+    items: list[BaseShortResponse]
     total: int
     limit: int
     offset: int
-

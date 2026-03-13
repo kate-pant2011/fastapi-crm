@@ -2,6 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from app.schemas.common import BaseShortResponse
 from typing import Literal
 
+
 class UserItem(BaseModel):
     name: str
     surname: str
@@ -16,12 +17,8 @@ class UserItem(BaseModel):
         from_attributes = True
 
 
-rolename = Literal[
-    "owner",
-    "admin",
-    "manager",
-    "executor"
-]
+rolename = Literal["owner", "admin", "manager", "executor"]
+
 
 class UserPatchRequest(BaseModel):
     name: str | None = Field(None, min_length=1)
@@ -30,9 +27,7 @@ class UserPatchRequest(BaseModel):
     branch_id: int | None = Field(None, gt=0)
     role: list[rolename] | None = Field(None, min_items=1)
 
-    model_config = {
-        "extra": "forbid"
-    }
+    model_config = {"extra": "forbid"}
 
 
 class UserCreationRequest(BaseModel):
@@ -41,7 +36,7 @@ class UserCreationRequest(BaseModel):
     position: str
     email: EmailStr
     branch_id: int
-    role: list[rolename] 
+    role: list[rolename]
 
 
 class UserCreationResponse(BaseModel):

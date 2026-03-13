@@ -13,14 +13,14 @@ class ClientItem(BaseModel):
     class Config:
         from_attributes = True
 
+
 class ClientPatchRequest(BaseModel):
     name: str | None = Field(None, min_length=1)
     email: list[str] | None = Field(None, min_items=1)
     telephone: list[str] | None = Field(None, min_items=1)
     manager_id: int | None = Field(None, gt=0)
-    model_config = {
-        "extra": "forbid"
-    }
+    model_config = {"extra": "forbid"}
+
 
 class ClientCreation(BaseModel):
     name: str

@@ -5,7 +5,7 @@ from app.services.company import (
     create_company,
     archive_company,
     restore_company,
-    change_company
+    change_company,
 )
 from app.schemas.company import CompanyCreation, CompanyItem, CompanyPatchRequest
 from app.schemas.common import BaseShortResponse, BaseListResponse
@@ -17,6 +17,7 @@ from dataclasses import dataclass
 
 company_router = APIRouter()
 
+
 @dataclass
 class QueryDTO:
     sort: str | None
@@ -25,29 +26,23 @@ class QueryDTO:
     client_id: int | None
     scope: str | None
 
+
 @company_router.get("/company", response_model=BaseListResponse)
 async def get_company_list_router(
     scope: str | None = Query(default=None, description="mine"),
     client_id: int | None = Query(default=None),
-    sort: str | None= Query(default=None, description="- stands for desc"),
+    sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
-    try: 
+    try:
         query = QueryDTO(
-            sort=sort,
-            limit=limit,
-            offset=offset,
-            client_id=client_id,
-            scope=scope
+            sort=sort, limit=limit, offset=offset, client_id=client_id, scope=scope
         )
         return await get_company_list(
-            session=session, 
-            roles=user.roles, 
-            requester_id=user.id, 
-            query=query
+            session=session, roles=user.roles, requester_id=user.id, query=query
         )
 
     except ApplicationException as e:
@@ -72,14 +67,15 @@ async def get_company_router(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
+
 @company_router.patch("/company/{id}", response_model=CompanyItem)
 async def change_company_router(
     id: int,
     item: CompanyPatchRequest,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager"))
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
-    try: 
+    try:
         return await change_company(session, user.roles, user.id, id, item)
 
     except ApplicationException as e:
@@ -87,7 +83,8 @@ async def change_company_router(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
-    
+
+
 @company_router.post("/company", response_model=BaseShortResponse)
 async def create_company_router(
     data: CompanyCreation,

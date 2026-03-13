@@ -7,7 +7,7 @@ class Assignment(BaseModel):
     __tablename__ = "assignments"
 
     stage_id = Column(Integer, ForeignKey("stages.id"), nullable=False, index=True)
-    
+
     contractor_id = Column(
         Integer, ForeignKey("contractors.id"), nullable=True, index=True
     )
