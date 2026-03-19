@@ -56,7 +56,7 @@ async def get_user_by_id(session, id):
     return user
 
 
-async def add_user(session, data, password, branch_id, password_change, is_new):
+async def add_user(session, data, password, branch_id, password_change):
     user = User(
         branch_id=branch_id,
         name=data.name,
@@ -103,5 +103,5 @@ async def update_user_password(session, user, password):
     await session.execute(
         update(User)
         .where(User.id == user.id)
-        .values(password_hash=password, must_change_password=False, is_new=False)
+        .values(password_hash=password, must_change_password=False)
     )

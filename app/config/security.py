@@ -23,7 +23,7 @@ class JWTService:
         self.algorithm = settings.ALGORITHM
         self.key = settings.SECRET_KEY
 
-    def create_access(self, sub, roles, status, active, is_new):
+    def create_access(self, sub, roles, status, active):
         exp = datetime.now(timezone.utc) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
@@ -33,7 +33,6 @@ class JWTService:
             "roles": roles,
             "status": status,
             "active": active,
-            "is_new": is_new,
         }
         encoded = jwt.encode(payload, self.key, self.algorithm)
         return encoded

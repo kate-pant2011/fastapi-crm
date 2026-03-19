@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, UTC
 
 
 class ApplicationException(Exception):
@@ -11,7 +11,7 @@ class ApplicationException(Exception):
         self.payload = payload
 
 
-now = datetime.utcnow()
+now = datetime.now(UTC)
 
 
 class Settings:

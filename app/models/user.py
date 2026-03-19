@@ -15,7 +15,6 @@ class User(BaseModel):
     password_hash = Column(String(255), nullable=False)
 
     is_active = Column(Boolean, default=True, index=True)
-    is_new = Column(Boolean, default=True)
     must_change_password = Column(Boolean, default=True)
 
     refresh_tokens = relationship("RefreshToken", back_populates="user")

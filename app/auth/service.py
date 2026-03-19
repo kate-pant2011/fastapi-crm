@@ -10,14 +10,13 @@ from app.database.user import (
     update_user_password,
 )
 from app.database.refresh_token import (
-    add_refresh_jwt,
-    verify_refresh_jwt,
-    get_refresh_by_jwt,
-)
-from app.database.refresh_token import (
     deactivate_user_refresh,
     deactivate_all_user_refresh,
     TokenReuseDetection,
+    add_refresh_jwt,
+    verify_refresh_jwt,
+    get_refresh_by_jwt,
+    
 )
 import uuid
 from dataclasses import dataclass
@@ -45,10 +44,9 @@ async def login_user(session, email, password, device):
     roles = list({role.name for role in user.roles})
     status = user.must_change_password
     active = user.is_active
-    is_new = user.is_new
 
     jwt = JWTService()
-    access_token = jwt.create_access(user.id, roles, status, active, is_new)
+    access_token = jwt.create_access(user.id, roles, status, active)
 
     if user.must_change_password:
         return AuthTokensDTO(access=access_token, refresh=None, change_password=True)
@@ -95,7 +93,6 @@ async def update_tokens(session, refresh_jwt, device):
         roles = list({role.name for role in user.roles})
         status = user.must_change_password
         active = user.is_active
-        is_new = user.is_new
 
     except TokenReuseDetection as e:
         async with session.begin():
@@ -105,7 +102,7 @@ async def update_tokens(session, refresh_jwt, device):
     jti = str(uuid.uuid4())
 
     jwt = JWTService()
-    access_token = jwt.create_access(user_id, roles, status, active, is_new)
+    access_token = jwt.create_access(user_id, roles, status, active) 
     refresh = jwt.create_refresh(user_id, jti)
 
     await add_refresh_jwt(session, user_id, refresh.exp, jti, device)
@@ -168,7 +165,7 @@ def check_password(password):
         return "too short"
 
     if len(password) > 16:
-        return " too long"
+        return "too long"
 
     if not str.isascii(password):
         return "includes forbidden symbols"

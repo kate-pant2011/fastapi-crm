@@ -109,7 +109,7 @@ async def signup(
 async def change_password(
     new_data: ChangePasswordRequest,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(get_current_user),
+    user: UserDTO = Depends(get_current_user(allow_password_change=True)),
 ):
     try:
         email = await change_user_password(session, user.id, new_data.password)

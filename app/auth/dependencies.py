@@ -15,7 +15,7 @@ class UserDTO:
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserDTO:
+async def get_current_user(token: str = Depends(oauth2_scheme), allow_password_change=False) -> UserDTO:
     try:
         decoded = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -36,14 +36,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserDTO:
         raise HTTPException(status_code=400, detail="User Not Active")
 
     must_change_password = decoded.get("status")
-    is_new = decoded.get("is_new", False)
 
-    if must_change_password and not is_new:
+    if must_change_password and not allow_password_change:
         raise HTTPException(status_code=403, detail="Password change required")
 
     roles = set(decoded.get("roles", []))
     if not roles:
-        raise HTTPException(status_code=404, detail="User Roles Not Found")
+        raise HTTPException(status_code=403, detail="User Roles Not Assigned")
 
     return UserDTO(id=int(sub), roles=roles)
 

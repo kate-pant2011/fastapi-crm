@@ -26,6 +26,7 @@ class UserPatchRequest(BaseModel):
     position: str | None = Field(None, min_length=1)
     branch_id: int | None = Field(None, gt=0)
     role: list[rolename] | None = Field(None, min_items=1)
+    is_active: bool | None 
 
     model_config = {"extra": "forbid"}
 
