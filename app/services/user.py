@@ -128,12 +128,12 @@ async def create_user(session, roles, data):
     hashed_password = hash_password(password)
 
     new_user = await add_user(
-        session, data, hashed_password, branch.id, password_change=True, is_new=True
+        session, data, hashed_password, branch.id, password_change=True
     )
     if "owner" in data.roles:
         raise ApplicationException("Role owner cannot be applied", 400)
 
-    await add_user_role(session, is_owner, new_user, data.role)
+    await add_user_role(session, is_owner, new_user, data.roles, True)
 
     return {"name": new_user.name, "password": password}
 

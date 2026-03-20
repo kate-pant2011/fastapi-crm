@@ -16,7 +16,7 @@ from .service import (
     logout_user,
     change_user_password,
 )
-from .dependencies import get_current_user, UserDTO
+from .dependencies import get_allow_password_change_user, UserDTO
 from app.config.config import ApplicationException
 from app.config.connection import get_db
 from app.database.refresh_token import TokenReuseDetection
@@ -109,7 +109,7 @@ async def signup(
 async def change_password(
     new_data: ChangePasswordRequest,
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(get_current_user(allow_password_change=True)),
+    user: UserDTO = Depends(get_allow_password_change_user),
 ):
     try:
         email = await change_user_password(session, user.id, new_data.password)

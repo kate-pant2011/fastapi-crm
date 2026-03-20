@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-import models_loader
+import app.models_loader
 from .auth.router import auth_router
 from .routers.branch import branch_router
 from .routers.contractor import contractor_router

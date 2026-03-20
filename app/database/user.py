@@ -1,5 +1,6 @@
 from app.models_loader import User, Role
 from app.models.branch import Branch
+from app.models.base import user_roles
 from sqlalchemy import select, update
 from sqlalchemy.orm import (
     selectinload,
@@ -73,15 +74,15 @@ async def add_user(session, data, password, branch_id, password_change):
     return user
 
 
-async def add_user_role(session, is_owner: bool, user, new_roles: list[str]):
+async def add_user_role(session, is_owner: bool, user, new_roles: list[str], is_new=False):
+    if not is_new:
+        existing_roles = {role.name for role in user.roles}
 
-    existing_roles = {role.name for role in user.roles}
+        if "owner" in existing_roles and "owner" not in new_roles:
+            raise ApplicationException("Owner role cannot be removed", 403)
 
-    if "owner" in existing_roles and "owner" not in new_roles:
-        raise ApplicationException("Owner role cannot be removed", 403)
-
-    if "owner" not in existing_roles and "owner" in new_roles:
-        raise ApplicationException("Owner role cannot be applied", 400)
+        if "owner" not in existing_roles and "owner" in new_roles:
+            raise ApplicationException("Owner role cannot be applied", 400)
 
     for role in new_roles:
         if role in {"admin"} and not is_owner:
@@ -96,7 +97,14 @@ async def add_user_role(session, is_owner: bool, user, new_roles: list[str]):
     if missing_roles:
         raise RuntimeError(f"Roles not found: {missing_roles}")
 
-    user.roles = role_objects
+    
+    await session.execute(
+        user_roles.insert(),
+        [
+            {"user_id": user.id, "role_id": role.id}
+            for role in role_objects
+        ]
+    )
 
 
 async def update_user_password(session, user, password):

@@ -128,10 +128,15 @@ async def signup_user(session, user_data) -> dict:
         user_data,
         hashed_password,
         new_company.id,
-        password_change=False,
-        is_new=False,
+        password_change=False
     )
-    await add_user_role(session, new_user, ["owner"])
+    await add_user_role(
+        session=session, 
+        is_owner=True, 
+        user=new_user, 
+        new_roles=["owner"], 
+        is_new=True
+    )
 
     return {"company": user_data.company, "login": user_data.email, "reason": None}
 

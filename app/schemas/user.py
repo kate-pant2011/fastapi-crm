@@ -37,7 +37,7 @@ class UserCreationRequest(BaseModel):
     position: str = Field(min_length=1)
     email: EmailStr 
     branch_id: int = Field(gt=0)
-    role: list[rolename] = Field(min_items=1)
+    roles: list[rolename] = Field(min_items=1)
 
     model_config = {"extra": "forbid"}
 

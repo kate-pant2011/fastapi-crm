@@ -54,3 +54,9 @@ def require_roles(*allowed_roles):
         return user
 
     return checker
+
+
+
+async def get_allow_password_change_user(token: str = Depends(oauth2_scheme)):
+    user = await get_current_user(token, allow_password_change=True)
+    return user
