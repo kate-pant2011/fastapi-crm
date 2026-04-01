@@ -8,3 +8,5 @@ SQLAlchemy
 asyncpg
 pytest
 pytest-asyncio
+aiofiles
+python-magic

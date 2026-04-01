@@ -10,6 +10,7 @@ from app.schemas.company import CompanyItem
 from app.schemas.common import to_schema
 from .common import Access
 
+sorting_rules = {"inn": ("inn",), "name": ("name",)}
 
 async def get_company_list(session, roles, requester_id, query):
     access = Access(roles)
@@ -17,7 +18,7 @@ async def get_company_list(session, roles, requester_id, query):
     manager_id = access.manager_id_with_scope(user_id=requester_id, scope=query.scope)
 
     companies = await get_filtered_companies(
-        session=session, manager_id=manager_id, query=query
+        session=session, manager_id=manager_id, query=query, sorting_rules=sorting_rules
     )
 
     if not companies:
@@ -41,7 +42,7 @@ async def get_company(session, roles, requester_id, company_id):
         raise ApplicationException("Company Not Found", 404)
 
     if company.is_archived:
-        raise ApplicationException("Company is deleted", 400)
+        raise ApplicationException("Company is archived", 400, {"id": company.id})
 
     return to_schema(CompanyItem, company)
 
@@ -54,7 +55,7 @@ async def change_company(session, roles, user_id, company_id, item):
         raise ApplicationException("Company Not found", 404)
 
     if company.is_archived:
-        raise ApplicationException(f"A company '{company.name}' is archived", 400)
+        raise ApplicationException(f"A company '{company.name}' is archived", 400, {"id": company.id})
 
     update_data = item.model_dump(exclude_unset=True)
 
@@ -68,7 +69,7 @@ async def create_company(session, data, manager_id):
     company = await get_company_by_inn(session, data.inn)
     if company:
         if company.is_archived:
-            raise ApplicationException(f"Company with inn {data.inn} is archived", 400)
+            raise ApplicationException(f"Company with inn {data.inn} is archived", 400, {"id": company.id})
 
         raise ApplicationException(f"Company with inn {data.inn} already exists", 400)
 

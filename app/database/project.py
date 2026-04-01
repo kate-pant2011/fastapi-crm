@@ -8,7 +8,7 @@ from sqlalchemy.orm import selectinload
 from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_filtered_projects(session, manager_id, query):
+async def get_filtered_projects(session, manager_id, query, sorting_rules):
     stmt = select(Project).join(Project.client)
     if query.is_archived is None:
         stmt = stmt.where(Project.is_archived.is_(False))
@@ -25,7 +25,7 @@ async def get_filtered_projects(session, manager_id, query):
         stmt = stmt.join(Project.contract).where(Contract.id == query.contract_id)
 
     if query.sort:
-        stmt = apply_sorting(stmt=stmt, model=Project, sort=query.sort)
+        stmt = apply_sorting(stmt=stmt, model=Project, sort=query.sort, sorting_rules=sorting_rules)
     else:
         stmt = order(stmt=stmt, model=Project)
 
@@ -39,6 +39,7 @@ async def get_project_by_id(session, id, manager_id, executor_id=None):
         .options(selectinload(Project.contract))
         .options(selectinload(Project.client).selectinload(Client.manager))
         .options(selectinload(Project.stages))
+        .options(selectinload(Project.files))
         .join(Project.client)
         .where(Project.id == id)
     )

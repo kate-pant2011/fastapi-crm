@@ -73,7 +73,7 @@ async def get_user_router(
         return await get_user(session, id, user.roles)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
@@ -90,7 +90,7 @@ async def change_user_router(
         return await change_user(session, user.roles, id, item)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
@@ -106,7 +106,7 @@ async def create_user_router(
         return await create_user(session, user.roles, data)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")

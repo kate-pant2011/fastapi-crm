@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_filtered_companies(session, manager_id, query):
+async def get_filtered_companies(session, manager_id, query, sorting_rules):
     stmt = select(Company).join(Company.client).where(Company.is_archived == False)
 
     if manager_id is not None:
@@ -15,7 +15,7 @@ async def get_filtered_companies(session, manager_id, query):
         stmt = stmt.where(Client.id == query.client_id)
 
     if query.sort:
-        stmt = apply_sorting(stmt=stmt, model=Company, sort=query.sort)
+        stmt = apply_sorting(stmt=stmt, model=Company, sort=query.sort, sorting_rules=sorting_rules)
     else:
         stmt = order(stmt=stmt, model=Company)
 
@@ -30,7 +30,6 @@ async def get_company_by_id(session, manager_id, company_id):
         .options(selectinload(Company.contracts))
         .options(selectinload(Company.client))
         .where(Company.id == company_id)
-        .where(Company.is_archived == False)
     )
 
     if manager_id is not None:

@@ -1,7 +1,7 @@
 from app.models_loader import User, Role
 from app.models.branch import Branch
 from app.models.base import user_roles
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
 from sqlalchemy.orm import (
     selectinload,
 )
@@ -9,7 +9,7 @@ from app.config.config import ApplicationException
 from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_all_users(session, is_admin, query):
+async def get_all_users(session, is_admin, query, sorting_rules):
     stmt = select(User).join(User.roles)
 
     if query.is_active is None:
@@ -27,7 +27,7 @@ async def get_all_users(session, is_admin, query):
         stmt = stmt.join(User.branch).where(Branch.id == query.branch_id)
 
     if query.sort:
-        stmt = apply_sorting(stmt=stmt, model=User, sort=query.sort)
+        stmt = apply_sorting(stmt=stmt, model=User, sort=query.sort, sorting_rules=sorting_rules)
     else:
         stmt = order(stmt=stmt, model=User)
 
@@ -97,7 +97,9 @@ async def add_user_role(session, is_owner: bool, user, new_roles: list[str], is_
     if missing_roles:
         raise RuntimeError(f"Roles not found: {missing_roles}")
 
-    
+    await session.execute(
+        delete(user_roles).where(user_roles.c.user_id == user.id)
+    )
     await session.execute(
         user_roles.insert(),
         [

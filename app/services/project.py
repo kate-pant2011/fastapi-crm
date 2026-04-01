@@ -12,6 +12,7 @@ from app.schemas.common import to_schema, BaseShortResponse
 from app.schemas.contract import ContractItem
 from .common import Access
 
+sorting_rules = {"start_date": ("start_date", "name"), "name": ("name",)}
 
 async def get_project_list(session, roles, requester_id, query):
     access = Access(roles)
@@ -19,7 +20,7 @@ async def get_project_list(session, roles, requester_id, query):
     manager_id = access.manager_id_with_scope(user_id=requester_id, scope=query.scope)
 
     projects = await get_filtered_projects(
-        session=session, manager_id=manager_id, query=query
+        session=session, manager_id=manager_id, query=query, sorting_rules=sorting_rules
     )
 
     if not projects:
@@ -43,7 +44,7 @@ async def get_project(session, roles, requester_id, project_id):
         raise ApplicationException("project Not found", 404)
 
     if project.is_archived:
-        raise ApplicationException("project is deleted", 400)
+        raise ApplicationException("project is deleted", 400, {"id": project.id})
 
     manager = project.client.manager
     if not manager:
@@ -60,7 +61,8 @@ async def get_project(session, roles, requester_id, project_id):
             to_schema(ContractItem, project.contract) if project.contract else None
         ),
         "manager": to_schema(BaseShortResponse, manager),
-        "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages],
+        "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages if not stage.is_archived],
+        "files": len(project.files or [])
     }
 
 
@@ -75,13 +77,30 @@ async def change_project(session, roles, user_id, project_id, item):
         raise ApplicationException("Project Not found", 404)
 
     if project.is_archived:
-        raise ApplicationException(f"A project '{project.name}' is archived", 400)
+        raise ApplicationException(f"A project '{project.name}' is archived", 400, {"id": project.id})
 
     manager = await get_user_by_id(session, project.client.manager_id)
     if not manager:
         raise ApplicationException("manager Not found", 404)
 
     update_data = item.model_dump(exclude_unset=True)
+
+    if "contract_id" in update_data:
+        contract = await get_contract_by_id(session, update_data.get("contract_id"), manager_id)
+        if not contract:
+            raise ApplicationException("contract Not found", 404)
+
+        if contract.is_archived:
+            raise ApplicationException("contract is archived", 400, {"id": contract.id})
+        
+        if project.client.id != contract.company.client.id:
+            raise ApplicationException(
+                "Contract and project have different client-relations", 400,
+                {
+                    "project_client_id": project.client.id, 
+                    "contract_client_id": contract.company.client.id
+                }
+            )
 
     start_date = update_data.get("start_date", None) or project.start_date
     end_date = update_data.get("end_date", None) or project.end_date
@@ -104,6 +123,7 @@ async def change_project(session, roles, user_id, project_id, item):
         ),
         "manager": to_schema(BaseShortResponse, manager),
         "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages],
+        "files": len(project.files or [])
     }
 
 
@@ -123,17 +143,15 @@ async def create_project(session, data, manager_id):
         raise ApplicationException("client Not found", 404)
 
     if client.is_archived:
-        raise ApplicationException("project is deleted", 400)
+        raise ApplicationException("project is archived", 400, {"id": client.id})
 
     if data.contract_id:
-        contract = await get_contract_by_id(
-            session, data.contract_id, manager_id, client.id
-        )
+        contract = await get_contract_by_id(session, data.contract_id, manager_id)
         if not contract:
             raise ApplicationException("contract Not found", 404)
 
         if contract.is_archived:
-            raise ApplicationException("project is deleted", 400)
+            raise ApplicationException("contract is archived", 400, {"id": contract.id})
 
     if data.start_date > data.end_date:
         raise ApplicationException("End-date cannot be less than start-date", 400)

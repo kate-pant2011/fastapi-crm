@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_filtered_stages(session, manager_id, project_id, query):
+async def get_filtered_stages(session, manager_id, project_id, query, sorting_rules):
     stmt = (
         select(Stage)
         .join(Stage.project)
@@ -20,7 +20,7 @@ async def get_filtered_stages(session, manager_id, project_id, query):
         stmt = stmt.where(Client.manager_id == manager_id)
 
     if query.sort:
-        stmt = apply_sorting(stmt=stmt, model=Stage, sort=query.sort)
+        stmt = apply_sorting(stmt=stmt, model=Stage, sort=query.sort, sorting_rules=sorting_rules)
     else:
         stmt = stmt.order_by(Stage.position)
 

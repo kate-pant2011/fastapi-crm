@@ -1,7 +1,7 @@
 from sqlalchemy import select, func
 from app.models.base import BaseModel
 from app.config.config import ApplicationException
-from app.models_loader import Branch, Client, Company, Project, Stage, User, Contract
+from app.models_loader import Branch, Client, Company, Project, Stage, User, Contract, File
 from dataclasses import dataclass
 
 
@@ -23,23 +23,14 @@ async def get_all_and_total(session, stmt, limit, offset):
     return ORMListResult(total=total, items=items)
 
 
-def apply_sorting(stmt, model: type[BaseModel], sort: str):
+def apply_sorting(stmt, model: type[BaseModel], sort: str, sorting_rules):
     DESC = False
-    sorting_rules = {
-        Branch: {"inn": ("inn",), "name": ("name",)},
-        Company: {"inn": ("inn",), "name": ("name",)},
-        Project: {"start_date": ("start_date", "name"), "name": ("name",)},
-        Stage: {"start_date": ("start_date", "name"), "name": ("name",)},
-        User: {"name": ("name", "surname"), "surname": ("surname", "name")},
-        Client: {"name": ("name",)},
-        Contract: {"valid_to": ("valid_to", "created_at")},
-    }
 
     if sort.startswith("-"):
         sort = sort.replace("-", "", 1)
         DESC = True
 
-    allowed_fields = sorting_rules[model].get(sort)
+    allowed_fields = sorting_rules[sort]
 
     if not allowed_fields:
         raise ApplicationException(f"Cannot sort by {sort}", 400)

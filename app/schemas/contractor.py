@@ -1,16 +1,10 @@
 from pydantic import BaseModel, EmailStr, Field
 
 
-class ContractorContractItem(BaseModel):
-    id: int
-    contract_name: str | None
-
-
 class ContractorItem(BaseModel):
     name: str
     email: list[str] | None
     description: str
-    contracts: list[ContractorContractItem] | None
 
     class Config:
         from_attributes = True

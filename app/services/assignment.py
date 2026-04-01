@@ -31,9 +31,6 @@ async def change_assignment(session, assignment_id, item, roles, user_id):
     if not assignment:
         raise ApplicationException("Assignment Not found", 404)
 
-    if assignment.is_archived:
-        raise ApplicationException(f"Assignment '{assignment.name}' is archived", 400)
-
     update_data = item.model_dump(exclude_unset=True)
 
     for name, value in update_data.items():
@@ -43,12 +40,15 @@ async def change_assignment(session, assignment_id, item, roles, user_id):
 
 
 async def create_assignment(session, data, manager_id):
+    if data.contractor_id and data.user_id:
+        raise ApplicationException("Assignment cannot have both contractor and user", 400)
+    
     stage = await get_stage_by_id(session, data.stage_id, manager_id, is_admin=False)
     if not stage:
         raise ApplicationException("stage Not found", 404)
 
     if stage.is_archived:
-        raise ApplicationException("stage is deleted", 400)
+        raise ApplicationException("stage is archived", 400)
 
     if data.user_id is not None:
         user = await get_user_by_id(session, data.user_id)
@@ -70,8 +70,16 @@ async def create_assignment(session, data, manager_id):
 
     if data.contractor_id is not None:
         contractor = await get_contractor(session, data.contractor_id)
-        if not contractor:
-            raise ApplicationException("Contractor Not found", 404)
 
     new_assignment = await add_assignment(session, data)
     return new_assignment
+
+
+async def delete_assignment(session, id, manager_id):
+    assignment = await get_assignment_by_id(session, id, manager_id)
+
+    if not assignment:
+        raise ApplicationException("Company Not found", 404)
+
+    await session.delete(assignment)
+    return assignment

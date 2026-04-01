@@ -9,6 +9,7 @@ from app.database.stage import (
 )
 from .common import Access
 
+sorting_rules = {"start_date": ("start_date", "name"), "name": ("name",)}
 
 async def get_stage_list(session, roles, requester_id, project_id, query):
     access = Access(roles)
@@ -23,7 +24,7 @@ async def get_stage_list(session, roles, requester_id, project_id, query):
         raise ApplicationException("Project is archived", 400)
 
     stages = await get_filtered_stages(
-        session=session, manager_id=manager_id, project_id=project_id, query=query
+        session=session, manager_id=manager_id, project_id=project_id, query=query, sorting_rules=sorting_rules
     )
 
     if not stages:
@@ -49,14 +50,14 @@ async def get_stage(session, roles, requester_id, project_id, stage_id):
         raise ApplicationException("Project Not Found", 404)
 
     if project.is_archived:
-        raise ApplicationException("Project is archived", 400)
+        raise ApplicationException("Project is archived", 400, {"id": project.id})
 
     stage = await get_stage_by_id(session, stage_id, requester_id, is_admin)
     if not stage:
         raise ApplicationException("stage Not found", 404)
 
     if stage.is_archived:
-        raise ApplicationException("stage is deleted", 400)
+        raise ApplicationException("stage is deleted", 400, {"id": stage.id})
 
     return to_schema(StageItem, stage)
 
@@ -73,14 +74,14 @@ async def change_stage(session, roles, user_id, project_id, stage_id, item):
         raise ApplicationException("Project Not Found", 404)
 
     if project.is_archived:
-        raise ApplicationException("Project is archived", 400)
+        raise ApplicationException("Project is archived", 400, {"id": project.id})
 
     stage = await get_stage_by_id(session, stage_id, user_id, is_admin)
     if not stage:
         raise ApplicationException("Stage Not found", 404)
 
     if stage.is_archived:
-        raise ApplicationException(f"A stage '{stage.name}' is archived", 400)
+        raise ApplicationException(f"A stage '{stage.name}' is archived", 400, {"id": stage.id})
 
     update_data = item.model_dump(exclude_unset=True)
 
@@ -106,7 +107,7 @@ async def reorder_stages(session, roles, user_id, project_id, item):
         raise ApplicationException("Project Not Found", 404)
 
     if project.is_archived:
-        raise ApplicationException("Project is archived", 400)
+        raise ApplicationException("Project is archived", 400, {"id": project.id})
 
     if len(item.stages) != len(project.stages):
         raise ApplicationException("Invalid stages list", 400)
@@ -130,7 +131,7 @@ async def create_stage(session, data, manager_id):
         raise ApplicationException("project Not found", 404)
 
     if project.is_archived:
-        raise ApplicationException("project is deleted", 400)
+        raise ApplicationException("project is archived", 400, {"id": project.id})
 
     if data.start_date > data.end_date:
         raise ApplicationException("End-date cannot be less than start-date", 400)

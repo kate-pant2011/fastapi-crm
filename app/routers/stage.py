@@ -63,7 +63,7 @@ async def get_stage_router(
         return await get_stage(session, user.roles, user.id, project_id, id)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
@@ -83,7 +83,7 @@ async def change_stage_router(
         )
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
@@ -102,7 +102,7 @@ async def reorder_stages_router(
         return await reorder_stages(session, user.roles, user.id, project_id, item)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
@@ -119,7 +119,7 @@ async def create_stage_router(
 
     except ApplicationException as e:
         raise HTTPException(
-            status_code=e.code, detail={"message": e.name, "payload": e.payload}
+            status_code=e.code, detail={"message": e.name, "payload": {"message": e.name, "payload": e.payload}}
         )
 
     except Exception as e:

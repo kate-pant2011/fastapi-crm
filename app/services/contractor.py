@@ -28,7 +28,7 @@ async def get_contractor(session, contractor_id):
         raise ApplicationException("Contractor Not found", 404)
 
     if contractor.is_archived:
-        raise ApplicationException("Contractor is already archived", 400)
+        raise ApplicationException("Contractor is already archived", 400, {"id": contractor.id})
 
     return to_schema(ContractorItem, contractor)
 
@@ -39,7 +39,7 @@ async def change_contractor(session, contractor_id, item):
         raise ApplicationException("Contractor Not found", 404)
 
     if contractor.is_archived:
-        raise ApplicationException(f"A contractor '{contractor.name}' is archived", 400)
+        raise ApplicationException(f"A contractor '{contractor.name}' is archived", 400, {"id": contractor.id})
 
     update_data = item.model_dump(exclude_unset=True)
 

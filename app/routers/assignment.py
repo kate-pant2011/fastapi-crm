@@ -10,7 +10,7 @@ from app.schemas.assignment import (
     AssignmentCreation,
     AssignmentPatchRequest,
 )
-from app.services.assignment import get_assignment, create_assignment, change_assignment
+from app.services.assignment import get_assignment, create_assignment, change_assignment, delete_assignment
 
 assignment_router = APIRouter()
 
@@ -61,6 +61,22 @@ async def create_assignment_router(
         raise HTTPException(
             status_code=e.code, detail={"message": e.name, "payload": e.payload}
         )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
+
+
+@assignment_router.delete("/assignment/{id}", response_model=BaseShortResponse)
+async def delete_assignment_router(
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("manager")),
+):
+    try:
+        return await delete_assignment(session, id, user.id)
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")

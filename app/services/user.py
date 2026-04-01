@@ -14,6 +14,7 @@ from app.schemas.common import to_schema
 from app.schemas.user import UserItem
 from .common import Access, ROLES
 
+sorting_rules = {"name": ("name", "surname"), "surname": ("surname", "name")}
 
 async def get_user_list(session, roles, query):
     is_admin = Access(roles).is_admin()
@@ -23,7 +24,7 @@ async def get_user_list(session, roles, query):
             f"Role named '{query.role_name}' does not exist", 400
         )
 
-    users = await get_all_users(session, is_admin, query)
+    users = await get_all_users(session, is_admin, query, sorting_rules)
 
     if not users:
         raise ApplicationException("User List Not found", 404)
@@ -42,7 +43,7 @@ async def get_user(session, user_id, roles):
         raise ApplicationException("User Not found", 404)
 
     if not user.is_active:
-        raise ApplicationException("User is archived", 400)
+        raise ApplicationException("User is archived", 400, {"id": user.id})
 
     target_roles = list({role.name for role in user.roles})
 
@@ -74,7 +75,7 @@ async def change_user(session, roles, user_id, item):
         raise ApplicationException("User Not found", 404)
 
     if not user.is_active:
-        raise ApplicationException(f"A user '{user.name}' is archived", 400)
+        raise ApplicationException(f"A user '{user.name}' is archived", 400, {"id": user.id})
 
     update_data = item.model_dump(exclude_unset=True)
 
@@ -85,7 +86,7 @@ async def change_user(session, roles, user_id, item):
 
         if branch.is_archived:
             raise ApplicationException(
-                f"A company with INN {branch.inn} is archived", 400
+                f"A company with INN {branch.inn} is archived", 400, {"id": branch.id}
             )
 
     if "role" in update_data:
@@ -122,7 +123,7 @@ async def create_user(session, roles, data):
         raise ApplicationException("Company Not found", 404)
 
     if branch.is_archived:
-        raise ApplicationException(f"A company with INN {branch.inn} is archived", 400)
+        raise ApplicationException(f"A company with INN {branch.inn} is archived", 400, {"id": branch.id})
 
     password = generate_password()
     hashed_password = hash_password(password)
@@ -166,5 +167,5 @@ async def restore_user(session, user_id):
     if user.is_active:
         raise ApplicationException("User is already active", 400)
 
-    user.is_acrive = True
+    user.is_active = True
     return user

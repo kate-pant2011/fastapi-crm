@@ -4,14 +4,14 @@ from sqlalchemy.orm import selectinload
 from .common import apply_sorting, order, get_all_and_total
 
 
-async def get_all_branches(session, query):
+async def get_all_branches(session, query, sorting_rules):
     stmt = select(Branch).where(Branch.is_archived.is_(False))
 
     if not query.sort:
         stmt = order(stmt=stmt, model=Branch)
 
     else:
-        stmt = apply_sorting(stmt=stmt, model=Branch, sort=query.sort)
+        stmt = apply_sorting(stmt=stmt, model=Branch, sort=query.sort, sorting_rules=sorting_rules)
 
     result = await get_all_and_total(session, stmt, query.limit, query.offset)
     return result

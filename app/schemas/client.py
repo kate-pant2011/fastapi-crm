@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, computed_field
 from app.schemas.common import BaseShortResponse
 
 
@@ -9,9 +9,10 @@ class ClientItem(BaseModel):
     manager: BaseShortResponse
     projects: list[BaseShortResponse] | None
     companies: list[BaseShortResponse] | None
-
+    files_count: int | None = None
     class Config:
         from_attributes = True
+
 
 
 class ClientPatchRequest(BaseModel):

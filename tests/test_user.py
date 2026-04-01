@@ -66,7 +66,6 @@ class TestUserChange:
         mocker.patch("app.services.user.get_branch_by_id", new_callable=mocker.AsyncMock, return_value=mock_branch)
         mocker.patch("app.services.user.add_user_role", new_callable=mocker.AsyncMock)
         mocker.patch("app.services.user.to_schema", return_value=True)
-        mocker.patch("app.services.user.to_schema", return_value=True)
 
         item = mocker.Mock()
         item.model_dump.return_value = {

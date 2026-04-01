@@ -55,7 +55,7 @@ async def get_branch_router(
         return await get_branch(session, id)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
@@ -72,7 +72,7 @@ async def change_branch_router(
         return await change_branch(session, id, item)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
@@ -88,7 +88,7 @@ async def create_branch_router(
         return await create_branch(session, branch.inn, branch.name)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")

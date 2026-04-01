@@ -9,7 +9,6 @@ async def get_all_stage_templates(session, creator_id, limit, offset):
     stmt = (
         select(StageTemplate)
         .join(StageTemplate.creator)
-        .where(StageTemplate.is_archived == False)
     )
 
     if creator_id is not None:

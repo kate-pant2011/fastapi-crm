@@ -1,5 +1,5 @@
 from .base import BaseModel
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 
 
@@ -15,6 +15,7 @@ class Assignment(BaseModel):
 
     name = Column(String(255), nullable=False)
     description = Column(String(1000))
+    is_archived = Column(Boolean, nullable=False, default=False)
 
     contractor = relationship("Contractor", back_populates="assignments")
     stage = relationship("Stage", back_populates="assignments")

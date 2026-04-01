@@ -14,6 +14,7 @@ class ProjectItem(BaseModel):
     contract: ContractItem | None
     manager: BaseShortResponse
     stages: list[BaseShortResponse] | None
+    files: int | None
 
 
 class ProjectPatchRequest(BaseModel):

@@ -11,13 +11,15 @@ from app.schemas.contract import GetContractItem
 from .common import Access
 
 
+sorting_rules = {"valid_to": ("valid_to", "created_at")}
+
 async def get_contract_list(session, roles, requester_id, query):
     access = Access(roles)
     access.require_admin_or_manager()
     manager_id = access.manager_id_with_scope(user_id=requester_id, scope=query.scope)
 
     contracts = await get_filtered_contracts(
-        session=session, manager_id=manager_id, query=query
+        session=session, manager_id=manager_id, query=query, sorting_rules=sorting_rules
     )
 
     if not contracts:
@@ -41,7 +43,7 @@ async def get_contract(session, roles, requester_id, contract_id):
         raise ApplicationException("Contract Not Found", 404)
 
     if contract.is_archived:
-        raise ApplicationException("contract is deleted", 400)
+        raise ApplicationException("contract is archived", 400, {"id": contract.id})
 
     return to_schema(GetContractItem, contract)
 
@@ -54,15 +56,16 @@ async def change_contract(session, roles, user_id, contract_id, item):
         raise ApplicationException("Contract Not found", 404)
 
     if contract.is_archived:
-        raise ApplicationException(f"A contract '{contract.name}' is archived", 400)
+        raise ApplicationException(f"A contract '{contract.name}' is archived", 400, {"id": contract.id})
 
     update_data = item.model_dump(exclude_unset=True)
 
     start_date = update_data.get("valid_from", None) or contract.valid_from
     end_date = update_data.get("valid_to", None) or contract.valid_to
 
-    if start_date > end_date:
-        raise ApplicationException("End-date cannot be less than start-date", 400)
+    if start_date:
+        if start_date > end_date:
+            raise ApplicationException("End-date cannot be less than start-date", 400)
 
     for name, value in update_data.items():
         setattr(contract, name, value)
@@ -78,9 +81,10 @@ async def create_contract(session, data, manager_id):
     branch = await get_branch_by_id(session, data.branch_id)
     if not branch:
         raise ApplicationException("Branch Not Found ", 404)
-
-    if data.valid_from > data.valid_to:
-        raise ApplicationException("End-date cannot be less than start-date", 400)
+    
+    if data.valid_from:
+        if data.valid_from > data.valid_to:
+            raise ApplicationException("End-date cannot be less than start-date", 400)
 
     contract = await add_contract(session, data)
 

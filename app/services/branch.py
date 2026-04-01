@@ -8,9 +8,13 @@ from app.config.config import ApplicationException
 from app.schemas.common import to_schema
 from app.schemas.branch import BranchItem
 
+sorting_rules = {
+    "inn": ("inn",), 
+    "name": ("name",)
+}
 
 async def get_branch_list(session, query):
-    branches = await get_all_branches(session, query)
+    branches = await get_all_branches(session, query, sorting_rules)
 
     if not branches:
         raise ApplicationException("Company List Not found", 404)
@@ -29,7 +33,7 @@ async def get_branch(session, branch_id):
         raise ApplicationException("Company Not found", 404)
 
     if branch.is_archived:
-        raise ApplicationException(f"A company '{branch.name}' is archived", 400)
+        raise ApplicationException(f"A company '{branch.name}' is archived", 400, {"id": branch.id})
 
     return to_schema(BranchItem, branch)
 
@@ -40,7 +44,7 @@ async def change_branch(session, branch_id, item):
         raise ApplicationException("Company Not found", 404)
 
     if branch.is_archived:
-        raise ApplicationException(f"A company '{branch.name}' is archived", 400)
+        raise ApplicationException(f"A company '{branch.name}' is archived", 400, {"id": branch.id})
 
     update_data = item.model_dump(exclude_unset=True)
 
@@ -54,7 +58,7 @@ async def create_branch(session, inn, branch_name):
     branch = await get_branch_by_inn(session, inn)
     if branch:
         if branch.is_archived:
-            raise ApplicationException("Company is archived", 400, {"inn": branch.inn})
+            raise ApplicationException("Company is archived", 400, {"inn": branch.inn}, {"id": branch.id})
 
         raise ApplicationException(f"A company with INN '{inn}' already exists", 400)
 

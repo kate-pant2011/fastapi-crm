@@ -24,3 +24,4 @@ class User(BaseModel):
     assignments = relationship("Assignment", back_populates="user")
     clients = relationship("Client", back_populates="manager")
     stage_templates = relationship("StageTemplate", back_populates="creator")
+    files = relationship("File", back_populates="creator")

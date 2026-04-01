@@ -19,3 +19,8 @@ class BaseListResponse(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+class BaseCountResponse(BaseModel):
+    name: str
+    total: int

@@ -18,3 +18,4 @@ class Project(BaseModel):
     client = relationship("Client", back_populates="projects")
     contract = relationship("Contract", back_populates="projects")
     stages = relationship("Stage", back_populates="project", order_by="Stage.position")
+    files = relationship("File", back_populates="project")

@@ -7,7 +7,7 @@ from sqlalchemy.orm import selectinload
 from .common import apply_sorting, get_all_and_total
 
 
-async def get_filtered_contracts(session, manager_id, query):
+async def get_filtered_contracts(session, manager_id, query, sorting_rules):
     stmt = (
         select(Contract)
         .join(Contract.company)
@@ -26,7 +26,7 @@ async def get_filtered_contracts(session, manager_id, query):
         stmt = stmt.where(Company.id == query.company_id)
 
     if query.sort:
-        stmt = apply_sorting(stmt=stmt, model=Contract, sort=query.sort)
+        stmt = apply_sorting(stmt=stmt, model=Contract, sort=query.sort, sorting_rules=sorting_rules)
     else:
         stmt = stmt.order_by(Contract.created_at)
 
@@ -42,7 +42,6 @@ async def get_contract_by_id(session, id, manager_id):
         .join(Contract.company)
         .join(Company.client)
         .where(Contract.id == id)
-        .where(Contract.is_archived == False)
     )
 
     if manager_id is not None:

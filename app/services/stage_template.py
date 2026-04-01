@@ -10,7 +10,7 @@ from app.database.stage_template import (
     get_stage_template_by_id,
     get_stage_template_by_name,
 )
-from app.config.config import now
+from datetime import datetime
 
 
 async def get_stage_template_list(session, creator_id, limit, offset):
@@ -79,8 +79,8 @@ async def create_stages_with_template(
             name=name,
             position=position,
             description=name,
-            start_date=now,
-            end_date=now,
+            start_date=datetime.utcnow(),
+            end_date=datetime.utcnow(),
             project_id=project_id,
         )
 
@@ -100,4 +100,5 @@ async def create_stages_with_template(
         ),
         "manager": to_schema(BaseShortResponse, project.client.manager),
         "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages],
+        "files": len(project.files or [])
     }

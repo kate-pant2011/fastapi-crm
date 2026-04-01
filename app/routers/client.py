@@ -65,7 +65,7 @@ async def get_client_router(
         return await get_client(session, user.roles, user.id, id)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
@@ -82,7 +82,7 @@ async def change_client_router(
         return await change_client(session, user.roles, user.id, id, item)
 
     except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
