@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import app.models_loader
 from .auth.router import auth_router
+from .email.router import email_router
 from .routers.branch import branch_router
 from .routers.contractor import contractor_router
 from .routers.user import user_router
@@ -13,9 +14,11 @@ from .routers.assignment import assignment_router
 from .routers.stage_template import stage_template_router
 from .routers.file import file_router
 
+
 app = FastAPI()
 
 app.include_router(auth_router)
+app.include_router(email_router)
 app.include_router(branch_router)
 app.include_router(contractor_router)
 app.include_router(user_router)

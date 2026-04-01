@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from app.config.config import ApplicationException
-from app.auth.dependencies import require_roles
+from app.auth.dependencies import require_roles, UserDTO
 from app.schemas.common import BaseShortResponse, BaseListResponse
 from app.schemas.branch import BranchItem, BranchCreationRequest, BranchPatchRequest
 from app.services.branch import (
@@ -11,7 +11,6 @@ from app.services.branch import (
     get_branch,
     change_branch,
 )
-from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from dataclasses import dataclass

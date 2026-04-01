@@ -4,6 +4,20 @@ from .config import settings
 from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass
 from fastapi import HTTPException
+from cryptography.fernet import Fernet
+
+key = settings.FERNET_KEY
+cipher = Fernet(key)
+
+def encrypt_password(password):
+    encrypted = cipher.encrypt(password.encode())
+    return encrypted
+
+def decrypt_password(encrypted_password):
+    key = settings.FERNET_KEY
+    cipher = Fernet(key)
+    decrypt = cipher.decrypt(encrypted_password).decode()
+    return decrypt
 
 
 @dataclass

@@ -25,7 +25,14 @@ class Settings:
         database = os.environ.pop("DATABASE_URL")
         if not database:
             raise RuntimeError("No data base url")
+        
         self._database_url = database
+
+        fernet_key = os.environ.pop("FERNET_KEY")
+        if not fernet_key:
+            raise RuntimeError("No fernet key")
+
+        self._fernet_key = fernet_key
 
         self.PROJECT_NAME: str = "My CRM"
         self.ALGORITHM: str = "HS256"
@@ -39,6 +46,10 @@ class Settings:
     @property
     def DATABASE_URL(self):
         return self._database_url
+    
+    @property
+    def FERNET_KEY(self):
+        return self._fernet_key
 
 
 settings = Settings()
