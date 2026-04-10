@@ -1,7 +1,6 @@
 from sqlalchemy import select, func
 from app.models.base import BaseModel
 from app.config.config import ApplicationException
-from app.models_loader import Branch, Client, Company, Project, Stage, User, Contract, File
 from dataclasses import dataclass
 
 
@@ -30,7 +29,7 @@ def apply_sorting(stmt, model: type[BaseModel], sort: str, sorting_rules):
         sort = sort.replace("-", "", 1)
         DESC = True
 
-    allowed_fields = sorting_rules[sort]
+    allowed_fields = sorting_rules.get(sort)
 
     if not allowed_fields:
         raise ApplicationException(f"Cannot sort by {sort}", 400)
@@ -44,7 +43,7 @@ def apply_sorting(stmt, model: type[BaseModel], sort: str, sorting_rules):
 
 def order(stmt, model: type[BaseModel], rule=None, extra_rule=None, DESC=False):
     if not rule:
-        stmt = stmt.order_by(model.created_at.desc(), model.name, model.id.desc())
+        stmt = stmt.order_by(model.created_at.desc(), model.id.desc())
         return stmt
 
     field = getattr(model, rule)

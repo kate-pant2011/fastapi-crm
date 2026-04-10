@@ -3,6 +3,7 @@ from app.models.stage import Stage
 from app.models.project import Project
 from app.models.client import Client
 from app.models.user import User
+from app.models.contract import Contract
 from sqlalchemy.orm import selectinload
 from .common import apply_sorting, order, get_all_and_total
 
@@ -34,7 +35,10 @@ async def get_stage_by_id(session, id, user_id, is_admin):
         .options(
             selectinload(Stage.project)
             .selectinload(Project.client)
-            .selectinload(Client.manager)
+            .selectinload(Client.manager),
+            selectinload(Stage.project)
+            .selectinload(Project.contract)
+            .selectinload(Contract.company),
         )
         .options(selectinload(Stage.assignments))
         .join(Stage.project)

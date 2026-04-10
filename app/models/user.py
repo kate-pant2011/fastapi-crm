@@ -25,4 +25,8 @@ class User(BaseModel):
     clients = relationship("Client", back_populates="manager")
     stage_templates = relationship("StageTemplate", back_populates="creator")
     files = relationship("File", back_populates="creator")
-    emails = relationship("Email", back_populates="creator")
+    creator_emails = relationship("Email", back_populates="creator", foreign_keys="Email.creator_id")
+    owner_emails = relationship("Email", back_populates="owner", foreign_keys="Email.owner_id")
+    email_logs = relationship("EmailLog", back_populates="user")
+    email_templates = relationship("EmailTemplate", back_populates="creator")
+

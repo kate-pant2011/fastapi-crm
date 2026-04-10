@@ -50,6 +50,7 @@ class Settings:
     @property
     def FERNET_KEY(self):
         return self._fernet_key
+    
 
 
 settings = Settings()

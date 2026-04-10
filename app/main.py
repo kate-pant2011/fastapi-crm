@@ -13,6 +13,8 @@ from .routers.stage import stage_router
 from .routers.assignment import assignment_router
 from .routers.stage_template import stage_template_router
 from .routers.file import file_router
+from .routers.email_log import email_log_router
+from .routers.email_template import email_template_router
 
 
 app = FastAPI()
@@ -30,3 +32,5 @@ app.include_router(stage_router)
 app.include_router(assignment_router)
 app.include_router(stage_template_router)
 app.include_router(file_router)
+app.include_router(email_log_router)
+app.include_router(email_template_router)

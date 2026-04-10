@@ -34,7 +34,7 @@ async def get_filtered_contracts(session, manager_id, query, sorting_rules):
     return result
 
 
-async def get_contract_by_id(session, id, manager_id):
+async def get_contract_by_id(session, id, manager_id=None):
     stmt = (
         select(Contract)
         .options(selectinload(Contract.company).selectinload(Company.client))

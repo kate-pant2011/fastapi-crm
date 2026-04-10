@@ -23,7 +23,7 @@ async def get_filtered_companies(session, manager_id, query, sorting_rules):
     return result
 
 
-async def get_company_by_id(session, manager_id, company_id):
+async def get_company_by_id(session, company_id, manager_id=None):
     stmt = (
         select(Company)
         .join(Company.client)

@@ -20,7 +20,7 @@ async def get_filtered_clients(session, manager_id, query, sorting_rules):
     return result
 
 
-async def get_client_by_id(session, id, manager_id):
+async def get_client_by_id(session, id, manager_id=None):
     stmt = (
         select(Client)
         .options(selectinload(Client.companies))

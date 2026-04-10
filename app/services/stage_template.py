@@ -17,7 +17,7 @@ async def get_stage_template_list(session, creator_id, limit, offset):
     templates = await get_all_stage_templates(
         session=session, creator_id=creator_id, limit=limit, offset=offset
     )
-    if not templates:
+    if not templates.items:
         raise ApplicationException("Templates Not Found", 404)
 
     return {
@@ -41,7 +41,7 @@ async def change_stage_template(session, data, user_id, id):
     if not template:
         raise ApplicationException("Template Not found", 404)
 
-    if user_id != template.creator.id:
+    if user_id != template.creator_id:
         raise ApplicationException("Only template-creator can make changes", 403)
 
     template.stage_list = data.stage_list

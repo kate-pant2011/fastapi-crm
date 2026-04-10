@@ -11,3 +11,6 @@ from app.models.stage_template import StageTemplate
 from app.models.stage import Stage
 from app.models.user import User
 from app.models.file import File
+from app.models.email import Email
+from app.models.email_log import EmailLog
+from app.models.email_template import EmailTemplate

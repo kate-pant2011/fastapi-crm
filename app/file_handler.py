@@ -25,21 +25,7 @@ ALLOWED_EXT = {
     "pptx", "txt", "json","xml", 
     "htm","zip"
 }
-ALLOWED_MIME = {
-    "image/png", "image/jpeg", "image/webp", "image/gif",
-    "application/pdf", "application/msword",  # .doc
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # .docx
-    "application/vnd.ms-excel",  # .xls
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # .xlsx
-    "application/vnd.ms-powerpoint",  # .ppt
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation",  # .pptx
-    "text/plain",        # .txt
-    "application/json",  # .json
-    "application/xml",   # .xml
-    "text/xml",          # иногда так xml 
-    "text/html",
-    "application/zip"
-}
+
 
 class FileHandler:
     def __init__(self, folder="./uploads"):
@@ -52,7 +38,7 @@ class FileHandler:
 
         file_path = os.path.join(self.folder, filenames.unique)
 
-        max_size = 5 * 1024 * 1024
+        max_size = 30 * 1024 * 1024
         size = 0
 
         first_chunk = True
@@ -60,7 +46,7 @@ class FileHandler:
         async with aiofiles.open(file_path, "wb") as f:
             while chunk:= await file.read(1024 * 1024):
                 if first_chunk:
-                    mime_type = self.check_type_and_mime(chunk, ext)
+                    mime_type = self.check_mime(chunk, ext)
                     first_chunk = False
 
                 size += len(chunk)
@@ -84,22 +70,43 @@ class FileHandler:
         
         return False
     
-    def check_type_and_mime(self, chunk, ext):
+    def check_mime(self, chunk, ext):
         if ext not in ALLOWED_EXT:
             raise ApplicationException(400, f"Extension {ext} not allowed")
         
         file_mime = magic.from_buffer(chunk[:2048], mime=True)
-
-        if file_mime not in ALLOWED_MIME:
-            raise ApplicationException(400, f"Bad file mime")
         
         return file_mime
     
     def get_file_name(self, file, ext):
-        filename = os.path.basename(file.filename)
+        filename = os.path.basename(file.filename or "") or "unknown"
         unique_name = f"{uuid.uuid4().hex[:30]}.{ext}"
 
         return FileNameDTO(
             original = filename,
             unique = unique_name
         )
+
+    async def validate_file(self, file: UploadFile, max_size: int = 30 * 1024 * 1024):
+        size = 0
+        first_chunk = True
+        mime_type = None
+        ext = file.filename.split(".")[-1].lower()
+
+        while chunk := await file.read(1024 * 1024):
+            if first_chunk:
+                mime_type = self.check_mime(chunk, ext)
+                first_chunk = False
+
+            size += len(chunk)
+
+            if size > max_size:
+                raise ApplicationException(400, "File too big")
+
+        await file.seek(0)  
+
+        return {
+            "filename": file.filename or "unknown",
+            "size": size,
+            "content_type": file.content_type,
+        }

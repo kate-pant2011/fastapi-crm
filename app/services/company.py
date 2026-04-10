@@ -37,7 +37,7 @@ async def get_company(session, roles, requester_id, company_id):
     access.require_admin_or_manager()
     manager_id = access.manager_id(requester_id)
 
-    company = await get_company_by_id(session, manager_id, company_id)
+    company = await get_company_by_id(session, company_id, manager_id)
     if not company:
         raise ApplicationException("Company Not Found", 404)
 
@@ -50,7 +50,7 @@ async def get_company(session, roles, requester_id, company_id):
 async def change_company(session, roles, user_id, company_id, item):
     manager_id = Access(roles).manager_id(user_id)
 
-    company = await get_company_by_id(session, manager_id, company_id)
+    company = await get_company_by_id(session, company_id,  manager_id)
     if not company:
         raise ApplicationException("Company Not found", 404)
 
@@ -83,7 +83,7 @@ async def create_company(session, data, manager_id):
 
 
 async def archive_company(session, company_id, manager_id):
-    company = await get_company_by_id(session, manager_id, company_id)
+    company = await get_company_by_id(session, company_id, manager_id)
 
     if not company:
         raise ApplicationException("Company Not found", 404)
@@ -100,7 +100,7 @@ async def restore_company(session, company_id, roles, requester_id):
     access.require_admin_or_manager()
     manager_id = access.manager_id(requester_id)
 
-    company = await get_company_by_id(session, manager_id, company_id)
+    company = await get_company_by_id(session, company_id, manager_id)
 
     if not company:
         raise ApplicationException("Company Not found", 404)

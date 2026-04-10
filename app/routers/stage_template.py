@@ -43,7 +43,7 @@ async def get_stage_template_list_router(
 
 
 @stage_template_router.get("/stage-template/{id}", response_model=StageTemplateItem)
-async def get_stage_teplate_list_router(
+async def get_stage_teplate_router(
     id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager")),

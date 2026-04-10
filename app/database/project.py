@@ -33,10 +33,10 @@ async def get_filtered_projects(session, manager_id, query, sorting_rules):
     return result
 
 
-async def get_project_by_id(session, id, manager_id, executor_id=None):
+async def get_project_by_id(session, id, manager_id=None, executor_id=None):
     stmt = (
         select(Project)
-        .options(selectinload(Project.contract))
+        .options(selectinload(Project.contract).selectinload(Contract.company))
         .options(selectinload(Project.client).selectinload(Client.manager))
         .options(selectinload(Project.stages))
         .options(selectinload(Project.files))

@@ -21,3 +21,5 @@ user_roles = Table(
     Column("role_id", ForeignKey("roles.id"), primary_key=True),
     Column("user_id", ForeignKey("users.id"), primary_key=True),
 )
+
+
