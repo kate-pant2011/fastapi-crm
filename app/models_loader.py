@@ -10,6 +10,8 @@ from app.models.role import Role
 from app.models.stage_template import StageTemplate
 from app.models.stage import Stage
 from app.models.user import User
+from app.models.doc_template import DocumentTemplate
+from app.models.generated_doc import GeneratedDocument
 from app.models.file import File
 from app.models.email import Email
 from app.models.email_log import EmailLog

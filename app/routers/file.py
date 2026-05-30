@@ -74,9 +74,8 @@ async def get_files_client(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@file_router.get("/project/{project_id}/files/{file_id}", response_model=FileItem)
+@file_router.get("/files/{file_id}", response_model=FileItem)
 async def get_file_project(
-    project_id: int,
     file_id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
@@ -87,8 +86,6 @@ async def get_file_project(
             user_id=user.id, 
             roles=user.roles, 
             file_id=file_id, 
-            entity_id=project_id, 
-            entity_type="project"
         )
         return result
 
@@ -98,31 +95,6 @@ async def get_file_project(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
-
-@file_router.get("/client/{client_id}/files/{file_id}", response_model=FileItem)
-async def get_file_client(
-    client_id: int,
-    file_id: int,
-    session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
-):
-    try:
-        result = await get_file(
-            session=session, 
-            user_id=user.id, 
-            roles=user.roles, 
-            file_id=file_id, 
-            entity_id=client_id, 
-            entity_type="client"
-        )
-        return result
-
-    except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
-    
 
 @file_router.post("/project/{id}/files", response_model=list[BaseShortResponse])
 async def upload_file_project(
@@ -173,9 +145,8 @@ async def upload_file_client(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@file_router.get("/project/{project_id}/files/{file_id}/download")
-async def download_file_project(
-    project_id: int,
+@file_router.get("/files/{file_id}/download")
+async def download_file_router(
     file_id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
@@ -186,8 +157,6 @@ async def download_file_project(
             user_id=user.id, 
             roles=user.roles, 
             file_id=file_id, 
-            entity_id=project_id, 
-            entity_type="project"
         )
         return FileResponse(path=file.path, filename=file.name, media_type=file.mime_type) 
 
@@ -198,33 +167,8 @@ async def download_file_project(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
     
 
-@file_router.get("/client/{client_id}/files/{file_id}/download")
-async def download_file_client(
-    client_id: int,
-    file_id: int,
-    session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
-):
-    try:
-        file = await get_file_for_download(
-            session=session, 
-            user_id=user.id, 
-            roles=user.roles, 
-            file_id=file_id, 
-            entity_id=client_id, 
-            entity_type="client"
-        )
-        return FileResponse(path=file.path, filename=file.name, media_type=file.mime_type) 
-
-    except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
-
-@file_router.delete("/project/{project_id}/files/{file_id}", response_model=FileDeleteResponse)
-async def delete_file_project(
-    project_id: int,
+@file_router.delete("/files/{file_id}", response_model=FileDeleteResponse)
+async def delete_file_router(
     file_id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
@@ -235,8 +179,6 @@ async def delete_file_project(
             user_id=user.id, 
             roles=user.roles, 
             file_id=file_id, 
-            entity_id=project_id, 
-            entity_type="project"
         )
         return {"deleted": result}
 
@@ -247,27 +189,4 @@ async def delete_file_project(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
     
 
-@file_router.delete("/client/{client_id}/files/{file_id}", response_model=FileDeleteResponse)
-async def delete_file_client(
-    client_id: int,
-    file_id: int,
-    session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
-):
-    try:
-        result = await delete_file(
-            session=session, 
-            user_id=user.id, 
-            roles=user.roles, 
-            file_id=file_id, 
-            entity_id=client_id, 
-            entity_type="client"
-        )
-        return {"deleted": result}
-
-    except ApplicationException as e:
-        raise HTTPException(status_code=e.code, detail=e.name)
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
     

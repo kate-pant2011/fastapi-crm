@@ -8,6 +8,7 @@ from .common import order, get_all_and_total
 async def get_all_email_templates(session, scope, limit, offset, is_admin, user_id):
     stmt = (
         select(EmailTemplate)
+        .options(selectinload(EmailTemplate.creator))
         .join(EmailTemplate.creator)
     )
     if not is_admin:

@@ -16,6 +16,23 @@ class FileDTO:
 sorting_rules = {"name": ("name","created_at")}
 
 
+async def check_files_access(file, session, user_id, roles):
+    if file.project_id:
+        entity_type = "project"
+        entity_id = file.project_id
+        await check_roles_and_entity(session, user_id, roles, entity_type, entity_id)
+
+    elif file.client_id:
+        entity_type = "client"
+        entity_id = file.client_id
+        await check_roles_and_entity(session, user_id, roles, entity_type, entity_id)
+
+    elif file.generated_document:
+        if file.creator_id != user_id:
+            raise ApplicationException("Access denied", 403)
+    
+
+
 async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id):
     access = Access(roles)
     manager_id = access.manager_id(user_id)
@@ -53,26 +70,20 @@ async def get_file_list(session, user_id, roles, entity_id, entity_type, query):
     }
 
 
-async def get_file(session, user_id, roles, file_id, entity_id, entity_type):
-    await check_roles_and_entity(session, user_id, roles, entity_type, entity_id)
-
+async def get_file(session, user_id, roles, file_id):
     file = await get_file_by_id(session, file_id)
 
     if not file:
         raise ApplicationException("File not found", 404)
-
-    if entity_type == "project" and file.project_id != entity_id:
-        raise ApplicationException("Access denied", 403)
-
-    if entity_type == "client" and file.client_id != entity_id:
-        raise ApplicationException("Access denied", 403)
+    
+    await check_files_access(file, session, user_id, roles)
 
     return to_schema(FileItem, file)
 
 
-
 async def upload_file(session, user_id, roles, files, entity_id, entity_type: str):
-    await check_roles_and_entity(session, user_id, roles, entity_type, entity_id)
+    if entity_type != "template":
+        await check_roles_and_entity(session, user_id, roles, entity_type, entity_id)
 
     added_files = []
     saved_paths = []
@@ -90,6 +101,9 @@ async def upload_file(session, user_id, roles, files, entity_id, entity_type: st
 
             elif entity_type == "client":
                 added_file.client_id = entity_id    
+            
+            elif entity_type == "template":
+                added_file.template_id = entity_id
 
             added_files.append(added_file)
 
@@ -101,41 +115,26 @@ async def upload_file(session, user_id, roles, files, entity_id, entity_type: st
 
     return added_files 
 
-async def get_file_for_download(session, user_id, roles, file_id, entity_id, entity_type: str):
-    await check_roles_and_entity(
-        session, 
-        user_id, 
-        roles, 
-        entity_type, 
-        entity_id
-    )
+
+async def get_file_for_download(session, user_id, roles, file_id):
     file = await get_file_by_id(session, file_id)
 
     if not file:
         raise ApplicationException("File not found", 404)
 
-    if entity_type == "project" and file.project_id != entity_id:
-        raise ApplicationException("Access denied", 403)
 
-    if entity_type == "client" and file.client_id != entity_id:
-        raise ApplicationException("Access denied", 403)
+    await check_files_access(file, session, user_id, roles)
 
     return file
 
-async def delete_file(session, user_id, roles, file_id, entity_id, entity_type):
-    await check_roles_and_entity(session, user_id, roles, entity_type, entity_id)
 
+async def delete_file(session, user_id, roles, file_id):
     file = await get_file_by_id(session, file_id)
     
     if not file:
         raise ApplicationException("File not found", 404)
-
-    if entity_type == "project" and file.project_id != entity_id:
-        raise ApplicationException("Access denied", 403)
-
-    if entity_type == "client" and file.client_id != entity_id:
-        raise ApplicationException("Access denied", 403)
-
+    
+    await check_files_access(file, session, user_id, roles)
 
     handler = FileHandler()
     handler.delete_file(file.path)

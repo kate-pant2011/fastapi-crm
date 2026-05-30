@@ -44,6 +44,7 @@ async def get_file_by_id(session, file_id):
         .options(selectinload(File.creator))
         .options(selectinload(File.project))
         .options(selectinload(File.client))
+        .options(selectinload(File.generated_document))
         .where(File.id == file_id)
     )
 

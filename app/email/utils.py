@@ -92,12 +92,18 @@ async def send_email(smtp_config, password, to, cc, bcc, subject, body, files):
         msg.set_content(body or "")
 
         if files:
-            for file in files:
+            for file in files:   
+                if file.path:
+                    with open(file.path, "rb") as f:
+                        content = f.read()
+                else:
+                    content = file.content
+
                 if not file.filename:
                     continue
-                content = await file.read()
                 if not content:
                     continue
+                
                 msg.add_attachment(
                     content,
                     maintype="application",

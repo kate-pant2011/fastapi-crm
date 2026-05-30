@@ -34,5 +34,3 @@ class EmailTemplatePatchRequest(BaseModel):
 class EmailTemplateDeleteResponse(BaseModel):
     result: str
 
-class EmailTemplateVars(BaseModel):
-    variables: list[str]

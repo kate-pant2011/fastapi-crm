@@ -6,8 +6,10 @@ bcrypt==3.2.2
 psycopg2-binary
 SQLAlchemy
 asyncpg
+alembic
 pytest
 pytest-asyncio
 aiofiles
 python-magic
 cryptography
+docxtpl

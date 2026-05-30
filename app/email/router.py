@@ -4,7 +4,7 @@ from app.config.config import ApplicationException
 from app.config.connection import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import require_roles, UserDTO
-from .service import add_email_user, send_email_service, get_email_list, get_email, change_email, delete_email
+from .service import add_email_user, send_email_service, get_email_list, get_email, change_email, delete_email, validate_fastapi_file
 from .schemas import (
     EmailShortResponse, EmailPostRequest, EmailStatusResponse, EmailListResponse, EmailItem, EmailPatchRequest
 )
@@ -112,9 +112,12 @@ async def send_email_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try: 
+
+        validated_files = await validate_fastapi_file(files)
+
         return await send_email_service(
             session, 
-            files,
+            validated_files,
             email_id,
             to,
             cc,

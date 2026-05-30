@@ -84,10 +84,10 @@ async def restore_branch(session, id):
     branch = await get_branch_by_id(session, id)
 
     if not branch:
-        raise ApplicationException("Contractor Not found", 404)
+        raise ApplicationException("Branch Not found", 404)
 
     if not branch.is_archived:
-        raise ApplicationException("Contractor is already active", 400)
+        raise ApplicationException("Branch is already active", 400)
 
     branch.is_archived = False
     return branch

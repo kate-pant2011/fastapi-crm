@@ -23,10 +23,11 @@ class User(BaseModel):
     roles = relationship("Role", secondary=user_roles, back_populates="users")
     assignments = relationship("Assignment", back_populates="user")
     clients = relationship("Client", back_populates="manager")
-    stage_templates = relationship("StageTemplate", back_populates="creator")
     files = relationship("File", back_populates="creator")
     creator_emails = relationship("Email", back_populates="creator", foreign_keys="Email.creator_id")
     owner_emails = relationship("Email", back_populates="owner", foreign_keys="Email.owner_id")
     email_logs = relationship("EmailLog", back_populates="user")
+    stage_templates = relationship("StageTemplate", back_populates="creator")
     email_templates = relationship("EmailTemplate", back_populates="creator")
-
+    document_templates = relationship("DocumentTemplate", back_populates="creator")
+    generated_documents = relationship("GeneratedDocument", back_populates="creator")

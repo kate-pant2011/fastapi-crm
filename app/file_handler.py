@@ -93,6 +93,8 @@ class FileHandler:
         mime_type = None
         ext = file.filename.split(".")[-1].lower()
 
+        chunks = []
+
         while chunk := await file.read(1024 * 1024):
             if first_chunk:
                 mime_type = self.check_mime(chunk, ext)
@@ -102,6 +104,10 @@ class FileHandler:
 
             if size > max_size:
                 raise ApplicationException(400, "File too big")
+            
+            chunks.append(chunk)
+        
+        content = b"".join(chunks)
 
         await file.seek(0)  
 
@@ -109,4 +115,5 @@ class FileHandler:
             "filename": file.filename or "unknown",
             "size": size,
             "content_type": file.content_type,
+            "content": content 
         }

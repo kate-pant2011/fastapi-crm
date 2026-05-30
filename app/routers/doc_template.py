@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File, Form
 from typing import Literal
 from app.config.config import ApplicationException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,20 +7,20 @@ from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
 from app.schemas.common import BaseShortResponse, BaseListResponse
 from dataclasses import dataclass
-from app.schemas.email_template import (
-    EmailTemplateItem, 
-    EmailTemplateCreation, 
-    EmailTemplatePatchRequest, 
-    EmailTemplateDeleteResponse, 
-    EmailTemplateShortItem,
+from app.schemas.doc_template import (
+    DocTemplateItem, 
+    DocTemplateCreation, 
+    DocTemplatePatchRequest, 
+    DocTemplateDeleteResponse, 
+    GeneratedDocResponse
 )
-from app.services.email_template import (
-    get_email_template_list, 
-    get_email_template, 
-    create_email_template, 
-    change_email_template, 
-    delete_email_template, 
-    render_email_template,
+from app.services.doc_template import (
+    get_doc_template_list, 
+    get_doc_template, 
+    create_doc_template, 
+    change_doc_template, 
+    delete_doc_template, 
+    render_doc_template,
 )
 
 @dataclass
@@ -32,11 +32,11 @@ class VariablesDTO:
     stage_id: int | None 
     user_id: int | None 
 
-email_template_router = APIRouter()
+doc_template_router = APIRouter()
 
 
-@email_template_router.get("/email-template", response_model=BaseListResponse)
-async def get_email_template_list_router(
+@doc_template_router.get("/doc-template", response_model=BaseListResponse)
+async def get_doc_template_list_router(
     session: AsyncSession = Depends(get_db),
     scope: Literal["mine", "available"] | None = Query(
         default=None, 
@@ -48,7 +48,7 @@ async def get_email_template_list_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        return await get_email_template_list(
+        return await get_doc_template_list(
             session=session, scope=scope, limit=limit, offset=offset, roles=user.roles, user_id=user.id
         )
 
@@ -59,14 +59,14 @@ async def get_email_template_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@email_template_router.get("/email-template/{id}", response_model=EmailTemplateItem)
-async def get_email_template_router(
+@doc_template_router.get("/doc-template/{id}", response_model=DocTemplateItem)
+async def get_doc_template_router(
     id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        return await get_email_template(session, id, user.roles, user.id)
+        return await get_doc_template(session, id, user.roles, user.id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -74,15 +74,25 @@ async def get_email_template_router(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
-
-@email_template_router.post("/email-template", response_model=BaseShortResponse)
-async def create_email_template_router(
-    data: EmailTemplateCreation,
+    
+@doc_template_router.post("/doc-template", response_model=BaseShortResponse)
+async def create_doc_template_router(
+    name: str = Form(...),
+    description: str | None = Form(None),
+    is_public: bool = Form(...),
+    required_entities: list[str] | None = Form(None),
+    file: UploadFile = File(...),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        return await create_email_template(session, data, user.id)
+        data = DocTemplateCreation(
+            name=name,
+            description=description,
+            is_public=is_public,
+            required_entities=required_entities
+        )
+        return await create_doc_template(session, data, user.id, user.roles, file)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -91,15 +101,15 @@ async def create_email_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@email_template_router.patch("/email-template/{id}", response_model=EmailTemplateItem)
-async def change_email_template_router(
-    data: EmailTemplatePatchRequest,
+@doc_template_router.patch("/doc-template/{id}", response_model=DocTemplateItem)
+async def change_doc_template_router(
+    data: DocTemplatePatchRequest,
     id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        return await change_email_template(session, data, user.id, user.roles, id)
+        return await change_doc_template(session, data, user.id, user.roles, id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -108,14 +118,14 @@ async def change_email_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@email_template_router.delete("/email-template/{id}", response_model=EmailTemplateDeleteResponse)
-async def delete_email_template_router(
+@doc_template_router.delete("/doc-template/{id}", response_model=DocTemplateDeleteResponse)
+async def delete_doc_template_router(
     id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        return await delete_email_template(session, user.id, user.roles, id)
+        return await delete_doc_template(session, user.id, id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
@@ -124,8 +134,8 @@ async def delete_email_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@email_template_router.post("/email-template/{id}/render", response_model=EmailTemplateShortItem)
-async def render_email_template_router(
+@doc_template_router.post("/doc-template/{id}/render", response_model=GeneratedDocResponse)
+async def render_doc_template_router(
     id: int,
     session: AsyncSession = Depends(get_db),
     project_id: int | None = Query(default=None),
@@ -145,15 +155,10 @@ async def render_email_template_router(
             stage_id=stage_id,
             user_id=user_id,
         )
-        return await render_email_template(session, user.id, user.roles, id, query)
+        return await render_doc_template(session, user.id, user.roles, id, query)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
-
-
-
-
-

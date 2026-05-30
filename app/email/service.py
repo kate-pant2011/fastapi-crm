@@ -10,6 +10,7 @@ from app.services.common import Access
 from app.file_handler import FileHandler
 from app.database.email_template import get_email_template_by_id
 from datetime import datetime
+from dataclasses import dataclass
 
 async def get_email_list(session, limit, offset, user_id, roles, scope):
     is_admin = Access(roles).is_admin()
@@ -99,6 +100,33 @@ async def add_email_user(session, items, user_id):
     return new_email
 
 
+@dataclass
+class FileValidateDTO:
+    filename: str
+    mime_type: str
+    size: int
+    content: bytes | None = None
+    path: str | None = None
+
+async def validate_fastapi_file(files):
+    validated_files = []
+    handler = FileHandler()
+
+    if files:
+        for file in files:
+            data = await handler.validate_file(file)
+            data = FileValidateDTO(
+                filename = data.get("filename"),
+                mime_type= data.get("mime_type"),
+                size = data.get("size"),
+                path = None,
+                content = data.get("content")
+            )
+            validated_files.append(data)
+
+    return validated_files
+
+
 async def send_email_service(session, files, email_id, to, cc, bcc, subject, body, user_id):
     email = await get_email_by_id(session, email_id)
     if not email:
@@ -116,18 +144,21 @@ async def send_email_service(session, files, email_id, to, cc, bcc, subject, bod
     
     password = decrypt_password(email.password)
 
-    file_info = []
-    handler = FileHandler()
+    files_info = []
 
-    for file in files:
-        meta = await handler.validate_file(file)
-        file_info.append(meta)
-    
+    for f in files:
+        data = {
+            "filename": f.filename or "unknown",
+            "size": f.size,
+            "mime_type": f.mime_type,
+        }
+        files_info.append(data)
+
     email_log = await add_email_log(
         session, user_id, 
         email.login, to_list, 
         cc_list, bcc_list,
-        subject, body, file_info
+        subject, body, files_info
     )
 
     try:
