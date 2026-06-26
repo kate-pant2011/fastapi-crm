@@ -11,6 +11,7 @@ from app.services.user import (
     get_user_list,
     get_user,
     change_user,
+    resend_signup_invitation
 )
 from app.schemas.user import (
     UserItem,
@@ -136,6 +137,22 @@ async def restore_user_router(
 ):
     try:
         return await restore_user(session, id)
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
+
+
+@user_router.post("/user/{id}/resend-invitation", response_model=UserCreationResponse)
+async def resend_invitation(
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin")),
+):
+    try:
+        return await resend_signup_invitation(session, id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

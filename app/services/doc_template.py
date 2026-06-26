@@ -8,6 +8,7 @@ from app.database.doc_template import (
     get_doc_template_by_id,
     get_doc_template_by_name,
 )
+from app.database.branch import get_branch_by_id_with_stamp
 from app.services.common import Access    
 from app.services.template_context import build_context, build_ctx_objects
 from app.services.file import upload_file
@@ -16,7 +17,8 @@ from app.database.file import add_file
 from app.file_handler import FileUploadDTO, FileNameDTO
 from datetime import datetime
 from docx import Document
-from docxtpl import DocxTemplate
+from docxtpl import DocxTemplate, InlineImage
+from docx.shared import Mm
 import re
 import uuid
 import os
@@ -157,6 +159,31 @@ async def render_doc_template(session, user_id, roles, template_id, query):
 
     ctx_objects = await build_ctx_objects(session, query, user_id, is_admin)
     context = build_context(ctx_objects)
+
+    if query.branch_id:
+        branch = await get_branch_by_id_with_stamp(session, query.branch_id)
+
+        if branch:
+            context["branch_name"] = branch.name
+
+            if branch.stamp_file:
+                if (
+                    not branch.stamp_is_public
+                    and branch.stamp_file.creator_id != user_id
+                ):
+                    raise ApplicationException(
+                        "Branch stamp is private",
+                        403
+                    )
+                
+                if query.stamp_width_mm is not None:
+                    branch.stamp_width_mm = query.stamp_width_mm
+
+                context["stamp"] = InlineImage(
+                    doc,
+                    branch.stamp_file.path,
+                    width=Mm(branch.stamp_width_mm)
+                )
 
     try:
         doc.render(context)

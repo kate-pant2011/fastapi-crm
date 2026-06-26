@@ -30,6 +30,12 @@ async def get_branch_by_id(session, id: int):
     return result.scalar_one_or_none()
 
 
+async def get_branch_by_id_with_stamp(session, id: int):
+    result = await session.execute(
+        select(Branch).options(selectinload(Branch.stamp_file)).where(Branch.id == id)
+    )
+    return result.scalar_one_or_none()
+
 async def add_branch(session, inn: str, company_name: str):
     branch = Branch(
         inn=inn,

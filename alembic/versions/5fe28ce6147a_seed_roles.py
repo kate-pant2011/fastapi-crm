@@ -1,11 +1,10 @@
-"""seed_roles
+"""seed roles
 
-Revision ID: bd41fa1b5c11
-Revises: 20260313155243
-Create Date: 2026-03-13 15:53:53.184132
+Revision ID: 5fe28ce6147a
+Revises: 20260615152609
+Create Date: 2026-06-15 15:31:40.718410
 
 """
-
 from typing import Sequence, Union
 
 from alembic import op
@@ -13,11 +12,13 @@ import sqlalchemy as sa
 from app.config.config import now
 from sqlalchemy import DateTime, String
 
+
 # revision identifiers, used by Alembic.
-revision: str = "bd41fa1b5c11"
-down_revision: Union[str, Sequence[str], None] = "20260313155243"
+revision: str = '5fe28ce6147a'
+down_revision: Union[str, Sequence[str], None] = '20260615152609'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
+
 
 roles_table = sa.table(
     "roles",

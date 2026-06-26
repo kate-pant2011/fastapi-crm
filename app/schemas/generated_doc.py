@@ -13,7 +13,7 @@ class GeneratedListResponse(BaseModel):
     limit: int
     offset: int
 
-class GeneratedDocCreation(BaseModel):
+class GeneratedDocSend(BaseModel):
     email_id: int
     to: str
     cc: str | None = Field(None, min_length=1) 

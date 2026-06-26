@@ -13,6 +13,7 @@ class GeneratedDocument(BaseModel):
         nullable=False,
         unique=True
     )
+    
     creator = relationship("User", back_populates="generated_documents")
     template = relationship("DocumentTemplate", back_populates="generated_documents")
     file = relationship("File", back_populates="generated_document")

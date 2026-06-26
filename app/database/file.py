@@ -52,3 +52,12 @@ async def get_file_by_id(session, file_id):
     return result.scalar_one_or_none()
 
 
+async def get_file_by_unique_name(session, unique_name):
+    stmt = (
+        select(File)
+        .options(selectinload(File.generated_document))
+        .where(File.unique_name == unique_name)
+    )
+
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()

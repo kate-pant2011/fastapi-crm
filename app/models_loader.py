@@ -16,3 +16,4 @@ from app.models.file import File
 from app.models.email import Email
 from app.models.email_log import EmailLog
 from app.models.email_template import EmailTemplate
+from app.models.reset_token import PasswordResetToken

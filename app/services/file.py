@@ -4,6 +4,7 @@ from app.config.config import ApplicationException
 from app.schemas.file import FileItem
 from app.database.project import get_project_by_id
 from app.database.client import get_client_by_id
+from app.database.branch import get_branch_by_id_with_stamp, get_branch_by_id
 from app.schemas.common import to_schema
 from .common import Access
 from dataclasses import dataclass
@@ -39,7 +40,7 @@ async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id
     executor_id = access.executor_id(user_id)
     is_admin = access.is_admin()
 
-    if entity_type not in ("client", "project"):
+    if entity_type not in ("client", "project", "branch"):
         raise ApplicationException("File location Not Found", 400)
 
     if entity_type == "project":
@@ -47,6 +48,15 @@ async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id
 
     elif entity_type == "client":
         entity = await get_client_by_id(session, entity_id, manager_id)
+
+    elif entity_type == "branch":
+        entity = await get_branch_by_id_with_stamp(session, entity_id)
+
+        if (entity.stamp_file 
+            and not entity.stamp_is_public 
+            and entity.stamp_file.creator_id != user_id
+        ):
+            raise ApplicationException(f"Branch stamp is private", 403)
 
     if not entity: 
         if not is_admin:
@@ -104,6 +114,10 @@ async def upload_file(session, user_id, roles, files, entity_id, entity_type: st
             
             elif entity_type == "template":
                 added_file.template_id = entity_id
+            
+            elif entity_type == "branch":
+                branch = await get_branch_by_id_with_stamp(session, entity_id)
+                branch.stamp_file_id = added_file.id
 
             added_files.append(added_file)
 

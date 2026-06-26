@@ -7,7 +7,9 @@ from .schemas import (
     RefreshRequest,
     LogoutResponse,
     ChangePasswordRequest,
-    ChangePasswordResponse,
+    EmailResponse,
+    ForgotLoginRequest,
+    MessageResponse
 )
 from .service import (
     login_user,
@@ -15,6 +17,8 @@ from .service import (
     update_tokens,
     logout_user,
     change_user_password,
+    create_password_reset_token,
+    reset_user_password
 )
 from .dependencies import get_allow_password_change_user, UserDTO
 from app.config.config import ApplicationException
@@ -32,7 +36,8 @@ async def login(
 ):
     try:
         device = request.headers.get("user-agent")
-        result = await login_user(session, input.email, input.password, device)
+        ip = request.client.host
+        result = await login_user(session, input.email, input.password, device, ip)
 
         return {
             "access_token": result.access,
@@ -105,7 +110,7 @@ async def signup(
         raise HTTPException(status_code=500, detail=f"Internal server error - {e}")
 
 
-@auth_router.patch("/auth/change-password", response_model=ChangePasswordResponse)
+@auth_router.patch("/auth/change-password", response_model=EmailResponse)
 async def change_password(
     new_data: ChangePasswordRequest,
     session: AsyncSession = Depends(get_db),
@@ -120,3 +125,45 @@ async def change_password(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
+
+
+@auth_router.post("/auth/forgot-password", response_model=MessageResponse)
+async def forgot_password(
+    login: ForgotLoginRequest,
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+
+):
+    try:
+        device = request.headers.get("user-agent")
+        return await create_password_reset_token(session, login, device)
+
+    except IntegrityError as e:
+        raise HTTPException(status_code=400, detail=f"Integrity Error - {e}")
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error - {e}")
+
+
+@auth_router.post("/auth/reset-password", response_model=MessageResponse)
+async def reset_password(
+    token: str,
+    password: ChangePasswordRequest,
+    session: AsyncSession = Depends(get_db),
+):
+    try:
+        return await reset_user_password(session, token, password)
+
+    except IntegrityError as e:
+        raise HTTPException(status_code=400, detail=f"Integrity Error - {e}")
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error - {e}")
+    
+

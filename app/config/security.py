@@ -21,7 +21,7 @@ def decrypt_password(encrypted_password):
 
 
 @dataclass
-class RefreshDTO:
+class TokenDTO:
     token: str
     exp: datetime
 
@@ -30,6 +30,7 @@ class RefreshDTO:
 class DecodeDTO:
     jti: str
     exp: datetime
+    token_type: str | None
 
 
 class JWTService:
@@ -58,8 +59,21 @@ class JWTService:
         payload = {"sub": str(sub), "exp": exp, "jti": jti}
         encoded = jwt.encode(payload, self.key, self.algorithm)
 
-        return RefreshDTO(token=encoded, exp=exp)
+        return TokenDTO(token=encoded, exp=exp)
 
+    def create_reset_token(self, sub, jti):
+        exp = datetime.now(timezone.utc) + timedelta(
+            minutes=settings.RESET_TOKEN_EXPIRE_MINUTES
+        )
+        payload = {
+            "sub": str(sub),
+            "exp": exp,
+            "type": "password_reset",
+            "jti": jti
+        }
+        encoded = jwt.encode(payload, self.key, self.algorithm)
+        return TokenDTO(token=encoded, exp=exp)
+    
     def decode_token(self, token: str):
         try:
             decoded = jwt.decode(token, self.key, algorithms=self.algorithm)
@@ -69,7 +83,9 @@ class JWTService:
 
             exp = datetime.fromtimestamp(decoded.get("exp"), tz=timezone.utc)
 
-            return DecodeDTO(jti=decoded.get("jti"), exp=exp)
+            token_type = decoded.get("type") or None
+
+            return DecodeDTO(jti=decoded.get("jti"), exp=exp, token_type=token_type)
 
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token expired")

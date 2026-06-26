@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.services.generated_doc import get_generated_docs, send_generated_doc
+from app.services.generated_doc import get_generated_docs, send_generated_doc, convert_word_to_pdf
 from app.config.config import ApplicationException
 from app.auth.dependencies import require_roles, UserDTO
 from app.config.connection import get_db
 from dataclasses import dataclass
-from app.schemas.generated_doc import GeneratedListResponse, GeneratedDocCreation
+from app.schemas.generated_doc import GeneratedListResponse, GeneratedDocSend, GeneratedItem
 from app.email.schemas import EmailStatusResponse
+from app.schemas.doc_template import GeneratedDocResponse
+
 
 generated_doc_router = APIRouter()
 
@@ -45,7 +47,7 @@ async def get_generated_docs_router(
 @generated_doc_router.post("/generated-docs/{id}/send", response_model=EmailStatusResponse)
 async def send_generated_docs_router(
     id: int,
-    item: GeneratedDocCreation, 
+    item: GeneratedDocSend, 
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
@@ -55,6 +57,27 @@ async def send_generated_docs_router(
             user_id=user.id, 
             generated_doc_id=id,
             item=item
+        )
+        return docs
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+    
+
+@generated_doc_router.post("/generated-docs/{id}/word-to-pdf", response_model=GeneratedDocResponse)
+async def convert_word_to_pdf_router(
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
+):
+    try:
+        docs = await convert_word_to_pdf(
+            session=session, 
+            user_id=user.id, 
+            generated_doc_id=id,
         )
         return docs
 

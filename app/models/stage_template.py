@@ -12,3 +12,5 @@ class StageTemplate(BaseModel):
 
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     creator = relationship("User", back_populates="stage_templates")
+
+

@@ -1,5 +1,5 @@
 from .base import BaseModel, user_roles
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 
 
@@ -18,6 +18,12 @@ class User(BaseModel):
     must_change_password = Column(Boolean, default=True)
 
     refresh_tokens = relationship("RefreshToken", back_populates="user")
+    reset_tokens = relationship("PasswordResetToken", back_populates="user")
+
+    last_login_at = Column(DateTime(timezone=True), nullable=True) 
+    last_login_ip = Column(String(50), nullable=True) 
+    failed_login_attempts = Column(Integer, default=0, nullable=False, server_default="0")
+    locked_until = Column(DateTime(timezone=True), nullable=True)
 
     branch = relationship("Branch", back_populates="users")
     roles = relationship("Role", secondary=user_roles, back_populates="users")

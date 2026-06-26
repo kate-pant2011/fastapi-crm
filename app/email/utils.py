@@ -39,8 +39,14 @@ def define_host_and_port(config):
         raise ApplicationException(
             "Both server and port must be provided", 400
     )
-    domain = config.login.split("@")[1]
+    try: 
+        domain = config.login.split("@")[1]
 
+    except IndexError:
+        raise ApplicationException(
+            "Invalid email login",
+            400
+        )
     provider = KNOWN_PROVIDERS[domain]
     if not provider:
         raise ApplicationException("Unknown email provider. Specify SMTP server and port manually", 400)

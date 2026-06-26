@@ -17,6 +17,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class ForgotLoginRequest(BaseModel):
+    email: EmailStr
+
+
 class RefreshRequest(BaseModel):
     refresh_token: str
 
@@ -35,8 +39,12 @@ class ChangePasswordRequest(BaseModel):
     password: str
 
 
-class ChangePasswordResponse(BaseModel):
+class EmailResponse(BaseModel):
     email: EmailStr
+
+
+class MessageResponse(BaseModel):
+    message: str
 
 
 class SignupResponse(BaseModel):

@@ -1,13 +1,25 @@
 from app.models_loader import User, Role
 from app.models.branch import Branch
 from app.models.base import user_roles
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 from sqlalchemy.orm import (
-    selectinload,
+    selectinload
 )
 from app.config.config import ApplicationException
 from .common import apply_sorting, order, get_all_and_total
 
+
+async def owner_exists(session):
+    stmt = (
+        select(User.id)
+        .join(User.roles)
+        .where(Role.name == "owner")
+        .limit(1)
+    )
+
+    owner = await session.scalar(stmt)
+
+    return owner 
 
 async def get_all_users(session, is_admin, query, sorting_rules):
     stmt = select(User).join(User.roles)

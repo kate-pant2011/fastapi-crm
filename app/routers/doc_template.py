@@ -31,6 +31,8 @@ class VariablesDTO:
     company_id: int | None
     stage_id: int | None 
     user_id: int | None 
+    branch_id: int | None
+    stamp_width_mm: int | None
 
 doc_template_router = APIRouter()
 
@@ -144,6 +146,8 @@ async def render_doc_template_router(
     company_id: int | None = Query(default=None),
     stage_id: int | None = Query(default=None),
     user_id: int | None = Query(default=None),
+    branch_id: int | None = Query(default=None),
+    stamp_width_mm: int | None = Query(default=None),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
@@ -154,6 +158,8 @@ async def render_doc_template_router(
             company_id=company_id,
             stage_id=stage_id,
             user_id=user_id,
+            branch_id=branch_id,
+            stamp_width_mm=stamp_width_mm
         )
         return await render_doc_template(session, user.id, user.roles, id, query)
 

@@ -7,7 +7,7 @@ class File(BaseModel):
     creator_id = Column(Integer, ForeignKey("users.id"), index=True)
     client_id = Column(Integer, ForeignKey("clients.id"), nullable=True, index=True)
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True, index=True)
-    template_id = Column(Integer, ForeignKey("document_templates.id", ondelete="CASCADE"), nullable=True, unique=True)
+    template_id = Column(Integer, ForeignKey("document_templates.id", ondelete="CASCADE"), nullable=True)
 
     name = Column(String(255), nullable=False) # original filename
     unique_name = Column(String(255), nullable=False) # filename created with uuid
@@ -20,4 +20,5 @@ class File(BaseModel):
     project = relationship("Project", back_populates="files")
     template = relationship("DocumentTemplate", back_populates="file")
     generated_document = relationship("GeneratedDocument", back_populates="file", uselist=False)
+
 

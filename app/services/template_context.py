@@ -4,6 +4,7 @@ from app.database.stage import get_stage_by_id
 from app.database.client import get_client_by_id
 from app.database.company import get_company_by_id
 from app.database.contract import get_contract_by_id
+from app.database.branch import get_branch_by_id
 
 VARIABLE_RESOLVERS = {
     "project_name": lambda ctx: ctx["project"].name if ctx.get("project") else "PROJECT NAME",
@@ -16,6 +17,8 @@ VARIABLE_RESOLVERS = {
     "user_surname": lambda ctx: ctx["user"].surname if ctx.get("user") else "SURNAME",
     "user_position":lambda ctx: ctx["user"].position if ctx.get("user") else "POSITION",
     "user_email": lambda ctx: ctx["user"].email if ctx.get("user") else "EMAIL",
+    "branch_name":lambda ctx: "BRANCH NAME",
+    "stamp": lambda ctx: "",
 }
 
 
@@ -66,6 +69,7 @@ async def build_ctx_objects(session, query, user_id, is_admin):
     if query.user_id:
         user = await get_user_by_id(session, query.user_id)
         ctx["user"] = user
+
 
     return ctx
 

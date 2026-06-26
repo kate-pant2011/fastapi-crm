@@ -44,5 +44,5 @@ class UserCreationRequest(BaseModel):
 
 class UserCreationResponse(BaseModel):
     name: str
-    password: str
+    user_id: int
 

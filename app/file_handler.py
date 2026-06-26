@@ -18,12 +18,45 @@ class FileUploadDTO:
     size: int
     mime_type: str
 
-ALLOWED_EXT = {
-    "png", "jpg", "jpeg", "webp", 
-    "gif", "pdf", "html", "doc", 
-    "docx","xls", "xlsx","ppt", 
-    "pptx", "txt", "json","xml", 
-    "htm","zip"
+ALLOWED_MIME = {
+    "png": ["image/png"],
+    "jpg": ["image/jpeg"],
+    "jpeg": ["image/jpeg"],
+    "webp": ["image/webp"],
+    "gif": ["image/gif"],
+
+    "pdf": ["application/pdf"],
+
+    "html": ["text/html"],
+    "htm": ["text/html"],
+
+    "txt": ["text/plain"],
+
+    "json": ["application/json", "text/plain"],
+    "xml": ["application/xml", "text/xml"],
+
+    "doc": ["application/msword"],
+
+    "docx": [
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/zip",  
+    ],
+
+    "xls": ["application/vnd.ms-excel"],
+
+    "xlsx": [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/zip",
+    ],
+
+    "ppt": ["application/vnd.ms-powerpoint"],
+
+    "pptx": [
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "application/zip",
+    ],
+
+    "zip": ["application/zip"],
 }
 
 
@@ -71,10 +104,10 @@ class FileHandler:
         return False
     
     def check_mime(self, chunk, ext):
-        if ext not in ALLOWED_EXT:
-            raise ApplicationException(400, f"Extension {ext} not allowed")
-        
         file_mime = magic.from_buffer(chunk[:2048], mime=True)
+
+        if file_mime not in ALLOWED_MIME[ext]:
+            raise ApplicationException(400, f"Invalid mime type {file_mime} for extension {ext}")
         
         return file_mime
     

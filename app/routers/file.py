@@ -72,8 +72,7 @@ async def get_files_client(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
-
-
+    
 @file_router.get("/files/{file_id}", response_model=FileItem)
 async def get_file_project(
     file_id: int,
@@ -144,6 +143,29 @@ async def upload_file_client(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
+@file_router.post("/branch/{id}/files", response_model=list[BaseShortResponse])
+async def upload_file_client(
+    id: int,
+    files: list[UploadFile] = File(...),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
+):
+    try:
+        uploaded_files = await upload_file(
+            session=session, 
+            user_id=user.id, 
+            roles=user.roles,
+            files=files, 
+            entity_id=id,
+            entity_type="branch"
+        )
+        return uploaded_files
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 @file_router.get("/files/{file_id}/download")
 async def download_file_router(

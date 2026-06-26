@@ -29,6 +29,7 @@ async def get_branch_list(session, query):
 
 async def get_branch(session, branch_id):
     branch = await get_branch_by_id(session, branch_id)
+
     if not branch:
         raise ApplicationException("Company Not found", 404)
 
@@ -40,6 +41,7 @@ async def get_branch(session, branch_id):
 
 async def change_branch(session, branch_id, item):
     branch = await get_branch_by_id(session, branch_id)
+    
     if not branch:
         raise ApplicationException("Company Not found", 404)
 

@@ -1,6 +1,7 @@
 # business logic
 from app.config.security import verify_password, hash_password, JWTService
-from app.config.config import ApplicationException
+from app.config.config import ApplicationException, settings
+from app.email.templates import send_complete_registration_email, send_suspicios_login_attempt_caution
 from app.database.branch import add_branch
 from app.database.user import (
     get_user_by_email,
@@ -18,7 +19,12 @@ from app.database.refresh_token import (
     get_refresh_by_jwt,
     
 )
+from app.database.reset_token import (
+    add_reset_jwt, verify_reset_jwt, deactivate_all_user_reset_jwt, ResetTokenReuseDetection
+)
+from app.main import logger
 import uuid
+from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 
 
@@ -28,9 +34,20 @@ class AuthTokensDTO:
     refresh: str | None
     change_password: bool
 
+@dataclass
+class EmailConfigDTO:
+    server: str
+    port: int
+    login: str
 
-async def login_user(session, email, password, device):
 
+email = EmailConfigDTO(
+    port = settings.SMTP_PORT,
+    server = settings.SMTP_HOST,
+    login = settings.EMAIL_USER
+)
+
+async def login_user(session, email, password, device, ip):
     user = await get_user_by_email(session, email)
     if not user:
         raise ApplicationException("invalid Credentials: login or password", 401)
@@ -38,8 +55,38 @@ async def login_user(session, email, password, device):
     if not user.is_active:
         raise ApplicationException("User is archived", 400, {"id": user.id})
 
+    now = datetime.now(timezone.utc)
+
+    if user.locked_until and user.locked_until > now:
+        raise ApplicationException(f"User has been blocked until {user.locked_until}", 403)
+        
     if not verify_password(password, user.password_hash):
+        user.failed_login_attempts += 1
+
+        if user.failed_login_attempts >= 5:
+            if user.locked_until is None or user.locked_until <= now:
+                try:
+                    await send_suspicios_login_attempt_caution(
+                        to=user.email,
+                        reason="авторизация"
+                    )
+                except Exception:
+                    logger.exception(
+                        "Failed to send security email"
+                    )
+
+            user.locked_until = (
+                now + timedelta(minutes=15)
+            )
+
+        await session.commit()
+
         raise ApplicationException("invalid Credentials: login or password", 401)
+
+    user.last_login_at = now
+    user.last_login_ip = ip
+    user.locked_until = None
+    user.failed_login_attempts = 0
 
     roles = list({role.name for role in user.roles})
     status = user.must_change_password
@@ -77,7 +124,6 @@ async def logout_user(session, refresh_jwt):
 
 async def update_tokens(session, refresh_jwt, device):
     try:
-
         decoded = JWTService().decode_token(refresh_jwt)
         old_refresh = await verify_refresh_jwt(session, decoded.jti)
 
@@ -95,8 +141,7 @@ async def update_tokens(session, refresh_jwt, device):
         active = user.is_active
 
     except TokenReuseDetection as e:
-        async with session.begin():
-            await deactivate_all_user_refresh(session, e.user_id)
+        await deactivate_all_user_refresh(session, e.user_id)
         raise
 
     jti = str(uuid.uuid4())
@@ -113,9 +158,9 @@ async def update_tokens(session, refresh_jwt, device):
 
 
 async def signup_user(session, user_data) -> dict:
-    user_exists = await get_user_by_email(session, user_data.email)
-    if user_exists:
-        raise ApplicationException(f"Email {user_data.email} is already used", 400)
+    owner_exists = await owner_exists(session)
+    if owner_exists:
+        raise ApplicationException(f"Only admins can sign you up", 400)
 
     password_validity = check_password(user_data.password)
     if password_validity:
@@ -182,3 +227,84 @@ def check_password(password):
         return "doesn't include letter"
 
     return None
+
+
+async def create_password_reset_token(session, login, device):
+    user = await get_user_by_email(session, login.email)
+    if not user:
+        return {
+            "message": "If an account with this email exists, password reset instructions have been sent."
+        }
+
+    jti = str(uuid.uuid4())
+
+    jwt = JWTService()
+    reset_token = jwt.create_reset_token(user.id, jti)
+
+    try:
+        await send_complete_registration_email(
+            to=login.email, reset_token=reset_token.token
+        )
+    except Exception:
+        await session.rollback()
+        raise ApplicationException(f"Something went wrong!", 500)
+    
+    await add_reset_jwt(session, user.id, reset_token.exp, jti, device)
+    
+    return {
+        "message": "If an account with this email exists, password reset instructions have been sent."
+    }
+
+
+async def reset_user_password(session, token, password):
+    try:
+        decoded = JWTService().decode_token(token)
+
+        if decoded.token_type != "password_reset":
+            raise ApplicationException(
+                "Invalid token type", 401
+            )
+        
+        existing_reset_token = await verify_reset_jwt(session, decoded.jti)
+
+        if not existing_reset_token:
+            raise ApplicationException("Reset token not found", 401)
+
+        user_id = existing_reset_token.user_id
+        user = await get_user_by_id(session, user_id)
+
+        if not user.is_active:
+            raise ApplicationException("User is inactive error", 403)
+
+    except ResetTokenReuseDetection as e:
+
+        await deactivate_all_user_reset_jwt(session, e.user_id)
+        await deactivate_all_user_refresh(session, e.user_id)
+
+        user = await get_user_by_id(session, e.user_id)
+
+        try:
+            await send_suspicios_login_attempt_caution(
+                to=user.email,
+                reason="изменение пароля"
+            )
+        except Exception:
+            logger.exception(
+                "Failed to send security email"
+            )
+        raise
+
+    password_validity = check_password(password.password)
+    if password_validity:
+        raise ApplicationException(f"The password is weak: {password_validity}", 400)
+
+    hashed_password = hash_password(password.password)
+
+    await update_user_password(session, user, hashed_password)
+
+    await deactivate_all_user_reset_jwt(session, user.id)
+    await deactivate_all_user_refresh(session, user.id)
+
+    return { 
+        "message": "The password has been successfully updated!"
+    }

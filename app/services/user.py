@@ -13,8 +13,11 @@ from app.config.security import hash_password
 from app.schemas.common import to_schema
 from app.schemas.user import UserItem
 from .common import Access, ROLES
+from app.email.templates import send_invitation_email
+from app.main import logger
 
 sorting_rules = {"name": ("name", "surname"), "surname": ("surname", "name")}
+
 
 async def get_user_list(session, roles, query):
     is_admin = Access(roles).is_admin()
@@ -125,18 +128,27 @@ async def create_user(session, roles, data):
     if branch.is_archived:
         raise ApplicationException(f"A company with INN {branch.inn} is archived", 400, {"id": branch.id})
 
+    if "owner" in data.roles:
+        raise ApplicationException("Role owner cannot be applied", 400)
+    
     password = generate_password()
     hashed_password = hash_password(password)
 
     new_user = await add_user(
         session, data, hashed_password, branch.id, password_change=True
     )
-    if "owner" in data.roles:
-        raise ApplicationException("Role owner cannot be applied", 400)
 
     await add_user_role(session, is_owner, new_user, data.roles, True)
 
-    return {"name": new_user.name, "password": password}
+    try:
+        await send_invitation_email(
+            to=data.email, password=password
+        )
+    except Exception as e:
+        logger.exception(f"SMTP error - Failed to send invitation email")
+
+
+    return {"name": new_user.name, "user_id": new_user.id}
 
 
 def generate_password():
@@ -169,3 +181,35 @@ async def restore_user(session, user_id):
 
     user.is_active = True
     return user
+
+
+async def resend_signup_invitation(session, user_id):
+    user = await get_user_by_id(session, user_id)
+
+    if not user:
+        raise ApplicationException("User Not found", 404)
+
+    if not user.is_active:
+        raise ApplicationException(
+            f"User '{user.name}' is archived", 400, {"id": user.id}
+        )
+    
+    if not user.must_change_password:
+        raise ApplicationException(
+            f"user '{user.name}' has already completed registration", 400
+        )
+
+    password = generate_password()
+    hashed_password = hash_password(password)
+
+    try:
+        await send_invitation_email(
+            session=session, to=user.email, password=password
+        )
+    except Exception:
+        logger.exception(f"SMTP error - Failed to send invitation email")
+
+    user.password_hash = hashed_password
+
+    return {"name": user.name, "user_id": user.id}  
+
