@@ -3,10 +3,14 @@ from app.database.branch import (
     get_branch_by_id,
     add_branch,
     get_all_branches,
+    get_branch_by_id_with_stamp
 )
 from app.config.config import ApplicationException
 from app.schemas.common import to_schema
 from app.schemas.branch import BranchItem
+from app.file_handler import FileHandler
+from .common import Access
+from app.audit.common import audit
 
 sorting_rules = {
     "inn": ("inn",), 
@@ -93,3 +97,53 @@ async def restore_branch(session, id):
 
     branch.is_archived = False
     return branch
+
+
+async def download_stamp(session, branch_id, user_id):
+    branch = await get_branch_by_id_with_stamp(session, branch_id)
+
+    if not branch:
+        raise ApplicationException("Company not found", 404)
+
+    if branch.is_archived:
+        raise ApplicationException(f"A company '{branch.name}' is archived", 400, {"id": branch.id})
+
+    if not branch.stamp_file_id:
+        raise ApplicationException("Stamp not found", 404)
+
+    return branch.stamp_file
+
+
+async def delete_stamp(session, branch_id, user_id, roles):
+    access = Access(roles)
+    is_admin = access.is_admin()
+    branch = await get_branch_by_id_with_stamp(session, branch_id)
+    
+
+    if not branch:
+        raise ApplicationException("Company Not found", 404)
+
+    if branch.is_archived:
+        raise ApplicationException(f"Company with INN {branch.inn} is archived", 400)
+
+    if not branch.stamp_file_id:
+        raise ApplicationException("Stamp not found", 404)
+    
+    if not(is_admin or branch.stamp_file.creator_id == user_id
+    ):
+        audit.access_denied(
+            user_id=user_id, 
+            entity_id=branch_id,
+            entity_name="branch"
+        )
+
+        raise ApplicationException("Company Not found", 404)
+    
+    handler = FileHandler()
+    handler.delete_file(branch.stamp_file.path)
+    branch.stamp_file_id = None
+
+    await session.delete(branch.stamp_file)
+
+    return branch
+

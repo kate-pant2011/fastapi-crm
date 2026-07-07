@@ -26,11 +26,13 @@ from app.config.connection import get_db
 from app.database.refresh_token import TokenReuseDetection
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from app.rate_limit import limiter
 
 auth_router = APIRouter()
 
 
 @auth_router.post("/auth/login", response_model=Token)
+@limiter.limit("3/minute")
 async def login(
     input: LoginRequest, request: Request, session: AsyncSession = Depends(get_db)
 ):
@@ -73,7 +75,8 @@ async def jwt_rotation(
 ):
     try:
         device = request.headers.get("user-agent")
-        token = await update_tokens(session, input.refresh_token, device)
+        ip = request.client.host
+        token = await update_tokens(session, input.refresh_token, device, ip)
 
         return {
             "access_token": token.access,
@@ -93,12 +96,15 @@ async def jwt_rotation(
 
 
 @auth_router.post("/auth/signup", response_model=SignupResponse)
+@limiter.limit("3/minute")
 async def signup(
     data_to_signup: SignupRequest,
+    request: Request, 
     session: AsyncSession = Depends(get_db),
 ):
     try:
-        return await signup_user(session, data_to_signup)
+        ip = request.client.host
+        return await signup_user(session, data_to_signup, ip)
 
     except IntegrityError as e:
         raise HTTPException(status_code=400, detail=f"Integrity Error - {e}")
@@ -113,11 +119,13 @@ async def signup(
 @auth_router.patch("/auth/change-password", response_model=EmailResponse)
 async def change_password(
     new_data: ChangePasswordRequest,
+    request: Request,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(get_allow_password_change_user),
 ):
     try:
-        email = await change_user_password(session, user.id, new_data.password)
+        ip = request.client.host
+        email = await change_user_password(session, user.id, new_data.password, ip)
         return {"email": email}
 
     except ApplicationException as e:
@@ -128,6 +136,7 @@ async def change_password(
 
 
 @auth_router.post("/auth/forgot-password", response_model=MessageResponse)
+@limiter.limit("1/minute")
 async def forgot_password(
     login: ForgotLoginRequest,
     request: Request,
@@ -136,7 +145,8 @@ async def forgot_password(
 ):
     try:
         device = request.headers.get("user-agent")
-        return await create_password_reset_token(session, login, device)
+        ip = request.client.host
+        return await create_password_reset_token(session, login, device, ip)
 
     except IntegrityError as e:
         raise HTTPException(status_code=400, detail=f"Integrity Error - {e}")
@@ -149,13 +159,16 @@ async def forgot_password(
 
 
 @auth_router.post("/auth/reset-password", response_model=MessageResponse)
+@limiter.limit("5/minute")
 async def reset_password(
     token: str,
     password: ChangePasswordRequest,
+    request: Request,
     session: AsyncSession = Depends(get_db),
 ):
     try:
-        return await reset_user_password(session, token, password)
+        ip = request.client.host
+        return await reset_user_password(session, token, password, ip)
 
     except IntegrityError as e:
         raise HTTPException(status_code=400, detail=f"Integrity Error - {e}")

@@ -19,9 +19,13 @@ from datetime import datetime
 from docx import Document
 from docxtpl import DocxTemplate, InlineImage
 from docx.shared import Mm
+from app.audit.documents import docs_audit
 import re
 import uuid
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 async def get_doc_template_list(session, scope, limit, offset, roles, user_id):
@@ -55,26 +59,44 @@ async def get_doc_template(session, template_id, roles, user_id):
         raise ApplicationException("Template Not found", 404)
     
     if not template.is_public:
-
-        if not is_admin and not template.creator_id == user_id:
-            raise ApplicationException("Cannot use this template", 403)
+            if not is_admin and not template.creator_id == user_id:
+                docs_audit.template_access_denied(
+                    user_id=user_id, 
+                    template_id=template_id, 
+                    template_name=template.name, 
+                    reason="Access to template denied"
+                )
+            raise ApplicationException("Template id not found", 404)
 
     return to_schema(DocTemplateItem, template)
 
 
-async def change_doc_template(session, item, user_id, roles, template_id):
+async def change_doc_template(session, item, user_id, template_id):
     template = await get_doc_template_by_id(session, template_id)
 
     if not template:
         raise ApplicationException("Template Not found", 404)
 
     if user_id != template.creator_id:
+        docs_audit.template_access_denied(
+            user_id=user_id, 
+            template_id=template_id, 
+            template_name=template.name, 
+            reason="Only creator can edit"
+        )
+
         raise ApplicationException("Only template-creator can make changes", 403)
 
     update_data = item.model_dump(exclude_unset=True)
 
     for name, value in update_data.items():
         setattr(template, name, value)
+
+    docs_audit.template_updated(
+        user_id=user_id, 
+        template_id=template_id, 
+        template_name=template.name
+    )
 
     return to_schema(DocTemplateItem, template)
 
@@ -85,6 +107,13 @@ async def delete_doc_template(session, user_id, template_id):
         raise ApplicationException("Template Not found", 404)
 
     if user_id != template.creator.id:
+        docs_audit.template_access_denied(
+            user_id=user_id, 
+            template_id=template_id, 
+            template_name=template.name, 
+            reason="Only creator can delete"
+        )
+
         raise ApplicationException("Only template-creator can delete template", 403)
     
     handler = FileHandler()
@@ -98,6 +127,7 @@ async def delete_doc_template(session, user_id, template_id):
         await session.delete(template)
         
     except Exception:
+        logger.exception("deleting file error")
         await session.rollback()
         raise
 
@@ -129,6 +159,12 @@ async def create_doc_template(session, data, creator_id, roles, file):
 
     new_template.variables = variables
 
+    docs_audit.template_created(
+        user_id=creator_id, 
+        template_id=new_template.id, 
+        template_name=data.name
+    )
+
     return new_template
 
 
@@ -150,7 +186,13 @@ async def render_doc_template(session, user_id, roles, template_id, query):
     
     if not template.is_public:
         if not is_admin and template.creator_id != user_id:
-            raise ApplicationException("Cannot use this template", 403)
+            docs_audit.template_access_denied(
+                user_id=user_id, 
+                template_id=template_id, 
+                template_name=template.name, 
+                reason="Access to template denied"
+            )
+            raise ApplicationException("Template not found", 404)
     
     if not template.file:
         raise ApplicationException("This template has no files", 400)
@@ -166,16 +208,7 @@ async def render_doc_template(session, user_id, roles, template_id, query):
         if branch:
             context["branch_name"] = branch.name
 
-            if branch.stamp_file:
-                if (
-                    not branch.stamp_is_public
-                    and branch.stamp_file.creator_id != user_id
-                ):
-                    raise ApplicationException(
-                        "Branch stamp is private",
-                        403
-                    )
-                
+            if branch.stamp_file:            
                 if query.stamp_width_mm is not None:
                     branch.stamp_width_mm = query.stamp_width_mm
 
@@ -197,7 +230,8 @@ async def render_doc_template(session, user_id, roles, template_id, query):
         doc.save(output_path) 
 
     except Exception as e:
-        raise ApplicationException(f"Bad file error: {e}", 400)
+        logger.exception("Bad file error")
+        raise ApplicationException(f"Something went wrong", 400)
 
     size = os.path.getsize(output_path)
     now = datetime.now().strftime("%Y%m%d%H%M")
@@ -214,6 +248,12 @@ async def render_doc_template(session, user_id, roles, template_id, query):
     file = await add_file(session, data, user_id)
     generated_doc = await add_generated_doc(session, template_id, user_id, file.id)
 
+    docs_audit.document_generated(
+        user_id=user_id, 
+        file_id=file.id, 
+        file_name=file.name, 
+        template_id=template_id
+    )
     return {
         "doc_id": generated_doc.id,
         "file_id": file.id,

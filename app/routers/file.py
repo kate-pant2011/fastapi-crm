@@ -167,6 +167,7 @@ async def upload_file_client(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
+
 @file_router.get("/files/{file_id}/download")
 async def download_file_router(
     file_id: int,

@@ -1,5 +1,6 @@
 import secrets
 import string
+import logging
 from app.database.user import (
     get_all_users,
     get_user_by_email,
@@ -14,7 +15,9 @@ from app.schemas.common import to_schema
 from app.schemas.user import UserItem
 from .common import Access, ROLES
 from app.email.templates import send_invitation_email
-from app.main import logger
+from app.audit.auth import auth_audit
+
+logger = logging.getLogger(__name__)
 
 sorting_rules = {"name": ("name", "surname"), "surname": ("surname", "name")}
 

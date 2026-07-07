@@ -19,7 +19,7 @@ class Branch(BaseModel):
 
     stamp_file_id = Column(Integer, ForeignKey("files.id"))
     stamp_file = relationship("File")
-    stamp_is_public = Column(Boolean, default=False)
+    stamp_is_public = Column(Boolean, default=True) # Needs to be removed
     stamp_width_mm = Column(Integer, default=100)
 
     client_contracts_link = relationship("Contract", back_populates="branch")

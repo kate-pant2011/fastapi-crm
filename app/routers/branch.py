@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi.responses import FileResponse
 from app.config.config import ApplicationException
 from app.auth.dependencies import require_roles, UserDTO
 from app.schemas.common import BaseShortResponse, BaseListResponse
@@ -10,6 +11,8 @@ from app.services.branch import (
     get_branch_list,
     get_branch,
     change_branch,
+    delete_stamp,
+    download_stamp
 )
 from app.config.connection import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -117,6 +120,39 @@ async def restore_branch_router(
 ):
     try:
         return await restore_branch(session, id)
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
+
+
+@branch_router.get("/branch/{branch_id}/stamp")
+async def download_branch_stamp(
+    branch_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin")),
+):
+    try:
+        file = await download_stamp(session, branch_id, user.id)
+        return FileResponse(path=file.path, filename=file.name, media_type=file.mime_type) 
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
+    
+
+@branch_router.delete("/branch/{branch_id}/stamp", response_model=BaseShortResponse)
+async def delete_branch_stamp(
+    branch_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
+):
+    try:
+        return await delete_stamp(session, branch_id, user.id, user.roles)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

@@ -8,9 +8,11 @@ from app.services.common import Access
 from app.config.security import encrypt_password, decrypt_password
 from app.services.common import Access
 from app.file_handler import FileHandler
-from app.database.email_template import get_email_template_by_id
 from datetime import datetime
 from dataclasses import dataclass
+import logging
+
+logger = logging.getLogger(__name__)
 
 async def get_email_list(session, limit, offset, user_id, roles, scope):
     is_admin = Access(roles).is_admin()
@@ -169,6 +171,7 @@ async def send_email_service(session, files, email_id, to, cc, bcc, subject, bod
     except Exception as e:
         email_log.status = EmailLogStatus.FAILED
         email_log.error_message = str(e)
+        logger.exception("smtp send failed")
         return {"status": "failed"}
 
     finally:

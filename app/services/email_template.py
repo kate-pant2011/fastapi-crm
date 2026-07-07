@@ -9,6 +9,7 @@ from app.database.email_template import (
 )
 from app.services.common import Access    
 from app.services.template_context import build_context, build_ctx_objects
+from app.audit.common import audit
 
 
 async def get_email_template_list(session, scope, limit, offset, roles, user_id):
@@ -44,7 +45,12 @@ async def get_email_template(session, template_id, roles, user_id):
     if not template.is_public:
 
         if not is_admin and not template.creator_id == user_id:
-            raise ApplicationException("Cannot use this template", 403)
+            audit.access_denied(
+                user_id=user_id, 
+                entity_id=template_id,
+                entity_name="template"
+            )
+            raise ApplicationException("Template Not found", 404)
 
     return to_schema(EmailTemplateItem, template)
 
@@ -102,7 +108,12 @@ async def render_email_template(session, user_id, roles, template_id, query):
 
     if not template.is_public:
         if not is_admin and template.creator_id != user_id:
-            raise ApplicationException("Cannot use this template", 403)
+            audit.access_denied(
+                user_id=user_id, 
+                entity_id=template_id,
+                entity_name="template"
+            )
+            raise ApplicationException("Template Not found", 404)
 
     ctx_objects = await build_ctx_objects(session, query, user_id, is_admin)
     context = build_context(ctx_objects)

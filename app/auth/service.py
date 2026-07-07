@@ -1,7 +1,9 @@
 # business logic
+import uuid
+import logging
 from app.config.security import verify_password, hash_password, JWTService
 from app.config.config import ApplicationException, settings
-from app.email.templates import send_complete_registration_email, send_suspicios_login_attempt_caution
+from app.email.templates import send_change_password_email, send_suspicios_login_attempt_caution
 from app.database.branch import add_branch
 from app.database.user import (
     get_user_by_email,
@@ -9,6 +11,7 @@ from app.database.user import (
     add_user_role,
     get_user_by_id,
     update_user_password,
+    owner_exists
 )
 from app.database.refresh_token import (
     deactivate_user_refresh,
@@ -22,11 +25,11 @@ from app.database.refresh_token import (
 from app.database.reset_token import (
     add_reset_jwt, verify_reset_jwt, deactivate_all_user_reset_jwt, ResetTokenReuseDetection
 )
-from app.main import logger
-import uuid
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
+from app.audit.auth import auth_audit
 
+logger = logging.getLogger(__name__)
 
 @dataclass
 class AuthTokensDTO:
@@ -50,6 +53,7 @@ email = EmailConfigDTO(
 async def login_user(session, email, password, device, ip):
     user = await get_user_by_email(session, email)
     if not user:
+        auth_audit.unknown_email_detected(email, ip, device)
         raise ApplicationException("invalid Credentials: login or password", 401)
 
     if not user.is_active:
@@ -64,6 +68,8 @@ async def login_user(session, email, password, device, ip):
         user.failed_login_attempts += 1
 
         if user.failed_login_attempts >= 5:
+            auth_audit.wrong_password_detected(user.email, ip, device)
+
             if user.locked_until is None or user.locked_until <= now:
                 try:
                     await send_suspicios_login_attempt_caution(
@@ -104,25 +110,31 @@ async def login_user(session, email, password, device, ip):
 
     await add_refresh_jwt(session, user.id, exp, jti, device)
 
+    auth_audit.login_success(user.email, ip, device)
     return AuthTokensDTO(
         access=access_token, refresh=refresh.token, change_password=False
     )
 
 
 async def logout_user(session, refresh_jwt):
-
     decoded = JWTService().decode_token(refresh_jwt)
     refresh = await get_refresh_by_jwt(session, decoded.jti)
 
     if not refresh:
         raise ApplicationException("Refresh token not found", 401)
 
-    await deactivate_user_refresh(session, refresh.user_id, refresh.jti)
+    user_id = refresh.user_id
 
+    try:
+        await deactivate_user_refresh(session, user_id, refresh.jti)
+    except Exception:
+        logger.exception("failed to deactivate user refresh tokens", extra={"user_id": user_id})
+
+    auth_audit.logout_success(user_id)
     return {"result": True}
 
 
-async def update_tokens(session, refresh_jwt, device):
+async def update_tokens(session, refresh_jwt, device, ip):
     try:
         decoded = JWTService().decode_token(refresh_jwt)
         old_refresh = await verify_refresh_jwt(session, decoded.jti)
@@ -141,6 +153,7 @@ async def update_tokens(session, refresh_jwt, device):
         active = user.is_active
 
     except TokenReuseDetection as e:
+        auth_audit.token_reuse_detected(e.user_id, ip)
         await deactivate_all_user_refresh(session, e.user_id)
         raise
 
@@ -157,9 +170,12 @@ async def update_tokens(session, refresh_jwt, device):
     )
 
 
-async def signup_user(session, user_data) -> dict:
-    owner_exists = await owner_exists(session)
-    if owner_exists:
+async def signup_user(session, user_data, ip) -> dict:
+    owner= await owner_exists(session)
+    if owner:
+        auth_audit.self_registration_attempt(
+            user_data.email, ip
+        )
         raise ApplicationException(f"Only admins can sign you up", 400)
 
     password_validity = check_password(user_data.password)
@@ -183,10 +199,12 @@ async def signup_user(session, user_data) -> dict:
         is_new=True
     )
 
+    auth_audit.signup_success(user_data.email, ip)
+
     return {"company": user_data.company, "login": user_data.email, "reason": None}
 
 
-async def change_user_password(session, user_id, password):
+async def change_user_password(session, user_id, password, ip):
     user = await get_user_by_id(session, user_id)
     if not user:
         raise ApplicationException("invalid Credentials: login or password", 401)
@@ -207,6 +225,7 @@ async def change_user_password(session, user_id, password):
 
     await update_user_password(session, user, hashed_password)
 
+    auth_audit.changed_password(user_id, ip)
     return user.email
 
 
@@ -229,7 +248,7 @@ def check_password(password):
     return None
 
 
-async def create_password_reset_token(session, login, device):
+async def create_password_reset_token(session, login, device, ip):
     user = await get_user_by_email(session, login.email)
     if not user:
         return {
@@ -242,13 +261,18 @@ async def create_password_reset_token(session, login, device):
     reset_token = jwt.create_reset_token(user.id, jti)
 
     try:
-        await send_complete_registration_email(
+        await send_change_password_email(
             to=login.email, reset_token=reset_token.token
         )
     except Exception:
+        logger.exception(
+            "Failed to send change-password email"
+        )
         await session.rollback()
         raise ApplicationException(f"Something went wrong!", 500)
     
+    auth_audit.password_reset_requested(user.id, ip)
+
     await add_reset_jwt(session, user.id, reset_token.exp, jti, device)
     
     return {
@@ -256,7 +280,7 @@ async def create_password_reset_token(session, login, device):
     }
 
 
-async def reset_user_password(session, token, password):
+async def reset_user_password(session, token, password, ip):
     try:
         decoded = JWTService().decode_token(token)
 
@@ -277,6 +301,7 @@ async def reset_user_password(session, token, password):
             raise ApplicationException("User is inactive error", 403)
 
     except ResetTokenReuseDetection as e:
+        auth_audit.token_reuse_detected(e.user_id, ip)
 
         await deactivate_all_user_reset_jwt(session, e.user_id)
         await deactivate_all_user_refresh(session, e.user_id)
@@ -304,6 +329,8 @@ async def reset_user_password(session, token, password):
 
     await deactivate_all_user_reset_jwt(session, user.id)
     await deactivate_all_user_refresh(session, user.id)
+
+    auth_audit.password_reset_success(user_id, ip)
 
     return { 
         "message": "The password has been successfully updated!"

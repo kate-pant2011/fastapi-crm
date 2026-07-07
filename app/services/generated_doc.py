@@ -8,10 +8,18 @@ from pathlib import Path
 from app.file_handler import FileUploadDTO, FileNameDTO
 from app.database.generated_doc import add_generated_doc
 from app.database.file import add_file, get_file_by_unique_name
+from app.audit.documents import docs_audit
 import os
 
-async def get_generated_docs(session, user_id, query):
+@dataclass
+class FileValidateDTO:
+    filename: str
+    mime_type: str
+    size: int
+    content: bytes | None = None
+    path: str | None = None
 
+async def get_generated_docs(session, user_id, query):
     docs = await get_all_generated_docs(session, user_id, query)
 
     result = []
@@ -33,14 +41,6 @@ async def get_generated_docs(session, user_id, query):
         offset=query.offset,
     )
 
-@dataclass
-class FileValidateDTO:
-    filename: str
-    mime_type: str
-    size: int
-    content: bytes | None = None
-    path: str | None = None
-
 
 async def send_generated_doc(
           session,
@@ -54,7 +54,8 @@ async def send_generated_doc(
         raise ApplicationException("Document Not Found", 404)
     
     if document.creator_id != user_id:
-        raise ApplicationException("Access to the document denied", 403)
+        docs_audit.document_access_denied(user_id, document.file_id, document.file.name)
+        raise ApplicationException("Document Not Found", 404)
     
     files = FileValidateDTO(
         filename = document.file.name,
@@ -80,9 +81,7 @@ async def send_generated_doc(
 
 
 async def convert_word_to_pdf(
-          session,
-          user_id,
-          generated_doc_id
+        session, user_id, generated_doc_id
 ):
     document = await get_generated_doc_by_id(session, generated_doc_id)
 
@@ -90,7 +89,8 @@ async def convert_word_to_pdf(
         raise ApplicationException("Document Not Found", 404)
     
     if document.creator_id != user_id:
-        raise ApplicationException("Access to the document denied", 403)
+        docs_audit.document_access_denied(user_id, document.file_id, document.file.name)
+        raise ApplicationException("Access to the document denied", 404)
     
     if "word" not in document.file.mime_type:
         raise ApplicationException(
@@ -168,6 +168,12 @@ async def convert_word_to_pdf(
 
         generated_pdf = await add_generated_doc(session, document.template_id, user_id, pdf_file.id)
 
+    docs_audit.document_exported_pdf(
+        user_id=user_id, 
+        file_id=pdf_file.id, 
+        file_name=pdf_file.name, 
+        template_id=pdf_file.template_id
+    )
 
     return {
         "doc_id": generated_pdf.id, 

@@ -6,8 +6,12 @@ from app.database.project import get_project_by_id
 from app.database.client import get_client_by_id
 from app.database.branch import get_branch_by_id_with_stamp, get_branch_by_id
 from app.schemas.common import to_schema
+from app.audit.documents import file_audit
 from .common import Access
 from dataclasses import dataclass
+import logging
+
+logger = logging.getLogger(__name__)
 
 @dataclass
 class FileDTO:
@@ -30,15 +34,28 @@ async def check_files_access(file, session, user_id, roles):
 
     elif file.generated_document:
         if file.creator_id != user_id:
-            raise ApplicationException("Access denied", 403)
+            raise ApplicationException("Access denied", 404)
     
+    else:
+        file_audit.file_access_denied(
+            user_id=user_id, 
+            file_id=file.id,
+            file_name=file.name,
+            entity_type=None, 
+            entity_id=None
+        )
+        raise ApplicationException("Access denied", 404)
 
 
 async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id):
     access = Access(roles)
-    manager_id = access.manager_id(user_id)
-    executor_id = access.executor_id(user_id)
     is_admin = access.is_admin()
+    
+    if not is_admin:
+        manager_id = access.manager_id(user_id)
+        executor_id = access.executor_id(user_id)
+    else:
+        manager_id, executor_id = None, None
 
     if entity_type not in ("client", "project", "branch"):
         raise ApplicationException("File location Not Found", 400)
@@ -50,18 +67,11 @@ async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id
         entity = await get_client_by_id(session, entity_id, manager_id)
 
     elif entity_type == "branch":
-        entity = await get_branch_by_id_with_stamp(session, entity_id)
-
-        if (entity.stamp_file 
-            and not entity.stamp_is_public 
-            and entity.stamp_file.creator_id != user_id
-        ):
-            raise ApplicationException(f"Branch stamp is private", 403)
+        entity = await get_branch_by_id(session, entity_id)
 
     if not entity: 
-        if not is_admin:
-            raise ApplicationException(f"{entity_type} not found", 404)
-        return
+        raise ApplicationException(f"{entity_type} not found", 404)
+
 
     if entity.is_archived:
         raise ApplicationException(f"{entity_type} is archived", 400)
@@ -121,12 +131,31 @@ async def upload_file(session, user_id, roles, files, entity_id, entity_type: st
 
             added_files.append(added_file)
 
+            file_audit.file_uploaded(
+                user_id=user_id, 
+                file_id=added_file.id, 
+                file_name=added_file.name, 
+                entity_type=entity_type, 
+                entity_id=entity_id
+            )
+
+        except ApplicationException:
+            for path in saved_paths:
+                handler.delete_file(path)
+
+            raise
+
         except Exception as e:
             for path in saved_paths:
                 handler.delete_file(path)
 
-            raise ApplicationException(f"{type(e).__name__} - {e}", 500)
-
+            logger.exception(
+                "File upload failed: entity_type=%s entity_id=%s", 
+                entity_type, 
+                entity_id
+            )
+            raise ApplicationException(f"{type(e).__name__}", 500)
+    
     return added_files 
 
 
@@ -136,8 +165,17 @@ async def get_file_for_download(session, user_id, roles, file_id):
     if not file:
         raise ApplicationException("File not found", 404)
 
-
     await check_files_access(file, session, user_id, roles)
+
+    entity_id, entity_type = await get_entity(file)
+    
+    file_audit.file_downloaded(
+        user_id=user_id, 
+        file_id=file.id, 
+        file_name=file.name, 
+        entity_type=entity_type, 
+        entity_id=entity_id
+    )
 
     return file
 
@@ -155,4 +193,27 @@ async def delete_file(session, user_id, roles, file_id):
 
     await session.delete(file)
 
+    entity_id, entity_type = await get_entity(file)
+
+    file_audit.file_deleted(
+        user_id=user_id, 
+        file_id=file.id, 
+        file_name=file.name, 
+        entity_type=entity_type, 
+        entity_id=entity_id
+    )
     return True
+
+async def get_entity(file):
+    if file.client_id is not None:
+        return file.client_id, "client"
+    
+    elif file.project_id is not None:
+        return file.project_id, "project"
+    
+    elif file.template_id is not None:
+        return file.template_id, "template"
+    
+    else:
+        return None, "branch" 
+    # по умолчанию все, что не относится к client, project, template, относится к branch

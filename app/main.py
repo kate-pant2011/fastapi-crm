@@ -21,9 +21,15 @@ from .routers.email_template import email_template_router
 from .routers.template import template_router
 from .routers.doc_template import doc_template_router
 from .routers.generated_doc import generated_doc_router
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.rate_limit import limiter
 
 
 app = FastAPI()
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.middleware("http")(log_requests)
 

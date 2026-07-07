@@ -111,7 +111,7 @@ async def change_doc_template_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        return await change_doc_template(session, data, user.id, user.roles, id)
+        return await change_doc_template(session, data, user.id, id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

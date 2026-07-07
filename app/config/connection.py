@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 engine = create_async_engine(
     settings.DATABASE_URL,
     pool_recycle=3600,
-    echo=True,
+    echo=False,
 )
 
 # ленивое создание Session-объекта, подключение к БД происходит при первом SQL-запросе!
