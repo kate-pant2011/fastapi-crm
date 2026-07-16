@@ -32,8 +32,8 @@ class RefreshMiddleware(BaseHTTPMiddleware):
         except jwt.PyJWTError:
             return await call_next(request)
 
-        if not refresh_token:
-            return await call_next(request)
+        #if not refresh_token:
+            #return await call_next(request)
 
         try:
             async with SessionLocal() as session:
