@@ -46,5 +46,5 @@ class Access:
         elif self.is_manager() and (scope == "mine" or not self.is_admin()):
             return user_id
 
-        return None
+
 

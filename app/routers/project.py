@@ -30,7 +30,7 @@ class QueryDTO:
     offset: int
 
 
-@project_router.get("/project", response_model=BaseListResponse)
+@project_router.get("/projects", response_model=BaseListResponse)
 async def get_project_list_router(
     sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
@@ -63,7 +63,7 @@ async def get_project_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@project_router.get("/project/{id}", response_model=ProjectItem)
+@project_router.get("/projects/{id}", response_model=ProjectItem)
 async def get_project_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -79,7 +79,7 @@ async def get_project_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@project_router.patch("/project/{id}", response_model=ProjectItem)
+@project_router.patch("/projects/{id}", response_model=ProjectItem)
 async def change_project_router(
     id: int,
     item: ProjectPatchRequest,
@@ -96,7 +96,7 @@ async def change_project_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@project_router.post("/project", response_model=BaseShortResponse)
+@project_router.post("/projects", response_model=BaseShortResponse)
 async def create_project_router(
     data: ProjectCreation,
     session: AsyncSession = Depends(get_db),
@@ -114,7 +114,7 @@ async def create_project_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@project_router.delete("/project/{id}", response_model=BaseShortResponse)
+@project_router.delete("/projects/{id}", response_model=BaseShortResponse)
 async def archive_project_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -130,7 +130,7 @@ async def archive_project_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@project_router.post("/project/{id}/restore", response_model=BaseShortResponse)
+@project_router.post("/projects/{id}/restore", response_model=BaseShortResponse)
 async def restore_project_router(
     id: int,
     session: AsyncSession = Depends(get_db),

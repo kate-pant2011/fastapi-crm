@@ -29,7 +29,7 @@ class QueryDTO:
 
 @company_router.get("/company", response_model=BaseListResponse)
 async def get_company_list_router(
-    scope: str | None = Query(default=None, description="mine"),
+    scope: str | None = Query(default=None, description="mine, scope ignored if manager_id provided"),
     client_id: int | None = Query(default=None),
     sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),

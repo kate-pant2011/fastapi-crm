@@ -1,9 +1,12 @@
 from fastapi import FastAPI
+from fastapi.templating import Jinja2Templates
 import app.models_loader
 import logging
 from logging.handlers import RotatingFileHandler
-from .middleware import log_requests
+from .middleware.auth import RefreshMiddleware
+from .middleware.logging import log_requests
 from .auth.router import auth_router
+from .auth.pages import auth_page_router
 from .email.router import email_router
 from .routers.branch import branch_router
 from .routers.contractor import contractor_router
@@ -21,12 +24,18 @@ from .routers.email_template import email_template_router
 from .routers.template import template_router
 from .routers.doc_template import doc_template_router
 from .routers.generated_doc import generated_doc_router
+from .pages.common import common_page_router
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.rate_limit import limiter
 
 
 app = FastAPI()
+
+templates = Jinja2Templates(
+    directory="app/templates"
+)
+app.add_middleware(RefreshMiddleware)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -52,6 +61,8 @@ app.include_router(doc_template_router)
 app.include_router(template_router)
 app.include_router(generated_doc_router)
 
+app.include_router(auth_page_router)
+app.include_router(common_page_router)
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

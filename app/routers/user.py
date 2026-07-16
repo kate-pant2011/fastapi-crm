@@ -10,6 +10,7 @@ from app.services.user import (
     restore_user,
     get_user_list,
     get_user,
+    get_user_me,
     change_user,
     resend_signup_invitation
 )
@@ -35,7 +36,7 @@ class QueryDTO:
     offset: int
 
 
-@user_router.get("/user", response_model=BaseListResponse)
+@user_router.get("/users", response_model=BaseListResponse)
 async def get_user_list_router(
     branch_id: int | None = Query(default=None),
     is_active: bool | None = Query(default=None),
@@ -64,7 +65,22 @@ async def get_user_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@user_router.get("/user/{id}", response_model=UserItem)
+@user_router.get("/users/me", response_model=UserItem)
+async def get_user_router(
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
+):
+    try:
+        return await get_user_me(session, user.id)
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail={"message": e.name, "payload": e.payload})
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+
+
+@user_router.get("/users/{id}", response_model=UserItem)
 async def get_user_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -80,7 +96,7 @@ async def get_user_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@user_router.patch("/user/{id}", response_model=UserItem)
+@user_router.patch("/users/{id}", response_model=BaseShortResponse)
 async def change_user_router(
     id: int,
     item: UserPatchRequest,
@@ -97,7 +113,7 @@ async def change_user_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@user_router.post("/user", response_model=UserCreationResponse)
+@user_router.post("/users", response_model=UserCreationResponse)
 async def create_user_router(
     data: UserCreationRequest,
     session: AsyncSession = Depends(get_db),
@@ -113,7 +129,7 @@ async def create_user_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@user_router.delete("/user/{id}", response_model=BaseShortResponse)
+@user_router.delete("/users/{id}", response_model=BaseShortResponse)
 async def archive_user_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -129,7 +145,7 @@ async def archive_user_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@user_router.post("/user/{id}/restore", response_model=BaseShortResponse)
+@user_router.post("/users/{id}/restore", response_model=BaseShortResponse)
 async def restore_user_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -145,7 +161,7 @@ async def restore_user_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@user_router.post("/user/{id}/resend-invitation", response_model=UserCreationResponse)
+@user_router.post("/users/{id}/resend-invitation", response_model=UserCreationResponse)
 async def resend_invitation(
     id: int,
     session: AsyncSession = Depends(get_db),

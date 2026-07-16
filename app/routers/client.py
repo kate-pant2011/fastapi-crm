@@ -28,7 +28,7 @@ class QueryDTO:
     scope: str | None
 
 
-@client_router.get("/client", response_model=BaseListResponse)
+@client_router.get("/clients", response_model=BaseListResponse)
 async def client_list(
     scope: str | None = Query(
         default=None, description="mine, scope ignored if manager_id provided"
@@ -55,7 +55,7 @@ async def client_list(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@client_router.get("/client/{id}", response_model=ClientItem)
+@client_router.get("/clients/{id}", response_model=ClientItem)
 async def get_client_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -71,7 +71,7 @@ async def get_client_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@client_router.patch("/client/{id}", response_model=ClientItem)
+@client_router.patch("/clients/{id}", response_model=ClientItem)
 async def change_client_router(
     id: int,
     item: ClientPatchRequest,
@@ -88,7 +88,7 @@ async def change_client_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@client_router.post("/client", response_model=BaseShortResponse)
+@client_router.post("/clients", response_model=BaseShortResponse)
 async def create_client_router(
     data: ClientCreation,
     session: AsyncSession = Depends(get_db),
@@ -106,7 +106,7 @@ async def create_client_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@client_router.delete("/client/{id}", response_model=BaseShortResponse)
+@client_router.delete("/clients/{id}", response_model=BaseShortResponse)
 async def archive_client_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -122,7 +122,7 @@ async def archive_client_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@client_router.post("/client/{id}/restore", response_model=BaseShortResponse)
+@client_router.post("/clients/{id}/restore", response_model=BaseShortResponse)
 async def restore_client_router(
     id: int,
     session: AsyncSession = Depends(get_db),

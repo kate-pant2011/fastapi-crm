@@ -1,5 +1,7 @@
 from app.models_loader import User, Role
 from app.models.branch import Branch
+from app.models.assignment import Assignment
+from app.models.client import Client
 from app.models.base import user_roles
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.orm import (
@@ -127,3 +129,24 @@ async def update_user_password(session, user, password):
         .where(User.id == user.id)
         .values(password_hash=password, must_change_password=False)
     )
+
+
+async def get_user_clients_count(session, user_id):
+    stmt = (
+        select(func.count(Client.id))
+        .where(Client.manager_id == user_id)
+        .where(Client.is_archived.is_(False))
+    )
+
+    return await session.scalar(stmt) 
+
+
+async def get_user_assignments_count(session, user_id):
+    stmt = (
+        select(func.count(Assignment.id))
+        .where(Assignment.user_id == user_id)
+        .where(Assignment.is_done.is_(False))
+        .where(Assignment.is_archived.is_(False))
+    )
+
+    return await session.scalar(stmt) 

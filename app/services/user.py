@@ -7,20 +7,36 @@ from app.database.user import (
     get_user_by_id,
     add_user,
     add_user_role,
+    get_user_assignments_count,
+    get_user_clients_count
 )
 from app.database.branch import get_branch_by_id
 from app.config.config import ApplicationException
 from app.config.security import hash_password
-from app.schemas.common import to_schema
+from app.schemas.common import to_schema, BaseShortResponse
 from app.schemas.user import UserItem
 from .common import Access, ROLES
 from app.email.templates import send_invitation_email
-from app.audit.auth import auth_audit
+
 
 logger = logging.getLogger(__name__)
 
-sorting_rules = {"name": ("name", "surname"), "surname": ("surname", "name")}
+async def build_user_item(session, user):
+    clients_count = await get_user_clients_count(session, user.id)
+    assignments_count = await get_user_assignments_count(session, user.id)
 
+    return {
+        "name": user.name,
+        "surname": user.surname,
+        "position": user.position,
+        "email": user.email,
+        "branch": to_schema(BaseShortResponse, user.branch),
+        "roles": [to_schema(BaseShortResponse, role) for role in user.roles],
+        "clients_count": clients_count,
+        "assignments_count": assignments_count,
+    }
+
+sorting_rules = {"name": ("name", "surname"), "surname": ("surname", "name")}
 
 async def get_user_list(session, roles, query):
     is_admin = Access(roles).is_admin()
@@ -64,13 +80,20 @@ async def get_user(session, user_id, roles):
             f"Cannot access user with {target_roles} status", 403
         )
 
-    if not user.branch_id:
-        raise ApplicationException("Company Not found", 404)
+    user_item =  await build_user_item(session, user)
+    return user_item
 
-    if user.branch.is_archived:
-        raise ApplicationException(f"A company {user.branch.name} is archived", 400)
 
-    return to_schema(UserItem, user)
+async def get_user_me(session, user_id):
+    user = await get_user_by_id(session, user_id)
+    if not user:
+        raise ApplicationException("User Not found", 404)
+
+    if not user.is_active:
+        raise ApplicationException("User is archived", 400, {"id": user.id})
+
+    user_item =  await build_user_item(session, user)
+    return user_item
 
 
 async def change_user(session, roles, user_id, item):
@@ -111,7 +134,7 @@ async def change_user(session, roles, user_id, item):
 
         setattr(user, name, value)
 
-    return to_schema(UserItem, user)
+    return to_schema(BaseShortResponse, user)
 
 
 async def create_user(session, roles, data):

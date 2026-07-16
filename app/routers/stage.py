@@ -32,7 +32,7 @@ class QueryDTO:
     offset: int
 
 
-@stage_router.get("/project/{project_id}/stage", response_model=BaseListResponse)
+@stage_router.get("/projects/{project_id}/stages", response_model=BaseListResponse)
 async def get_stage_list_router(
     project_id: int,
     sort: str | None = Query(default=None, description="- stands for desc"),
@@ -52,7 +52,7 @@ async def get_stage_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_router.get("/project/{project_id}/stage/{id}", response_model=StageItem)
+@stage_router.get("/projects/{project_id}/stages/{id}", response_model=StageItem)
 async def get_stage_router(
     project_id: int,
     id: int,
@@ -69,7 +69,7 @@ async def get_stage_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_router.patch("/project/{project_id}/stage/{stage_id}", response_model=StageItem)
+@stage_router.patch("/projects/{project_id}/stages/{stage_id}", response_model=StageItem)
 async def change_stage_router(
     project_id: int,
     stage_id: int,
@@ -90,7 +90,7 @@ async def change_stage_router(
 
 
 @stage_router.patch(
-    "/project/{project_id}/stages/reorder", response_model=list[BaseShortResponse]
+    "/projects/{project_id}/stages/reorder", response_model=list[BaseShortResponse]
 )
 async def reorder_stages_router(
     item: StageReorderRequest,
@@ -108,7 +108,7 @@ async def reorder_stages_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_router.post("/stage", response_model=BaseShortResponse)
+@stage_router.post("/stages", response_model=BaseShortResponse)
 async def create_stage_router(
     data: StageCreation,
     session: AsyncSession = Depends(get_db),
@@ -127,7 +127,7 @@ async def create_stage_router(
 
 
 @stage_router.delete(
-    "/project/{project_id}/stage/{stage_id}", response_model=BaseShortResponse
+    "/projects/{project_id}/stages/{stage_id}", response_model=BaseShortResponse
 )
 async def archive_stage_router(
     project_id: int,
@@ -146,7 +146,7 @@ async def archive_stage_router(
 
 
 @stage_router.post(
-    "/project/{project_id}/stage/{id}/restore", response_model=BaseShortResponse
+    "/projects/{project_id}/stages/{id}/restore", response_model=BaseShortResponse
 )
 async def restore_stage_router(
     project_id: int,

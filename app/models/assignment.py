@@ -15,7 +15,7 @@ class Assignment(BaseModel):
 
     name = Column(String(255), nullable=False)
     description = Column(String(1000))
-    is_archived = Column(Boolean, nullable=False, default=False)
+    is_done = Column(Boolean, nullable=False, default=False)
 
     contractor = relationship("Contractor", back_populates="assignments")
     stage = relationship("Stage", back_populates="assignments")

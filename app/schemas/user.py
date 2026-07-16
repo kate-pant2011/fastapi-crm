@@ -10,12 +10,8 @@ class UserItem(BaseModel):
     email: str
     branch: BaseShortResponse
     roles: list[BaseShortResponse]
-    clients: list[BaseShortResponse] | None
-    assignments: list[BaseShortResponse] | None
-
-    class Config:
-        from_attributes = True
-
+    clients_count: int
+    assignments_count: int
 
 rolename = Literal["owner", "admin", "manager", "executor"]
 

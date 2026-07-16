@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+
+    <title>
+        {% block title %}CRM{% endblock %}
+    </title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/flatly/bootstrap.min.css"
+        rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container mt-4">
+
+    <h1 class="fw-bold" style="color:#074b45;">CRM система</h1>
+
+    <hr>
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+</body>
+</html>

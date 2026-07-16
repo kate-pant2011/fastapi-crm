@@ -37,7 +37,7 @@ class VariablesDTO:
 doc_template_router = APIRouter()
 
 
-@doc_template_router.get("/doc-template", response_model=BaseListResponse)
+@doc_template_router.get("/doc-templates", response_model=BaseListResponse)
 async def get_doc_template_list_router(
     session: AsyncSession = Depends(get_db),
     scope: Literal["mine", "available"] | None = Query(
@@ -61,7 +61,7 @@ async def get_doc_template_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@doc_template_router.get("/doc-template/{id}", response_model=DocTemplateItem)
+@doc_template_router.get("/doc-templates/{id}", response_model=DocTemplateItem)
 async def get_doc_template_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -77,7 +77,7 @@ async def get_doc_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
     
-@doc_template_router.post("/doc-template", response_model=BaseShortResponse)
+@doc_template_router.post("/doc-templates", response_model=BaseShortResponse)
 async def create_doc_template_router(
     name: str = Form(...),
     description: str | None = Form(None),
@@ -103,7 +103,7 @@ async def create_doc_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@doc_template_router.patch("/doc-template/{id}", response_model=DocTemplateItem)
+@doc_template_router.patch("/doc-templates/{id}", response_model=DocTemplateItem)
 async def change_doc_template_router(
     data: DocTemplatePatchRequest,
     id: int,
@@ -120,7 +120,7 @@ async def change_doc_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@doc_template_router.delete("/doc-template/{id}", response_model=DocTemplateDeleteResponse)
+@doc_template_router.delete("/doc-templates/{id}", response_model=DocTemplateDeleteResponse)
 async def delete_doc_template_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -136,7 +136,7 @@ async def delete_doc_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@doc_template_router.post("/doc-template/{id}/render", response_model=GeneratedDocResponse)
+@doc_template_router.post("/doc-templates/{id}/render", response_model=GeneratedDocResponse)
 async def render_doc_template_router(
     id: int,
     session: AsyncSession = Depends(get_db),

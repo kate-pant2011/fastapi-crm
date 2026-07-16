@@ -16,6 +16,7 @@ class AssignmentItem(BaseModel):
 class AssignmentPatchRequest(BaseModel):
     name: str | None = Field(None, min_length=1)
     description: str | None = Field(None, min_length=1)
+    is_done: bool | None = None
     model_config = {"extra": "forbid"}
 
 

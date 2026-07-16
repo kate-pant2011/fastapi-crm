@@ -35,7 +35,7 @@ async def send_invitation_email(to, password):
 
 async def send_change_password_email(to, reset_token):
 
-    link = f"http://127.0.0.1:8000/reset-password?token={reset_token}"
+    link = f"http://127.0.0.1:8000/auth/reset-password?token={reset_token}"
 
     await send_email(
         smtp_config=smtp_config,

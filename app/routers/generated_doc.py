@@ -14,7 +14,6 @@ generated_doc_router = APIRouter()
 
 @dataclass
 class QueryDTO:
-    sort: str | None
     limit: int
     offset: int
 
@@ -22,14 +21,13 @@ class QueryDTO:
 
 @generated_doc_router.get("/generated-docs", response_model=GeneratedListResponse)
 async def get_generated_docs_router(
-    sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        query = QueryDTO(sort=sort, limit=limit, offset=offset)
+        query = QueryDTO(limit=limit, offset=offset)
         docs = await get_generated_docs(
             session=session, 
             user_id=user.id, 

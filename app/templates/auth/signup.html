@@ -1,0 +1,138 @@
+{% extends "auth_base.html" %}
+
+{% block title %}
+Регистрация компании
+{% endblock %}
+
+{% block content %}
+
+<h2>Регистрация компании</h2>
+
+{% if error %}
+<div class="alert alert-danger">
+    <strong>Ошибка:</strong>
+    {{ error }}
+</div>
+{% endif %}
+
+<form action="/auth/signup-page" method="post">
+
+    <p>
+        <label for="inn">ИНН</label><br>
+        <input
+            type="text"
+            id="inn"
+            name="inn"
+            class="form-control"
+            required>
+    </p>
+
+    <p>
+        <label for="company">Название компании</label><br>
+        <input
+            type="text"
+            id="company"
+            name="company"
+            class="form-control"
+            required>
+    </p>
+
+    <p>
+        <label for="email">Email</label><br>
+        <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-control"
+            required>
+    </p>
+
+    <p>
+        <label for="password">Пароль</label><br>
+
+        <div class="input-group">
+
+            <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                required>
+
+            <button
+                type="button"
+                class="btn btn-outline-secondary"
+                onclick="togglePassword()">
+
+                👁
+
+            </button>
+
+        </div>
+
+    </p>
+
+    <p>
+        <label for="name">Имя</label><br>
+        <input
+            type="text"
+            id="name"
+            name="name"
+            class="form-control"
+            required>
+    </p>
+
+    <p>
+        <label for="surname">Фамилия</label><br>
+        <input
+            type="text"
+            id="surname"
+            name="surname"
+            class="form-control"
+            required>
+    </p>
+
+    <p>
+        <label for="position">Должность</label><br>
+        <input
+            type="text"
+            id="position"
+            name="position"
+            class="form-control"
+            required>
+    </p>
+
+    <button 
+    type="submit"
+    class="btn btn-primary">
+        Зарегистрировать компанию
+    </button>
+
+</form>
+
+<p>
+    <a href="/auth">
+        Назад
+    </a>
+</p>
+
+<script>
+
+function togglePassword() {
+
+    const field = document.getElementById(
+        "password"
+    );
+
+    if (field.type === "password") {
+        field.type = "text";
+    }
+    else {
+        field.type = "password";
+    }
+
+}
+
+</script>
+
+{% endblock %}

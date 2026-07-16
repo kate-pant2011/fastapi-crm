@@ -53,7 +53,7 @@ async def get_files_client(
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
         query = QueryDTO(sort=sort, limit=limit, offset=offset)
@@ -124,7 +124,7 @@ async def upload_file_client(
     id: int,
     files: list[UploadFile] = File(...),
     session: AsyncSession = Depends(get_db),
-    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
         uploaded_files = await upload_file(
@@ -146,7 +146,7 @@ async def upload_file_client(
 @file_router.post("/branch/{id}/files", response_model=list[BaseShortResponse])
 async def upload_file_client(
     id: int,
-    files: list[UploadFile] = File(...),
+    file: UploadFile = File(...),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
@@ -155,7 +155,7 @@ async def upload_file_client(
             session=session, 
             user_id=user.id, 
             roles=user.roles,
-            files=files, 
+            files=[file], 
             entity_id=id,
             entity_type="branch"
         )

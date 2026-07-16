@@ -1,6 +1,6 @@
 import jwt
 from app.config.config import settings
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from dataclasses import dataclass
 from typing import Set
@@ -15,7 +15,7 @@ class UserDTO:
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
-async def get_current_user(token: str = Depends(oauth2_scheme), allow_password_change=False) -> UserDTO:
+def build_user_from_token(token: str, allow_password_change: bool = False) -> UserDTO:
     try:
         decoded = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -47,6 +47,29 @@ async def get_current_user(token: str = Depends(oauth2_scheme), allow_password_c
     return UserDTO(id=int(sub), roles=roles)
 
 
+async def get_current_user(
+        token: str = Depends(oauth2_scheme), allow_password_change=False
+) -> UserDTO:
+    return build_user_from_token(token, allow_password_change)
+
+
+async def get_current_user_from_cookie(
+        request: Request, allow_password_change=False
+) -> UserDTO:
+    token = getattr(
+        request.state,
+        "access_token",
+        None,
+    )
+
+    if not token:
+        raise HTTPException(
+            status_code=401,
+            detail="Not authenticated",
+        )
+    return build_user_from_token(token, allow_password_change)
+
+
 def require_roles(*allowed_roles):
     def checker(user: UserDTO = Depends(get_current_user)):
         if not user.roles.intersection(allowed_roles):
@@ -55,7 +78,23 @@ def require_roles(*allowed_roles):
 
     return checker
 
+def require_page_roles(*allowed_roles):
+    def checker(user: UserDTO = Depends(get_current_user_from_cookie)):
+        if not user.roles.intersection(allowed_roles):
+            raise HTTPException(status_code=403, detail="Forbidden")
+        return user
+
+    return checker
 
 async def get_allow_password_change_user(token: str = Depends(oauth2_scheme)):
     user = await get_current_user(token, allow_password_change=True)
     return user
+
+
+async def get_allow_password_change_user_if_cookie(
+    request: Request,
+):
+    return await get_current_user_from_cookie(
+        request,
+        allow_password_change=True,
+    )

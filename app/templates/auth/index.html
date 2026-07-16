@@ -1,0 +1,32 @@
+{% extends "auth_base.html" %}
+
+{% block title %}
+Авторизация
+{% endblock %}
+
+{% block content %}
+
+<h2>Добро пожаловать</h2>
+
+<p>Выберите действие:</p>
+
+<p>
+    <a href="/auth/login">
+        Вход в систему
+    </a>
+</p>
+
+<p>
+    <a href="/auth/forgot-password">
+        Забыли пароль
+    </a>
+</p>
+
+<p>
+    <a href="/auth/signup">
+        Регистрация компании
+    </a>
+</p>
+
+
+{% endblock %}

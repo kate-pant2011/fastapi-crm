@@ -1,6 +1,7 @@
 from app.database.assignment import (
     add_assignment,
     get_assignment_by_id,
+    get_filtered_assignments
 )
 from app.config.config import ApplicationException
 from app.schemas.common import to_schema
@@ -10,13 +11,46 @@ from app.database.stage import get_stage_by_id
 from app.database.user import get_user_by_id
 from .contractor import get_contractor
 
+sorting_rules = {"name": ("name",)}
+
+async def form_assignment_list(session, query):
+    assignments = await get_filtered_assignments(session, query, sorting_rules)
+
+    if not assignments:
+        assignments.items = []
+        assignments.total = 0
+
+    return {
+        "items": assignments.items,
+        "total": assignments.total,
+        "limit": query.limit,
+        "offset": query.offset,
+    }
+
+
+async def get_assignments_me(session, query, user_id):
+    assignments = await get_filtered_assignments(session, query, sorting_rules, user_id)
+
+    if not assignments:
+        assignments.items = []
+        assignments.total = 0
+
+    return {
+        "items": assignments.items,
+        "total": assignments.total,
+        "limit": query.limit,
+        "offset": query.offset,
+    }
+
 
 async def get_assignment(session, roles, requester_id, assignment_id):
     access = Access(roles)
-    access.require_admin_or_manager()
+    executor_id = access.executor_id(requester_id)
     manager_id = access.manager_id(requester_id)
 
-    assignment = await get_assignment_by_id(session, assignment_id, manager_id)
+    assignment = await get_assignment_by_id(
+        session, assignment_id, manager_id, executor_id
+    )
 
     if not assignment:
         raise ApplicationException("Assignment Not found", 404)
@@ -79,7 +113,9 @@ async def delete_assignment(session, id, manager_id):
     assignment = await get_assignment_by_id(session, id, manager_id)
 
     if not assignment:
-        raise ApplicationException("Company Not found", 404)
+        raise ApplicationException("Assignment Not found", 404)
 
     await session.delete(assignment)
     return assignment
+
+    
