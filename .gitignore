@@ -7,6 +7,6 @@ venv/
 .vscode/
 uploads/
 docs/
-*.log
-*.log.1
-*.log.2
+*.log*
+*.log.*
+
