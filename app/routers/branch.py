@@ -28,7 +28,7 @@ class BranchQueryDTO:
     offset: int = 0
 
 
-@branch_router.get("/branches", response_model=BaseListResponse)
+@branch_router.get("/branch", response_model=BaseListResponse)
 async def get_branch_list_router(
     sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
@@ -47,7 +47,7 @@ async def get_branch_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@branch_router.get("/branches/{id}", response_model=BranchItem)
+@branch_router.get("/branch/{id}", response_model=BranchItem)
 async def get_branch_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -63,7 +63,7 @@ async def get_branch_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@branch_router.patch("/branches/{id}", response_model=BranchItem)
+@branch_router.patch("/branch/{id}", response_model=BranchItem)
 async def change_branch_router(
     id: int,
     item: BranchPatchRequest,
@@ -80,7 +80,7 @@ async def change_branch_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@branch_router.post("/branches", response_model=BaseShortResponse)
+@branch_router.post("/branch", response_model=BaseShortResponse)
 async def create_branch_router(
     branch: BranchCreationRequest,
     session: AsyncSession = Depends(get_db),
@@ -96,7 +96,7 @@ async def create_branch_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@branch_router.delete("/branches/{id}", response_model=BaseShortResponse)
+@branch_router.delete("/branch/{id}", response_model=BaseShortResponse)
 async def archive_branch_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -112,7 +112,7 @@ async def archive_branch_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@branch_router.post("/branches/{id}/restore", response_model=BaseShortResponse)
+@branch_router.post("/branch/{id}/restore", response_model=BaseShortResponse)
 async def restore_branch_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -128,7 +128,7 @@ async def restore_branch_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@branch_router.get("/branches/{branch_id}/stamp")
+@branch_router.get("/branch/{branch_id}/stamp")
 async def download_branch_stamp(
     branch_id: int,
     session: AsyncSession = Depends(get_db),
@@ -145,7 +145,7 @@ async def download_branch_stamp(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
     
 
-@branch_router.delete("/branches/{branch_id}/stamp", response_model=BaseShortResponse)
+@branch_router.delete("/branch/{branch_id}/stamp", response_model=BaseShortResponse)
 async def delete_branch_stamp(
     branch_id: int,
     session: AsyncSession = Depends(get_db),

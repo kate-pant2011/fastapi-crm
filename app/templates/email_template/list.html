@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}
+Шаблоны Email
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <h2>
+        Шаблоны Email
+    </h2>
+
+    <a
+        href="/email-templates/create"
+        class="btn btn-primary">
+
+        + Создать шаблон
+
+    </a>
+
+</div>
+
+{% include "components/error_alert.html" %}
+
+<form
+    method="get"
+    action="/email-templates"
+    id="filter-form">
+
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+
+            <label class="form-label">
+                Область видимости
+            </label>
+
+            <select
+                name="scope"
+                class="form-select">
+
+                <option value="">
+                    По умолчанию
+                </option>
+
+                <option
+                    value="mine"
+                    {% if scope == "mine" %}
+                    selected
+                    {% endif %}
+                >
+                    Мои шаблоны
+                </option>
+
+                <option
+                    value="available"
+                    {% if scope == "available" %}
+                    selected
+                    {% endif %}
+                >
+                    Все доступные
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <button
+        type="submit"
+        class="btn btn-primary mb-4">
+
+        Применить
+
+    </button>
+
+</form>
+
+<div class="mb-3">
+
+    <span class="badge bg-secondary">
+
+        Всего записей: {{ total }}
+
+    </span>
+
+</div>
+
+<table class="table table-hover align-middle">
+
+    <thead>
+
+        <tr>
+
+            <th>ID</th>
+            <th>Название</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for email_template in email_templates %}
+
+        <tr>
+
+            <td>
+
+                {{ email_template.id }}
+
+            </td>
+
+            <td>
+
+                <a href="/email-templates/{{ email_template.id }}">
+
+                    {{ email_template.name }}
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+<div class="d-flex justify-content-between align-items-center">
+
+    <div class="small text-muted">
+
+        Показано {{ email_templates|length }} из {{ total }}
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+        {% if offset > 0 %}
+
+        <a
+            href="/email-templates?offset={{ offset - limit }}{% if scope %}&scope={{ scope }}{% endif %}"
+            class="btn btn-outline-secondary">
+
+            ← Назад
+
+        </a>
+
+        {% endif %}
+
+        {% if offset + limit < total %}
+
+        <a
+            href="/email-templates?offset={{ offset + limit }}{% if scope %}&scope={{ scope }}{% endif %}"
+            class="btn btn-outline-secondary">
+
+            Следующая →
+
+        </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% include "components/filter_script.html" %}
+
+{% endblock %}

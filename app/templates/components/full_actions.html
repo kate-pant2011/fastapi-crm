@@ -1,0 +1,42 @@
+<div class="d-flex justify-content-end gap-2 mb-4 flex-wrap">
+
+    <a
+        href="{{ edit_url }}"
+        class="btn btn-primary">
+
+        Изменить
+
+    </a>
+
+    <a
+        href="{{ document_url }}"
+        class="btn btn-outline-primary">
+
+        Создать документ
+
+    </a>
+
+    <a
+        href="{{ email_url }}"
+        class="btn btn-outline-primary">
+
+        Отправить Email
+
+    </a>
+
+    <form
+        method="post"
+        action="{{ delete_url }}"
+        onsubmit="return confirm('Удалить запись?');">
+
+        <button
+            type="submit"
+            class="btn btn-danger">
+
+            Удалить
+
+        </button>
+
+    </form>
+
+</div>

@@ -113,3 +113,115 @@ async def user_list_page(
             context=context,
             status_code=500,
         )
+    
+
+@user_page_router.get("/profile")
+async def user_profile_page(
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager", "executor")
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "error": None,
+    }
+    try:
+        result = await get_user_me(session, user.id)
+
+        context.update(
+            {
+                "name": result.get("name"),
+                "surname": result.get("surname"),
+                "position": result.get("position"),
+                "email": result.get("email"),
+                "clients_count": result.get("clients_count"),
+                "assignments_count": result.get("assignments_count"),
+                "branch": result.get("branch"),
+                "roles": result.get("roles")
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="user/profile.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="user/profile.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="user/profile.html",
+            context=context,
+            status_code=500,
+        )
+    
+
+@user_page_router.get("/users/{user_id}")
+async def user_detail_page(
+    request: Request,
+    user_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "user_id": user_id,
+        "error": None,
+    }
+
+    try:
+        result = await get_user(session, user_id, user.roles)
+
+        context.update(
+            {
+                "name": result.get("name"),
+                "surname": result.get("surname"),
+                "position": result.get("position"),
+                "email": result.get("email"),
+                "clients_count": result.get("clients_count"),
+                "assignments_count": result.get("assignments_count"),
+                "branch": result.get("branch"),
+                "roles": result.get("roles")
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="user/detail.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="user/detail.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="user/detail.html",
+            context=context,
+            status_code=500,
+        )

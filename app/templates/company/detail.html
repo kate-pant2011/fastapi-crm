@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block title %}
+Компания
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+
+Компания
+
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/full_actions.html" %}
+
+<div class="card mb-4">
+
+
+<div class="card-body">
+
+    <h4 class="card-title">
+
+        {{ name }}
+
+    </h4>
+
+    <div class="mb-4">
+
+        <label class="form-label text-muted">
+
+            Клиент
+
+        </label>
+
+        <div>
+
+            <a href="/clients/{{ client.id }}">
+
+                {{ client.name }}
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <div class="mb-4">
+
+        <label class="form-label text-muted">
+
+            ИНН
+
+        </label>
+
+        <div>
+
+            {{ inn }}
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <div>
+
+        <label class="form-label text-muted">
+
+            Договоры
+
+        </label>
+
+        <div>
+
+            {% if contracts %}
+
+                {% for contract in contracts %}
+
+                <div>
+
+                    <a href="/contracts/{{ contract.id }}">
+
+                        {{ contract.number }}
+
+                    </a>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                —
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}

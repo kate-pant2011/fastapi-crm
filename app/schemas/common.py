@@ -13,7 +13,6 @@ class BaseShortResponse(BaseModel):
     model_config = ConfigDict(from_attributes = True)
 
 
-
 class BaseListResponse(BaseModel):
     items: list[BaseShortResponse]
     total: int
@@ -24,3 +23,17 @@ class BaseListResponse(BaseModel):
 class BaseCountResponse(BaseModel):
     name: str
     total: int
+    
+
+class LegalEntityShortResponse(BaseModel):
+    id: int
+    name: str
+    inn: str
+
+class LegalEntityListResponse(BaseModel):
+    items: list[BaseShortResponse]
+    total: int
+    limit: int
+    offset: int
+
+

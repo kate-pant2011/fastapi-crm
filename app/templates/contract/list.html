@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+
+{% block title %}
+Контракты
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <h2>
+        Контракты
+    </h2>
+
+    <a
+        href="/contracts/create"
+        class="btn btn-primary">
+
+        + Создать контракт
+
+    </a>
+
+</div>
+
+{% include "components/error_alert.html" %}
+
+<form
+    method="get"
+    action="/contracts"
+    id="filter-form">
+
+    <div class="row mb-4">
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Компания
+            </label>
+
+            <select
+                name="company_id"
+                class="form-select">
+
+                <option value="">
+                    Все компании
+                </option>
+
+                {% for company in companies %}
+
+                <option
+                    value="{{ company.id }}"
+                    {% if company_id == company.id %}
+                    selected
+                    {% endif %}
+                >
+
+                    {{ company.name }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Подразделение
+            </label>
+
+            <select
+                name="branch_id"
+                class="form-select">
+
+                <option value="">
+                    Все подразделения
+                </option>
+
+                {% for branch in branches %}
+
+                <option
+                    value="{{ branch.id }}"
+                    {% if branch_id == branch.id %}
+                    selected
+                    {% endif %}
+                >
+
+                    {{ branch.name }}
+
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Область
+            </label>
+
+            <select
+                name="scope"
+                class="form-select">
+
+                <option value="">
+                    Все контракты
+                </option>
+
+                <option
+                    value="mine"
+                    {% if scope == "mine" %}
+                    selected
+                    {% endif %}
+                >
+                    Только мои
+                </option>
+
+            </select>
+
+        </div>
+
+        <div class="col-md-3">
+
+            <label class="form-label">
+                Сортировка
+            </label>
+
+            <select
+                name="sort"
+                class="form-select">
+
+                <option value="">
+                    По умолчанию
+                </option>
+
+                <option
+                    value="valid_to"
+                    {% if sort == "valid_to" %}
+                    selected
+                    {% endif %}
+                >
+                    Дата окончания ↑
+                </option>
+
+                <option
+                    value="-valid_to"
+                    {% if sort == "-valid_to" %}
+                    selected
+                    {% endif %}
+                >
+                    Дата окончания ↓
+                </option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <button
+        type="submit"
+        class="btn btn-primary mb-4">
+
+        Применить
+
+    </button>
+
+</form>
+
+<div class="mb-3">
+
+    <span class="badge bg-secondary">
+
+        Всего записей: {{ total }}
+
+    </span>
+
+</div>
+
+<table class="table table-hover align-middle">
+
+    <thead>
+
+        <tr>
+
+            <th>ID</th>
+            <th>Номер</th>
+            <th>Статус</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for contract in contracts %}
+
+        <tr>
+
+            <td>
+
+                {{ contract.id }}
+
+            </td>
+
+            <td>
+
+                <a href="/contracts/{{ contract.id }}">
+
+                    {{ contract.number }}
+
+                </a>
+
+            </td>
+
+            <td>
+
+                {{ contract.status.value }}
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+<div class="d-flex justify-content-between align-items-center">
+
+    <div class="small text-muted">
+
+        Показано {{ contracts|length }} из {{ total }}
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+        {% if offset > 0 %}
+
+        <a
+            href="/contracts?offset={{ offset - limit }}{% if sort %}&sort={{ sort }}{% endif %}{% if company_id %}&company_id={{ company_id }}{% endif %}{% if branch_id %}&branch_id={{ branch_id }}{% endif %}{% if scope %}&scope={{ scope }}{% endif %}"
+            class="btn btn-outline-secondary">
+
+            ← Назад
+
+        </a>
+
+        {% endif %}
+
+        {% if offset + limit < total %}
+
+        <a
+            href="/contracts?offset={{ offset + limit }}{% if sort %}&sort={{ sort }}{% endif %}{% if company_id %}&company_id={{ company_id }}{% endif %}{% if branch_id %}&branch_id={{ branch_id }}{% endif %}{% if scope %}&scope={{ scope }}{% endif %}"
+            class="btn btn-outline-secondary">
+
+            Следующая →
+
+        </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% include "components/filter_script.html" %}
+
+{% endblock %}

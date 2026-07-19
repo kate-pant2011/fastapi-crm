@@ -1,75 +1,56 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Form, Request
 from fastapi.templating import Jinja2Templates
-from app.config.config import ApplicationException
+from app.auth.dependencies import require_page_roles, UserDTO
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.auth.dependencies import require_page_roles
 from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
+from app.config.config import ApplicationException
+from app.auth.dependencies import require_roles
 from app.schemas.common import BaseShortResponse, BaseListResponse
-from app.schemas.assignment import (
-    AssignmentItem,
-    AssignmentCreation,
-    AssignmentPatchRequest,
+from app.schemas.contractor import (
+    ContractorItem,
+    ContractorCreation,
+    ContractorPatchRequest,
 )
-from app.services.assignment import (
-    form_assignment_list,
-    get_assignment, 
-    get_assignments_me,
-    create_assignment, 
-    change_assignment, 
-    delete_assignment
+from app.services.contractor import (
+    get_contractor_list,
+    get_contractor,
+    create_contractor,
+    archive_contractor,
+    restore_contractor,
+    change_contractor,
 )
-from dataclasses import dataclass
-from typing import Literal
-from app.routers.assignment import QueryDTO
 
-assignment_page_router = APIRouter()
+contractor_page_router = APIRouter()
 
 templates = Jinja2Templates(
     directory="app/templates"
 )
 
-@assignment_page_router.get("/assignments")
-async def assignment_list_page(
+@contractor_page_router.get("/contractors")
+async def contractor_list_page(
     request: Request,
-    is_done: bool | None = Query(default=None),
-    scope: Literal["users", "contractors"] | None = Query(
-        default=None, 
-        description="Filter: either users or contractors list"
-    ),
-    sort: str | None = Query(default=None),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
-        require_page_roles("owner", "admin")
-    ),
+        require_page_roles("owner", "admin", "manager", "executor"))
 ):
     context = {
         "request": request,
         "user": user,
-        "assignments": [],
+        "contractors": [],
         "total": 0,
         "limit": limit,
         "offset": offset,
-        "sort": sort,
-        "is_done": is_done,
-        "scope": scope,
         "error": None,
     }
     try:
-        query = QueryDTO(
-            sort=sort,
-            limit=limit,
-            offset=offset,
-            is_done=is_done,
-            scope=scope
-        )
-        result = await form_assignment_list(session=session, query=query)
+        result = await get_contractor_list(session, limit, offset)
 
         context.update(
             {
-                "assignments": result.get("items", []),
+                "contractors": result.get("items", []),
                 "total": result.get("total", 0),
                 "limit": result.get("limit", limit),
                 "offset": result.get("offset", offset),
@@ -77,7 +58,7 @@ async def assignment_list_page(
         )
         return templates.TemplateResponse(
             request=request,
-            name="assignment/list.html",
+            name="contractor/list.html",
             context=context,
         )
 
@@ -86,7 +67,7 @@ async def assignment_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="assignment/list.html", 
+            name="contractor/list.html", 
             context=context,
             status_code=e.code,
         )
@@ -96,16 +77,16 @@ async def assignment_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="assignment/list.html",
+            name="contractor/list.html",
             context=context,
             status_code=500,
         )
 
 
-@assignment_page_router.get("/assignments/{assignment_id}")
-async def assignment_detail_page(
+@contractor_page_router.get("/contractors/{contractor_id}")
+async def contractor_detail_page(
     request: Request,
-    assignment_id: int,
+    contractor_id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles("owner", "admin", "manager", "executor")
@@ -115,27 +96,25 @@ async def assignment_detail_page(
     context = {
         "request": request,
         "user": user,
-        "assignment_id": assignment_id,
-        "edit_url": f"/assignments/{assignment_id}/edit",
-        "delete_url": f"/assignments/{assignment_id}/delete",
+        "contractor_id": contractor_id,
+        "edit_url": f"/contractors/{contractor_id}/edit",
+        "delete_url": f"/contractors/{contractor_id}/delete",
         "error": None,
     }
 
     try:
-        result = await get_assignment(session, user.roles, user.id, assignment_id)
+        result = await get_contractor(session, contractor_id)
 
         context.update(
             {
                 "name": result.name,
+                "email": result.email,
                 "description": result.description,
-                "stage": result.stage,
-                "contractor": result.contractor,
-                "assignee": result.user,
             }
         )
         return templates.TemplateResponse(
             request=request,
-            name="assignment/detail.html",
+            name="contractor/detail.html",
             context=context,
         )
 
@@ -143,7 +122,7 @@ async def assignment_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="assignment/detail.html", 
+            request=request, name="contractor/detail.html", 
             context=context,
             status_code=e.code,
         )
@@ -153,7 +132,7 @@ async def assignment_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="assignment/detail.html",
+            name="contractor/detail.html",
             context=context,
             status_code=500,
         )

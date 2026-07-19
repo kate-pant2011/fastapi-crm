@@ -25,16 +25,16 @@ contract_router = APIRouter()
 
 
 @dataclass
-class QueryDTO:
-    sort: str | None
-    limit: int
-    offset: int
-    scope: str | None
-    branch_id: int | None
-    company_id: int | None
+class ContractQueryDTO:
+    sort: str | None = None
+    limit: int = 20
+    offset: int = 0
+    scope: str | None = None
+    branch_id: int | None = None
+    company_id: int | None = None
 
 
-@contract_router.get("/contracts", response_model=ContractListResponse)
+@contract_router.get("/contract", response_model=ContractListResponse)
 async def get_contract_list_router(
     scope: str | None = Query(default=None, description="mine"),
     branch_id: int | None = Query(default=None),
@@ -45,7 +45,7 @@ async def get_contract_list_router(
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
-    query = QueryDTO(
+    query = ContractQueryDTO(
         sort=sort,
         limit=limit,
         offset=offset,
@@ -65,7 +65,7 @@ async def get_contract_list_router(
         raise HTTPException(status_code=500, detail=(f"{type(e).__name__} - {e}"))
 
 
-@contract_router.get("/contracts/{id}", response_model=GetContractItem)
+@contract_router.get("/contract/{id}", response_model=GetContractItem)
 async def get_contract_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -81,7 +81,7 @@ async def get_contract_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@contract_router.patch("/contracts/{id}", response_model=GetContractItem)
+@contract_router.patch("/contract/{id}", response_model=GetContractItem)
 async def change_contract_router(
     id: int,
     item: ContractPatchRequest,
@@ -98,7 +98,7 @@ async def change_contract_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@contract_router.post("/contracts", response_model=ContractItem)
+@contract_router.post("/contract", response_model=ContractItem)
 async def create_contract_router(
     data: СontractCreation,
     session: AsyncSession = Depends(get_db),
@@ -114,7 +114,7 @@ async def create_contract_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@contract_router.delete("/contracts/{id}", response_model=ContractItem)
+@contract_router.delete("/contract/{id}", response_model=ContractItem)
 async def archive_contract_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -130,7 +130,7 @@ async def archive_contract_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@contract_router.post("/contracts/{id}/restore", response_model=ContractItem)
+@contract_router.post("/contract/{id}/restore", response_model=ContractItem)
 async def restore_contract_router(
     id: int,
     session: AsyncSession = Depends(get_db),

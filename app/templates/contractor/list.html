@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}
+Подрядчики
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <h2>
+        Подрядчики
+    </h2>
+
+    <a
+        href="/contractors/create"
+        class="btn btn-primary">
+
+        + Создать подрядчика
+
+    </a>
+
+</div>
+
+{% include "components/error_alert.html" %}
+
+<div class="mb-3">
+
+    <span class="badge bg-secondary">
+
+        Всего записей: {{ total }}
+
+    </span>
+
+</div>
+
+<table class="table table-hover align-middle">
+
+    <thead>
+
+        <tr>
+
+            <th>ID</th>
+            <th>Название</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for contractor in contractors %}
+
+        <tr>
+
+            <td>
+
+                {{ contractor.id }}
+
+            </td>
+
+            <td>
+
+                <a href="/contractors/{{ contractor.id }}">
+
+                    {{ contractor.name }}
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+<div class="d-flex justify-content-between align-items-center">
+
+    <div class="small text-muted">
+
+        Показано {{ contractors|length }} из {{ total }}
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+        {% if offset > 0 %}
+
+        <a
+            href="/contractors?offset={{ offset - limit }}"
+            class="btn btn-outline-secondary">
+
+            ← Назад
+
+        </a>
+
+        {% endif %}
+
+        {% if offset + limit < total %}
+
+        <a
+            href="/contractors?offset={{ offset + limit }}"
+            class="btn btn-outline-secondary">
+
+            Следующая →
+
+        </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

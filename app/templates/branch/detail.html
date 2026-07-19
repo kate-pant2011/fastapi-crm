@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}
+Подразделение
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+
+Подразделение
+
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/full_actions.html" %}
+
+<div class="card mb-4">
+
+
+<div class="card-body">
+
+    <h4 class="card-title">
+
+        {{ name }}
+
+    </h4>
+
+    <div class="mb-4">
+
+        <label class="form-label text-muted">
+
+            ИНН
+
+        </label>
+
+        <div>
+
+            {{ inn or "—" }}
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <div class="mb-4">
+
+        <label class="form-label text-muted">
+
+            Сотрудники подразделения
+
+        </label>
+
+        <div>
+
+            {% if users %}
+
+                {% for user in users %}
+
+                <div>
+
+                    <a href="/users/{{ user.id }}">
+
+                        {{ user.name }}
+
+                    </a>
+
+                </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <span class="text-decoration-line-through text-muted">
+
+                    сотрудники отсутствуют
+
+                </span>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <div>
+
+        <label class="form-label text-muted">
+
+            Печать подразделения
+
+        </label>
+
+        <div class="mb-2">
+
+            {% if stamp_file_id %}
+
+                <a href="/files/{{ stamp_file_id }}/download">
+
+                    Скачать печать
+
+                </a>
+
+                <span class="badge bg-success ms-2">
+
+                    Загружена
+
+                </span>
+
+            {% else %}
+
+                <span class="text-decoration-line-through text-muted">
+
+                    отсутствует
+
+                </span>
+
+            {% endif %}
+
+        </div>
+
+        {% if stamp_width_mm %}
+
+        <small class="text-muted">
+
+            Ширина печати: {{ stamp_width_mm }} мм
+
+        </small>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}

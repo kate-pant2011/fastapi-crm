@@ -21,11 +21,8 @@ async def get_company_list(session, roles, requester_id, query):
         session=session, manager_id=manager_id, query=query, sorting_rules=sorting_rules
     )
 
-    if not companies:
-        raise ApplicationException("Companies Not Found", 404)
-
     return {
-        "items": companies.items,
+        "items": companies.items or [],
         "total": companies.total,
         "limit": query.limit,
         "offset": query.offset,

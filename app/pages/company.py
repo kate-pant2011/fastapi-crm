@@ -1,37 +1,38 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Form, Request
 from fastapi.templating import Jinja2Templates
-from app.config.config import ApplicationException
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.client import form_client_list
+from app.services.company import (
+    get_company_list,
+    get_company,
+    create_company,
+    archive_company,
+    restore_company,
+    change_company,
+)
+from app.schemas.company import CompanyCreation, CompanyItem, CompanyPatchRequest
+from app.schemas.common import BaseShortResponse, BaseListResponse
 from app.auth.dependencies import require_page_roles, UserDTO
 from app.config.connection import get_db
-from app.schemas.common import BaseShortResponse, BaseListResponse
-from app.schemas.client import ClientItem, ClientCreation, ClientPatchRequest
-from app.services.client import (
-    form_client_list,
-    get_client,
-    create_client,
-    archive_client,
-    restore_client,
-    change_client,
-)
-from app.routers.client import ClientQueryDTO
-from app.routers.user import get_user_list, QueryDTO
+from app.config.config import ApplicationException
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Literal
+from app.routers.company import CompanyQueryDTO
+from app.routers.client import ClientQueryDTO
 
-client_page_router = APIRouter()
+company_page_router = APIRouter()
 
 templates = Jinja2Templates(
     directory="app/templates"
 )
 
 
-@client_page_router.get("/clients")
-async def client_list_page(
+@company_page_router.get("/companies")
+async def company_list_page(
     request: Request,
     scope: Literal["mine"] | None = Query(
         default=None, description="scope ignored if manager_id provided"
     ),
-    manager_id: int | None = Query(default=None),
+    client_id: int | None = Query(default=None),
     sort: str | None = Query(default=None),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
@@ -42,45 +43,43 @@ async def client_list_page(
     context = {
         "request": request,
         "user": user,
-        "clients": [],
+        "companies": [],
         "total": 0,
         "limit": limit,
         "offset": offset,
         "sort": sort,
-        "manager_id": manager_id,
+        "client_id": client_id,
         "scope": scope,
         "error": None,
     }
     try:
-        query = ClientQueryDTO(
+        query = CompanyQueryDTO(
             sort=sort,
             limit=limit,
             offset=offset,
-            manager_id=manager_id,
+            client_id=client_id,
             scope=scope
         )
-        result = await form_client_list(
+        result = await get_company_list(
             session=session, roles=user.roles, requester_id=user.id, query=query
         )
 
-        managers_result = await get_user_list(
-            session=session, roles=user.roles, query=QueryDTO(
-                role_name="manager", limit=1000
-            )
+        clients_result = await form_client_list(
+            session=session, roles=user.roles, requester_id=user.id, query=ClientQueryDTO(limit=1000)
         )
 
         context.update(
             {
-                "clients": result.get("items", []),
+                "companies": result.get("items", []),
                 "total": result.get("total", 0),
                 "limit": result.get("limit", limit),
                 "offset": result.get("offset", offset),
-                "managers": managers_result.get("items", [])
+                "clients": clients_result.get("items", [])
             }
         )
         return templates.TemplateResponse(
             request=request,
-            name="client/list.html",
+            name="company/list.html",
             context=context,
         )
 
@@ -89,7 +88,7 @@ async def client_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/list.html", 
+            name="company/list.html", 
             context=context,
             status_code=e.code,
         )
@@ -99,16 +98,16 @@ async def client_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/list.html",
+            name="company/list.html",
             context=context,
             status_code=500,
         )
 
 
-@client_page_router.get("/clients/{client_id}")
-async def client_detail_page(
+@company_page_router.get("/companies/{company_id}")
+async def company_detail_page(
     request: Request,
-    client_id: int,
+    company_id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles("owner", "admin", "manager")
@@ -118,31 +117,28 @@ async def client_detail_page(
     context = {
         "request": request,
         "user": user,
-        "client_id": client_id,
-        "edit_url": f"/clients/{client_id}/edit",
-        "delete_url": f"/clients/{client_id}/delete",
-        "email_url":f"/email-form?client_id={client_id}", 
-        "document_url":f"/document-form?client_id={client_id}", 
+        "company_id": company_id,
+        "edit_url": f"/companies/{company_id}/edit",
+        "delete_url": f"/companies/{company_id}/delete",
+        "email_url":f"/email-form?company_id={company_id}", 
+        "document_url":f"/document-form?company_id={company_id}", 
         "error": None,
     }
 
     try:
-        result = await get_client(session, user.roles, user.id, client_id)
+        result = await get_company(session, user.roles, user.id, company_id)
 
         context.update(
             {
                 "name": result.name,
-                "email": result.email,
-                "telephone": result.telephone,
-                "manager": result.manager,
-                "projects": result.projects,
-                "companies": result.companies,
-                "files_count": result.files_count
+                "inn": result.inn,
+                "client": result.client,
+                "contracts": result.contracts,
             }
         )
         return templates.TemplateResponse(
             request=request,
-            name="client/detail.html",
+            name="company/detail.html",
             context=context,
         )
 
@@ -150,7 +146,7 @@ async def client_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="client/detail.html", 
+            request=request, name="company/detail.html", 
             context=context,
             status_code=e.code,
         )
@@ -160,7 +156,7 @@ async def client_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/detail.html",
+            name="company/detail.html",
             context=context,
             status_code=500,
         )

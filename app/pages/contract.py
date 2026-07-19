@@ -1,37 +1,48 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Form, Request
 from fastapi.templating import Jinja2Templates
-from app.config.config import ApplicationException
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.services.company import get_company_list
+from app.services.branch import get_branch_list
+from app.services.contract import (
+    get_contract_list,
+    get_contract,
+    create_contract,
+    archive_contract,
+    restore_contract,
+    change_contract,
+)
+from app.schemas.contract import (
+    СontractCreation,
+    ContractItem,
+    ContractListResponse,
+    GetContractItem,
+    ContractPatchRequest,
+)
 from app.auth.dependencies import require_page_roles, UserDTO
 from app.config.connection import get_db
-from app.schemas.common import BaseShortResponse, BaseListResponse
-from app.schemas.client import ClientItem, ClientCreation, ClientPatchRequest
-from app.services.client import (
-    form_client_list,
-    get_client,
-    create_client,
-    archive_client,
-    restore_client,
-    change_client,
-)
-from app.routers.client import ClientQueryDTO
-from app.routers.user import get_user_list, QueryDTO
+from app.config.config import ApplicationException
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.schemas.common import BaseShortResponse
 from typing import Literal
+from app.routers.company import CompanyQueryDTO
+from app.routers.contract import ContractQueryDTO
+from app.routers.branch import BranchQueryDTO
 
-client_page_router = APIRouter()
+
+contract_page_router = APIRouter()
 
 templates = Jinja2Templates(
     directory="app/templates"
 )
 
 
-@client_page_router.get("/clients")
-async def client_list_page(
+@contract_page_router.get("/contracts")
+async def contract_list_page(
     request: Request,
     scope: Literal["mine"] | None = Query(
         default=None, description="scope ignored if manager_id provided"
     ),
-    manager_id: int | None = Query(default=None),
+    branch_id: int | None = Query(default=None),
+    company_id: int | None = Query(default=None),
     sort: str | None = Query(default=None),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
@@ -42,45 +53,49 @@ async def client_list_page(
     context = {
         "request": request,
         "user": user,
-        "clients": [],
+        "contracts": [],
         "total": 0,
         "limit": limit,
         "offset": offset,
         "sort": sort,
-        "manager_id": manager_id,
+        "company_id": company_id,
+        "branch_id": branch_id,
         "scope": scope,
         "error": None,
     }
     try:
-        query = ClientQueryDTO(
+        query = ContractQueryDTO(
             sort=sort,
             limit=limit,
             offset=offset,
-            manager_id=manager_id,
+            company_id=company_id,
+            branch_id=branch_id,
             scope=scope
         )
-        result = await form_client_list(
+        result = await get_contract_list(
             session=session, roles=user.roles, requester_id=user.id, query=query
         )
-
-        managers_result = await get_user_list(
-            session=session, roles=user.roles, query=QueryDTO(
-                role_name="manager", limit=1000
-            )
+        companies_result = await get_company_list(
+            session=session, roles=user.roles, requester_id=user.id, query=CompanyQueryDTO(limit=1000)
+        )
+        branches_result = await get_branch_list(
+            session=session, query=BranchQueryDTO(limit=1000)
         )
 
         context.update(
             {
-                "clients": result.get("items", []),
+                "contracts": result.get("items", []),
                 "total": result.get("total", 0),
                 "limit": result.get("limit", limit),
                 "offset": result.get("offset", offset),
-                "managers": managers_result.get("items", [])
+                "companies": companies_result.get("items", []),
+                "branches": branches_result.get("items", [])
             }
         )
+
         return templates.TemplateResponse(
             request=request,
-            name="client/list.html",
+            name="contract/list.html",
             context=context,
         )
 
@@ -89,7 +104,7 @@ async def client_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/list.html", 
+            name="contract/list.html", 
             context=context,
             status_code=e.code,
         )
@@ -99,16 +114,16 @@ async def client_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/list.html",
+            name="contract/list.html",
             context=context,
             status_code=500,
         )
 
 
-@client_page_router.get("/clients/{client_id}")
-async def client_detail_page(
+@contract_page_router.get("/contracts/{contract_id}")
+async def contract_detail_page(
     request: Request,
-    client_id: int,
+    contract_id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles("owner", "admin", "manager")
@@ -118,31 +133,33 @@ async def client_detail_page(
     context = {
         "request": request,
         "user": user,
-        "client_id": client_id,
-        "edit_url": f"/clients/{client_id}/edit",
-        "delete_url": f"/clients/{client_id}/delete",
-        "email_url":f"/email-form?client_id={client_id}", 
-        "document_url":f"/document-form?client_id={client_id}", 
+        "contract_id": contract_id,
+        "edit_url": f"/contracts/{contract_id}/edit",
+        "delete_url": f"/contracts/{contract_id}/delete",
+        "email_url":f"/email-form?contract_id={contract_id}", 
+        "document_url":f"/document-form?contract_id={contract_id}", 
         "error": None,
     }
 
     try:
-        result = await get_client(session, user.roles, user.id, client_id)
+        result = await get_contract(session, user.roles, user.id, contract_id)
 
         context.update(
             {
+                "number": result.number,
+                "status": result.status,
                 "name": result.name,
-                "email": result.email,
-                "telephone": result.telephone,
-                "manager": result.manager,
-                "projects": result.projects,
-                "companies": result.companies,
-                "files_count": result.files_count
+                "description": result.description,
+                "valid_from": result.valid_from,
+                "valid_to": result.valid_to,
+                "branch": result.branch,
+                "company": result.company
             }
         )
+
         return templates.TemplateResponse(
             request=request,
-            name="client/detail.html",
+            name="contract/detail.html",
             context=context,
         )
 
@@ -150,7 +167,7 @@ async def client_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="client/detail.html", 
+            request=request, name="contract/detail.html", 
             context=context,
             status_code=e.code,
         )
@@ -160,9 +177,7 @@ async def client_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/detail.html",
+            name="contract/detail.html",
             context=context,
             status_code=500,
         )
-
-

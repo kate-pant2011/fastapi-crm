@@ -74,7 +74,7 @@ async def change_contract(session, roles, user_id, contract_id, item):
 
 
 async def create_contract(session, data, manager_id):
-    company = await get_company_by_id(session, manager_id, data.company_id)
+    company = await get_company_by_id(session, data.company_id, manager_id)
     if not company:
         raise ApplicationException("Company Not Found ", 404)
 

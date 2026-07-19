@@ -12,7 +12,7 @@ async def get_filtered_projects(session, manager_id, query, sorting_rules):
     stmt = select(Project).join(Project.client)
     if query.is_archived is None:
         stmt = stmt.where(Project.is_archived.is_(False))
-    else:
+    if query.is_archived is True:
         stmt = stmt.where(Project.is_archived.is_(True))
 
     if manager_id is not None:

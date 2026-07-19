@@ -13,10 +13,9 @@ from app.schemas.doc_template import GeneratedDocResponse
 generated_doc_router = APIRouter()
 
 @dataclass
-class QueryDTO:
-    limit: int
-    offset: int
-
+class DocsQueryDTO:
+    limit: int = 20
+    offset: int = 0
 
 
 @generated_doc_router.get("/generated-docs", response_model=GeneratedListResponse)
@@ -27,7 +26,7 @@ async def get_generated_docs_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        query = QueryDTO(limit=limit, offset=offset)
+        query = DocsQueryDTO(limit=limit, offset=offset)
         docs = await get_generated_docs(
             session=session, 
             user_id=user.id, 

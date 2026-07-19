@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}
+Профиль
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    Мой профиль
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+<div class="card">
+
+    <div class="card-body">
+
+        <h4 class="card-title">
+
+            {{ name }} {{ surname }}
+
+        </h4>
+
+        {% if position %}
+
+        <p class="text-muted mb-4">
+
+            {{ position }}
+
+        </p>
+
+        {% endif %}
+
+        <div class="row">
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label text-muted">
+
+                    Email
+
+                </label>
+
+                <div>
+
+                    {{ email }}
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label text-muted">
+
+                    Подразделение
+
+                </label>
+
+                <div>
+
+                    {% if branch %}
+
+                        <a href="/branches/{{ branch.id }}">
+
+                            {{ branch.name }}
+
+                        </a>
+
+                    {% else %}
+
+                        —
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="mb-4">
+
+            <label class="form-label text-muted">
+
+                Роли
+
+            </label>
+
+            <div>
+
+                {% for role in roles %}
+
+                    <span class="badge bg-primary me-1">
+
+                        {{ role.name }}
+
+                    </span>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="row text-center">
+
+            <div class="col-md-6">
+
+                <div class="card border-primary">
+
+                    <div class="card-body">
+
+                        <h3>
+
+                            {{ clients_count }}
+
+                        </h3>
+
+                        <div class="text-muted">
+
+                            Клиентов
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <div class="card border-primary">
+
+                    <div class="card-body">
+
+                        <h3>
+
+                            {{ assignments_count }}
+
+                        </h3>
+
+                        <div class="text-muted">
+
+                            Назначений
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

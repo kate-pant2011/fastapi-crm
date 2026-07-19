@@ -70,7 +70,6 @@ async def build_ctx_objects(session, query, user_id, is_admin):
         user = await get_user_by_id(session, query.user_id)
         ctx["user"] = user
 
-
     return ctx
 
 

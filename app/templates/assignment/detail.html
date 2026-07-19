@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}
+Назначение
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+Назначение
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_delete.html" %}
+
+<div class="card mb-4">
+
+<div class="card-body">
+
+    <h4 class="card-title">
+
+        {{ name }}
+
+    </h4>
+
+    {% if description %}
+
+    <p class="text-muted mb-4">
+
+        {{ description }}
+
+    </p>
+
+    {% endif %}
+
+    <div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label text-muted">
+
+            Этап
+
+        </label>
+
+        <div>
+
+            <a href="/stages/{{ stage.id }}">
+
+                {{ stage.name }}
+
+            </a>
+
+        </div>
+
+    </div>
+
+    </div>
+
+    <hr>
+
+    <div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label text-muted">
+
+            Исполнитель
+
+        </label>
+
+        <div>
+
+            {% if assignee %}
+
+            <a href="/users/{{ assignee.id }}">
+
+                {{ assignee.name }}
+
+            </a>
+
+            {% else %}
+
+            —
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label text-muted">
+
+            Подрядчик
+
+        </label>
+
+        <div>
+
+            {% if contractor %}
+
+            <a href="/contractors/{{ contractor.id }}">
+
+                {{ contractor.name }}
+
+            </a>
+
+            {% else %}
+
+            —
+
+            {% endif %}
+
+
+        </div>
+
+    </div>
+
+
+    </div>
+
+</div>
+
+</div>
+
+{% endblock %}

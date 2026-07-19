@@ -10,6 +10,7 @@ class ClientItem(BaseModel):
     projects: list[BaseShortResponse] | None
     companies: list[BaseShortResponse] | None
     files_count: int | None = None
+    
     class Config:
         from_attributes = True
 

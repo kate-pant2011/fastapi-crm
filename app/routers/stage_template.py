@@ -22,7 +22,7 @@ from app.services.stage_template import (
 stage_template_router = APIRouter()
 
 
-@stage_template_router.get("/stage-templates", response_model=BaseListResponse)
+@stage_template_router.get("/stage-template", response_model=BaseListResponse)
 async def get_stage_template_list_router(
     session: AsyncSession = Depends(get_db),
     limit: int = Query(default=20, le=100),
@@ -42,7 +42,7 @@ async def get_stage_template_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_template_router.get("/stage-templates/{id}", response_model=StageTemplateItem)
+@stage_template_router.get("/stage-template/{id}", response_model=StageTemplateItem)
 async def get_stage_teplate_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -58,7 +58,7 @@ async def get_stage_teplate_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_template_router.post("/stage-templates", response_model=BaseShortResponse)
+@stage_template_router.post("/stage-template", response_model=BaseShortResponse)
 async def create_stage_template_router(
     data: StageTemplateCreation,
     session: AsyncSession = Depends(get_db),
@@ -74,7 +74,7 @@ async def create_stage_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_template_router.patch("/stage-templates/{id}", response_model=StageTemplateItem)
+@stage_template_router.patch("/stage-template/{id}", response_model=StageTemplateItem)
 async def change_stage_template_router(
     data: StageTemplatePatchRequest,
     id: int,
@@ -92,7 +92,7 @@ async def change_stage_template_router(
 
 
 @stage_template_router.post(
-    "/project/{project_id}/stage-templates/{stage_template_id}",
+    "/project/{project_id}/stage-template/{stage_template_id}",
     response_model=ProjectItem,
 )
 async def create_stages_with_template_router(

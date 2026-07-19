@@ -17,11 +17,9 @@ async def get_stage_template_list(session, creator_id, limit, offset):
     templates = await get_all_stage_templates(
         session=session, creator_id=creator_id, limit=limit, offset=offset
     )
-    if not templates.items:
-        raise ApplicationException("Templates Not Found", 404)
 
     return {
-        "items": templates.items,
+        "items": templates.items or [],
         "total": templates.total,
         "limit": limit,
         "offset": offset,

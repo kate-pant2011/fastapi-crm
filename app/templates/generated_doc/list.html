@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}
+Сгенерированные документы
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <h2>
+        Сгенерированные документы
+    </h2>
+
+</div>
+
+{% include "components/error_alert.html" %}
+
+<div class="mb-3">
+
+    <span class="badge bg-secondary">
+
+        Всего записей: {{ total }}
+
+    </span>
+
+</div>
+
+<table class="table table-hover align-middle">
+
+    <thead>
+
+        <tr>
+
+            <th>ID</th>
+            <th>Файл</th>
+            <th class="text-end">Действия</th>
+
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for document in documents %}
+
+        <tr>
+
+            <td>
+                {{ document.id }}
+            </td>
+
+            <td>
+                {{ document.filename }}
+            </td>
+
+            <td>
+
+                <div class="d-flex justify-content-end gap-2">
+
+                    {% if document.filename.endswith(".docx") %}
+
+                    <form
+                        action="/generated-docs/{{ document.id }}/word-to-pdf"
+                        method="post">
+
+                        <button
+                            type="submit"
+                            class="btn btn-sm btn-outline-secondary">
+
+                            PDF
+
+                        </button>
+
+                    </form>
+
+                    {% endif %}
+                    
+                    <a
+                        href="/generated-docs/{{ document.file_id }}/download"
+                        class="btn btn-sm btn-outline-primary">
+
+                        Скачать
+
+                    </a>
+
+                    <a
+                        href="/generated-docs/{{ document.id }}/send"
+                        class="btn btn-sm btn-outline-success">
+
+                        Отправить
+
+                    </a>
+
+                    <form
+                        action="/generated-docs/{{ document.file_id }}/delete"
+                        method="post"
+                        onsubmit="return confirm('Удалить документ?');">
+
+                        <button
+                            type="submit"
+                            class="btn btn-sm btn-outline-danger">
+
+                            Удалить
+
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+<div class="d-flex justify-content-between align-items-center">
+
+    <div class="small text-muted">
+
+        Показано {{ documents|length }} из {{ total }}
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+        {% if offset > 0 %}
+
+        <a
+            href="/documents?offset={{ offset - limit }}"
+            class="btn btn-outline-secondary">
+
+            ← Назад
+
+        </a>
+
+        {% endif %}
+
+        {% if offset + limit < total %}
+
+        <a
+            href="/documents?offset={{ offset + limit }}"
+            class="btn btn-outline-secondary">
+
+            Следующая →
+
+        </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

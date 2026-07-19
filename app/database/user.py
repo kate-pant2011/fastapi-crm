@@ -146,7 +146,6 @@ async def get_user_assignments_count(session, user_id):
         select(func.count(Assignment.id))
         .where(Assignment.user_id == user_id)
         .where(Assignment.is_done.is_(False))
-        .where(Assignment.is_archived.is_(False))
     )
 
     return await session.scalar(stmt) 

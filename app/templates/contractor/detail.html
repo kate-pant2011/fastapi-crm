@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}
+Подрядчик
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+
+Подрядчик
+
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_delete.html" %}
+
+<div class="card mb-4">
+
+
+<div class="card-body">
+
+    <h4 class="card-title">
+
+        {{ name }}
+
+    </h4>
+
+    {% if description %}
+
+    <p class="text-muted mb-4">
+
+        {{ description }}
+
+    </p>
+
+    {% endif %}
+
+    <div class="row">
+
+        <div class="col-md-12 mb-3">
+
+            <label class="form-label text-muted">
+
+                Email
+
+            </label>
+
+            <div>
+
+                {% if email %}
+
+                    {% for item in email %}
+
+                        <div>
+
+                            <a href="mailto:{{ item }}">
+
+                                {{ item }}
+
+                            </a>
+
+                        </div>
+
+                    {% endfor %}
+
+                {% else %}
+
+                    —
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}

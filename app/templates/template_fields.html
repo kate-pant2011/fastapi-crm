@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}
+Доступные поля шаблонов
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-3">
+    Доступные поля для шаблонов
+</h2>
+
+<p class="text-muted mb-4">
+    Список переменных, которые можно использовать в шаблонах документов и email.
+    Для подстановки используйте синтаксис:
+    <code>{% raw %}{{ variable_name }}{% endraw %}</code>
+</p>
+
+<div class="card">
+
+    <div class="card-header">
+
+        Доступные переменные ({{ template_fields|length }})
+
+    </div>
+
+    <div class="card-body">
+
+        {% if template_fields %}
+
+        <div class="row">
+
+            {% for field in template_fields.variables %}
+
+            <div class="col-md-4 mb-2">
+
+                <div class="border rounded p-2">
+
+                    <code>
+                        {% raw %}{{{% endraw %} {{ field }} {% raw %}}}{% endraw %}
+                    </code>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="alert alert-info mb-0">
+
+            Нет доступных переменных.
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+<div class="alert alert-light border mt-4">
+
+    <h5>
+        Как использовать
+    </h5>
+
+    <p class="mb-2">
+
+        Вставьте переменную в шаблон:
+
+    </p>
+
+    <code>
+        {% raw %}{{ client_name }}{% endraw %}
+    </code>
+
+    <p class="mt-2 mb-0 text-muted">
+
+        При генерации документа или письма значение будет подставлено автоматически.
+
+    </p>
+
+</div>
+
+{% endblock %}

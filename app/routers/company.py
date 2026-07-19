@@ -19,15 +19,15 @@ company_router = APIRouter()
 
 
 @dataclass
-class QueryDTO:
-    sort: str | None
-    limit: int
-    offset: int
-    client_id: int | None
-    scope: str | None
+class CompanyQueryDTO:
+    sort: str | None = None
+    limit: int = 20
+    offset: int = 0
+    client_id: int | None = None
+    scope: str | None = None
 
 
-@company_router.get("/companies", response_model=BaseListResponse)
+@company_router.get("/company", response_model=BaseListResponse)
 async def get_company_list_router(
     scope: str | None = Query(default=None, description="mine, scope ignored if manager_id provided"),
     client_id: int | None = Query(default=None),
@@ -38,7 +38,7 @@ async def get_company_list_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
-        query = QueryDTO(
+        query = CompanyQueryDTO(
             sort=sort, limit=limit, offset=offset, client_id=client_id, scope=scope
         )
         return await get_company_list(
@@ -52,7 +52,7 @@ async def get_company_list_router(
         raise HTTPException(status_code=500, detail=(f"{type(e).__name__} - {e}"))
 
 
-@company_router.get("/companies/{id}", response_model=CompanyItem)
+@company_router.get("/company/{id}", response_model=CompanyItem)
 async def get_company_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -68,7 +68,7 @@ async def get_company_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@company_router.patch("/companies/{id}", response_model=CompanyItem)
+@company_router.patch("/company/{id}", response_model=CompanyItem)
 async def change_company_router(
     id: int,
     item: CompanyPatchRequest,
@@ -85,7 +85,7 @@ async def change_company_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@company_router.post("/companies", response_model=BaseShortResponse)
+@company_router.post("/company", response_model=BaseShortResponse)
 async def create_company_router(
     data: CompanyCreation,
     session: AsyncSession = Depends(get_db),
@@ -101,7 +101,7 @@ async def create_company_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@company_router.delete("/companies/{id}", response_model=BaseShortResponse)
+@company_router.delete("/company/{id}", response_model=BaseShortResponse)
 async def archive_company_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -117,7 +117,7 @@ async def archive_company_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@company_router.post("/companies/{id}/restore", response_model=BaseShortResponse)
+@company_router.post("/company/{id}/restore", response_model=BaseShortResponse)
 async def restore_company_router(
     id: int,
     session: AsyncSession = Depends(get_db),
