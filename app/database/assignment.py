@@ -25,11 +25,6 @@ async def get_filtered_assignments(session, query, sorting_rules, user_id=None):
     else:
         stmt = stmt.where(Assignment.is_done.is_(False))
 
-    if query.is_archived is True:
-        stmt = stmt.where(Assignment.is_archived.is_(True))
-    else:
-        stmt = stmt.where(Assignment.is_archived.is_(False))
-
     if query.sort:
         stmt = apply_sorting(stmt=stmt, model=Assignment, sort=query.sort, sorting_rules=sorting_rules)
     else:

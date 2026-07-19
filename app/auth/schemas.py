@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-
+from app.schemas.common import BaseShortResponse
 
 class LogoutResponse(BaseModel):
     result: bool
@@ -10,6 +10,7 @@ class Token(BaseModel):
     refresh_token: str | None
     token_type: str
     change_password: bool
+    roles_list: list[str]
 
 
 class LoginRequest(BaseModel):

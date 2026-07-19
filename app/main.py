@@ -25,6 +25,9 @@ from .routers.template import template_router
 from .routers.doc_template import doc_template_router
 from .routers.generated_doc import generated_doc_router
 from .pages.common import common_page_router
+from .pages.user import user_page_router
+from .pages.assignment import assignment_page_router
+from .pages.client import client_page_router
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.rate_limit import limiter
@@ -63,6 +66,10 @@ app.include_router(generated_doc_router)
 
 app.include_router(auth_page_router)
 app.include_router(common_page_router)
+app.include_router(user_page_router)
+app.include_router(assignment_page_router)
+app.include_router(client_page_router)
+
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

@@ -46,6 +46,7 @@ async def login(
             "refresh_token": result.refresh,
             "token_type": "JWT",
             "change_password": result.change_password,
+            "roles_list": result.roles_list
         }
 
     except ApplicationException as e:
@@ -83,6 +84,7 @@ async def jwt_rotation(
             "refresh_token": token.refresh,
             "token_type": "JWT",
             "change_password": False,
+            "roles_list": token.roles_list
         }
 
     except ApplicationException as e:

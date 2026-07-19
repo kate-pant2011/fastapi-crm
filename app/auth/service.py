@@ -25,6 +25,7 @@ from app.database.refresh_token import (
 from app.database.reset_token import (
     add_reset_jwt, verify_reset_jwt, deactivate_all_user_reset_jwt, ResetTokenReuseDetection
 )
+from app.schemas.common import to_schema, BaseShortResponse
 from datetime import datetime, timezone, timedelta
 from dataclasses import dataclass
 from app.audit.auth import auth_audit
@@ -36,6 +37,7 @@ class AuthTokensDTO:
     access: str
     refresh: str | None
     change_password: bool
+    roles_list: list
 
 @dataclass
 class EmailConfigDTO:
@@ -102,7 +104,12 @@ async def login_user(session, email, password, device, ip):
     access_token = jwt.create_access(user.id, roles, status, active)
 
     if user.must_change_password:
-        return AuthTokensDTO(access=access_token, refresh=None, change_password=True)
+        return AuthTokensDTO(
+            access=access_token, 
+            refresh=None, 
+            change_password=True, 
+            roles_list=roles
+        )
 
     jti = str(uuid.uuid4())
     refresh = jwt.create_refresh(user.id, jti)
@@ -112,7 +119,10 @@ async def login_user(session, email, password, device, ip):
 
     auth_audit.login_success(user.email, ip, device)
     return AuthTokensDTO(
-        access=access_token, refresh=refresh.token, change_password=False
+        access=access_token, 
+        refresh=refresh.token, 
+        change_password=False, 
+        roles_list=roles
     )
 
 
@@ -166,7 +176,10 @@ async def update_tokens(session, refresh_jwt, device, ip):
     await add_refresh_jwt(session, user_id, refresh.exp, jti, device)
 
     return AuthTokensDTO(
-        access=access_token, refresh=refresh.token, change_password=False
+        access=access_token, 
+        refresh=refresh.token, 
+        change_password=False,
+        roles_list=roles 
     )
 
 

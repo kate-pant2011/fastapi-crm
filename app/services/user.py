@@ -48,11 +48,8 @@ async def get_user_list(session, roles, query):
 
     users = await get_all_users(session, is_admin, query, sorting_rules)
 
-    if not users:
-        raise ApplicationException("User List Not found", 404)
-
     return {
-        "items": users.items,
+        "items": users.items or [],
         "total": users.total,
         "limit": query.limit,
         "offset": query.offset,

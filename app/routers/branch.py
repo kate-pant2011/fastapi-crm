@@ -22,10 +22,10 @@ branch_router = APIRouter()
 
 
 @dataclass
-class QueryDTO:
-    sort: str | None
-    limit: int
-    offset: int
+class BranchQueryDTO:
+    sort: str | None = None
+    limit: int = 20
+    offset: int = 0
 
 
 @branch_router.get("/branches", response_model=BaseListResponse)
@@ -37,7 +37,7 @@ async def get_branch_list_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        query = QueryDTO(sort=sort, limit=limit, offset=offset)
+        query = BranchQueryDTO(sort=sort, limit=limit, offset=offset)
         return await get_branch_list(session, query)
 
     except ApplicationException as e:

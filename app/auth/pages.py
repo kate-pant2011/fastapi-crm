@@ -1,22 +1,15 @@
-from fastapi import HTTPException, APIRouter, Depends, Request, Form
+from fastapi import APIRouter, Depends, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
+from app.config.config import MANAGEMENT_ROLES
 from .schemas import (
-    Token,
-    LoginRequest,
     SignupRequest,
-    SignupResponse,
-    RefreshRequest,
-    LogoutResponse,
     ChangePasswordRequest,
-    EmailResponse,
     ForgotLoginRequest,
-    MessageResponse
 )
 from .service import (
     login_user,
     signup_user,
-    update_tokens,
     logout_user,
     change_user_password,
     create_password_reset_token,
@@ -25,7 +18,6 @@ from .service import (
 from .dependencies import get_allow_password_change_user_if_cookie, UserDTO
 from app.config.config import ApplicationException
 from app.config.connection import get_db
-from app.database.refresh_token import TokenReuseDetection
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from app.rate_limit import limiter
@@ -171,10 +163,19 @@ async def login_page_submit(
                 samesite="lax",
                 secure=False,
             )
+
+        roles = set(result.roles_list)
+        is_admin = bool(MANAGEMENT_ROLES.intersection(roles))
+
+        if is_admin:
+            response.set_cookie(key="mode", value="management")
+        else:
+            response.set_cookie(key="mode", value="execution")
+
+
         return response
 
     except ApplicationException as e:
-
         return templates.TemplateResponse(
             request=request, name="auth/login.html", context={
                 "error": e.name,
@@ -184,7 +185,6 @@ async def login_page_submit(
         )
 
     except Exception as e:
-
         return templates.TemplateResponse(
             request=request, name="auth/login.html",context={
                 "error": f"{type(e).__name__} - {e}",

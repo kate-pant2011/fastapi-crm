@@ -1,0 +1,26 @@
+<script>
+
+document
+    .getElementById("filter-form")
+    ?.addEventListener(
+        "submit",
+        function () {
+
+            const selects = this.querySelectorAll("select");
+
+            selects.forEach(
+                function(select) {
+
+                    if (select.value === "") {
+
+                        select.disabled = true;
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+</script>

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}
+Управление
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Панель управления
+</h2>
+
+<div class="row">
+
+    <div class="col-md-6">
+
+        <div class="card mb-3">
+
+            <div class="card-header">
+                Управление пользователями
+            </div>
+
+            <div class="card-body">
+
+                <div class="d-grid gap-2">
+
+                    <a
+                        href="/users"
+                        class="btn btn-primary">
+
+                        Пользователи
+
+                    </a>
+
+                    <a
+                        href="/assignments"
+                        class="btn btn-primary">
+
+                        Назначения
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="card mb-3">
+
+            <div class="card-header">
+                Управление клиентами
+            </div>
+
+            <div class="card-body">
+
+                <div class="d-grid gap-2">
+
+                    <a
+                        href="/projects"
+                        class="btn btn-primary">
+
+                        Проекты
+
+                    </a>
+
+                    <a
+                        href="/clients"
+                        class="btn btn-primary">
+
+                        Клиенты
+
+                    </a>
+
+                    <a
+                        href="/companies"
+                        class="btn btn-primary">
+
+                        Компании
+
+                    </a>
+
+                    <a
+                        href="/contracts"
+                        class="btn btn-primary">
+
+                        Контракты
+
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+{% endblock %}

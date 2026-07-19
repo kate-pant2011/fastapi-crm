@@ -2,6 +2,13 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime, UTC
 
+MANAGEMENT_ROLES = {
+    "admin", "manager", "owner"
+}
+
+VALID_MODES = {
+    "management", "execution",
+}
 
 class ApplicationException(Exception):
     def __init__(self, error_name: str, error_code: int, payload: dict | None = None):

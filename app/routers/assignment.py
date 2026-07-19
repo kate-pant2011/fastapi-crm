@@ -28,12 +28,12 @@ assignment_router = APIRouter()
 @dataclass
 class QueryDTO:
     sort: str | None
-    limit: int
-    offset: int
+    limit: int = 20
+    offset: int = 0
     is_done: bool | None = None
     scope: str | None = None
 
-@assignment_router.get("/assignments", response_model=BaseListResponse)
+@assignment_router.get("/assignment", response_model=BaseListResponse)
 async def client_list(
     is_done: bool | None = Query(default=None),
     scope: Literal["users", "contractors"] | None = Query(
@@ -92,7 +92,7 @@ async def get_assignment_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@assignment_router.get("/assignments/{id}", response_model=AssignmentItem)
+@assignment_router.get("/assignment/{id}", response_model=AssignmentItem)
 async def get_assignment_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -108,7 +108,7 @@ async def get_assignment_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@assignment_router.patch("/assignments/{id}", response_model=AssignmentItem)
+@assignment_router.patch("/assignment/{id}", response_model=AssignmentItem)
 async def change_assignment_router(
     id: int,
     item: AssignmentPatchRequest,
@@ -125,7 +125,7 @@ async def change_assignment_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@assignment_router.post("/assignments", response_model=BaseShortResponse)
+@assignment_router.post("/assignment", response_model=BaseShortResponse)
 async def create_assignment_router(
     data: AssignmentCreation,
     session: AsyncSession = Depends(get_db),
@@ -143,7 +143,7 @@ async def create_assignment_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@assignment_router.delete("/assignments/{id}", response_model=BaseShortResponse)
+@assignment_router.delete("/assignment/{id}", response_model=BaseShortResponse)
 async def delete_assignment_router(
     id: int,
     session: AsyncSession = Depends(get_db),

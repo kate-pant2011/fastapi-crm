@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}
+Исполнение
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Мои назначения
+</h2>
+
+<form method="get" action="/execution">
+
+<div class="row mb-4">
+
+    <div class="col-md-3">
+
+        <label class="form-label">
+            Сортировка
+        </label>
+
+        <select
+            name="sort"
+            class="form-select">
+
+            <option value="">
+                По умолчанию
+            </option>
+
+            <option
+                value="name"
+                {% if sort == "name" %}
+                selected
+                {% endif %}
+            >
+                Имя А → Я
+            </option>
+
+            <option
+                value="-name"
+                {% if sort == "-name" %}
+                selected
+                {% endif %}
+            >
+                Имя Я → А
+            </option>
+
+        </select>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <div class="form-check mt-4">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="is_done"
+                value="true"
+                {% if is_done %}
+                checked
+                {% endif %}
+            >
+
+            <label class="form-check-label">
+                Показать выполненные
+            </label>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-2">
+
+        <button
+            type="submit"
+            class="btn btn-primary mt-4">
+
+            Применить
+
+        </button>
+
+    </div>
+
+</div>
+
+</form>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+
+<div class="text-muted">
+
+    Всего записей: <strong>{{ total }}</strong>
+
+</div>
+
+</div>
+
+<table class="table table-hover align-middle">
+
+    <thead>
+
+        <tr>
+            <th>ID</th>
+            <th>Название</th>
+        </tr>
+
+    </thead>
+
+    <tbody>
+
+        {% for assignment in assignments %}
+
+        <tr>
+
+            <td>
+                {{ assignment.id }}
+            </td>
+
+            <td>
+
+                <a href="/assignments/{{ assignment.id }}">
+
+                    {{ assignment.name }}
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+<div class="d-flex justify-content-between align-items-center">
+
+    <div class="small text-muted">
+
+        Показано {{ assignments|length }} из {{ total }}
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+        {% if offset > 0 %}
+
+            <a
+                href="/execution?offset={{ offset - limit }}{% if sort %}&sort={{ sort }}{% endif %}{% if is_done %}&is_done=true{% endif %}"
+                class="btn btn-outline-secondary">
+
+                ← Назад
+
+            </a>
+
+        {% endif %}
+
+        <a
+            href="/execution?offset={{ offset + limit }}{% if sort %}&sort={{ sort }}{% endif %}{% if is_done %}&is_done=true{% endif %}"
+            class="btn btn-outline-secondary">
+
+            Следующая →
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

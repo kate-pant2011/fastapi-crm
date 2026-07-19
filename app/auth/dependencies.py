@@ -61,6 +61,8 @@ async def get_current_user_from_cookie(
         "access_token",
         None,
     )
+    if not token:
+        token = request.cookies.get("access_token")
 
     if not token:
         raise HTTPException(

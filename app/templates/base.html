@@ -2,12 +2,15 @@
 <html lang="ru">
 
 <head>
+
     <meta charset="UTF-8">
 
     <title>
+
         {% block title %}
         CRM
         {% endblock %}
+
     </title>
 
     <link
@@ -23,8 +26,115 @@
     <div class="container-fluid">
 
         <span class="navbar-brand">
+
             CRM
+
         </span>
+
+        <div class="d-flex align-items-center gap-2">
+
+            <a
+                href="/profile"
+                class="btn btn-outline-light">
+
+                👤 Профиль
+
+            </a>
+
+            <a
+                href="/settings"
+                class="btn btn-outline-light">
+
+                ⚙ Настройки
+
+            </a>
+
+        </div>
+
+        <div class="ms-auto d-flex align-items-center gap-2">
+
+            <div class="dropdown">
+
+                <button
+                    class="btn btn-outline-light dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown">
+
+                    {% if mode == "execution" %}
+                        Исполнение
+                    {% else %}
+                        Управление
+                    {% endif %}
+
+                </button>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+
+                    <li>
+
+                        <form
+                            action="/switch-mode"
+                            method="post">
+
+                            <input
+                                type="hidden"
+                                name="mode"
+                                value="management">
+
+                            <button
+                                type="submit"
+                                class="dropdown-item">
+
+                                Управление
+
+                            </button>
+
+                        </form>
+
+                    </li>
+
+                    <li>
+
+                        <form
+                            action="/switch-mode"
+                            method="post">
+
+                            <input
+                                type="hidden"
+                                name="mode"
+                                value="execution">
+
+                            <button
+                                type="submit"
+                                class="dropdown-item">
+
+                                Исполнение
+
+                            </button>
+
+                        </form>
+
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <form
+                action="/auth/logout-page"
+                method="post">
+
+                <button
+                    type="submit"
+                    class="btn btn-outline-light fw-bold">
+
+                    Выйти
+
+                </button>
+
+            </form>
+
+        </div>
 
     </div>
 
@@ -36,6 +146,95 @@
     {% endblock %}
 
 </div>
+
+<footer
+    class="border-top py-3"
+    style="margin-top: 130px;">
+
+    <div class="container">
+
+        <div class="d-flex justify-content-between align-items-start">
+
+            <div class="dropdown">
+
+                <button
+                    class="btn btn-outline-primary dropdown-toggle"
+                    type="button"
+                    data-bs-toggle="dropdown">
+
+                    📄 Шаблоны
+
+                </button>
+
+                <ul class="dropdown-menu">
+
+                    <li>
+
+                        <a
+                            class="dropdown-item"
+                            href="/document-templates">
+
+                            Шаблоны документов
+
+                        </a>
+
+                    </li>
+
+                    <li>
+
+                        <a
+                            class="dropdown-item"
+                            href="/email-templates">
+
+                            Шаблоны Email
+
+                        </a>
+
+                    </li>
+
+                    <li>
+
+                        <a
+                            class="dropdown-item"
+                            href="/stage-templates">
+
+                            Шаблоны этапов
+
+                        </a>
+
+                    </li>
+
+                    <li>
+
+                        <a
+                            class="dropdown-item"
+                            href="/template-fields">
+
+                            Доступные поля
+
+                        </a>
+
+                    </li>
+
+                </ul>
+
+            </div>
+
+            <a
+                href="/documents"
+                class="btn btn-outline-success">
+
+                📂 Сгенерированные документы
+
+            </a>
+
+        </div>
+
+    </div>
+
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 
