@@ -12,7 +12,7 @@ from dataclasses import dataclass
 file_router = APIRouter()
 
 @dataclass
-class QueryDTO:
+class FileQueryDTO:
     sort: str | None
     limit: int
     offset: int
@@ -28,7 +28,7 @@ async def get_files_project(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        query = QueryDTO(sort=sort, limit=limit, offset=offset)
+        query = FileQueryDTO(sort=sort, limit=limit, offset=offset)
         files = await get_file_list(
             session=session, 
             user_id=user.id, 
@@ -56,7 +56,7 @@ async def get_files_client(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
-        query = QueryDTO(sort=sort, limit=limit, offset=offset)
+        query = FileQueryDTO(sort=sort, limit=limit, offset=offset)
         files = await get_file_list(
             session=session, 
             user_id=user.id, 
@@ -73,8 +73,8 @@ async def get_files_client(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
     
-@file_router.get("/files/{file_id}", response_model=FileItem)
-async def get_file_project(
+@file_router.get("/file/{file_id}", response_model=FileItem)
+async def get_file_data(
     file_id: int,
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
@@ -144,7 +144,7 @@ async def upload_file_client(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 @file_router.post("/branch/{id}/files", response_model=list[BaseShortResponse])
-async def upload_file_client(
+async def upload_file_branch(
     id: int,
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_db),
@@ -168,7 +168,7 @@ async def upload_file_client(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@file_router.get("/files/{file_id}/download")
+@file_router.get("/file/{file_id}/download")
 async def download_file_router(
     file_id: int,
     session: AsyncSession = Depends(get_db),
@@ -190,7 +190,7 @@ async def download_file_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
     
 
-@file_router.delete("/files/{file_id}", response_model=FileDeleteResponse)
+@file_router.delete("/file/{file_id}", response_model=FileDeleteResponse)
 async def delete_file_router(
     file_id: int,
     session: AsyncSession = Depends(get_db),

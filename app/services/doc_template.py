@@ -10,7 +10,7 @@ from app.database.doc_template import (
 )
 from app.database.branch import get_branch_by_id_with_stamp
 from app.services.common import Access    
-from app.services.template_context import build_context, build_ctx_objects
+from app.services.template_context import build_context, build_ctx_objects, add_context_for_branch
 from app.services.file import upload_file
 from app.database.generated_doc import add_generated_doc
 from app.database.file import add_file
@@ -206,7 +206,7 @@ async def render_doc_template(session, user_id, roles, template_id, query):
         branch = await get_branch_by_id_with_stamp(session, query.branch_id)
 
         if branch:
-            context["branch_name"] = branch.name
+            add_context_for_branch(context, branch)
 
             if branch.stamp_file:            
                 if query.stamp_width_mm is not None:

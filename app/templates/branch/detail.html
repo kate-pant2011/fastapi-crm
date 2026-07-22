@@ -16,10 +16,17 @@
 
 {% include "components/error_alert.html" %}
 
-{% include "components/full_actions.html" %}
+{% if is_archived %}
+
+    {% include "components/full_actions_archived.html" %}
+
+{% else %}
+
+    {% include "components/full_actions.html" %}
+
+ {% endif %}
 
 <div class="card mb-4">
-
 
 <div class="card-body">
 
@@ -77,7 +84,7 @@
 
                 <span class="text-decoration-line-through text-muted">
 
-                    сотрудники отсутствуют
+                    —
 
                 </span>
 
@@ -97,30 +104,59 @@
 
         </label>
 
-        <div class="mb-2">
+        <div class="mb-2 d-flex align-items-center gap-2 flex-wrap">
 
             {% if stamp_file_id %}
 
-                <a href="/files/{{ stamp_file_id }}/download">
+                <form
+                    method="post"
+                    action="/files/{{ stamp_file_id }}/download"
+                    style="display: inline;">
+                    <button
+                        type="submit"
+                        class="btn btn-link p-0 border-0"
+                        style="text-decoration: underline; color: var(--bs-link-color);">
+                        Скачать
+                    </button>
+                </form>
 
-                    Скачать печать
-
-                </a>
-
-                <span class="badge bg-success ms-2">
-
+                <span class="badge bg-success">
                     Загружена
-
                 </span>
+
+                <form
+                    method="post"
+                    action="/files/{{ stamp_file_id }}/delete"
+                    onsubmit="return confirm('Удалить печать подразделения?');"
+                    style="display: inline; margin-left: auto;">
+                    <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-danger">
+                        Удалить
+                    </button>
+                </form>
 
             {% else %}
-
-                <span class="text-decoration-line-through text-muted">
-
-                    отсутствует
-
-                </span>
-
+                <form
+                    method="post"
+                    action="/branches/{{ branch_id }}/files/upload"
+                    enctype="multipart/form-data"
+                    style="display: inline; margin-left: auto;">
+                    <input
+                        type="file"
+                        name="file"
+                        accept="image/*"
+                        style="display: none;"
+                        id="stamp-upload-{{ branch_id }}"
+                        onchange="this.form.submit();">
+                    <button
+                        type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        onclick="document.getElementById('stamp-upload-{{ branch_id }}').click();">
+                        Загрузить
+                    </button>
+                </form>
+                    
             {% endif %}
 
         </div>
@@ -139,6 +175,7 @@
 
 </div>
 
+{% include "components/company_info.html" %}
 
 </div>
 

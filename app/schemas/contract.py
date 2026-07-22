@@ -42,6 +42,7 @@ class GetContractItem(BaseModel):
     valid_to: datetime
     branch: BaseShortResponse
     company: BaseShortResponse
+    is_archived: bool
 
     class Config:
         from_attributes = True

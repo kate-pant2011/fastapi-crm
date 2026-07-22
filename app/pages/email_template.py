@@ -107,8 +107,8 @@ async def email_template_detail_page(
         "request": request,
         "user": user,
         "email_template_id": email_template_id,
-        "edit_url": f"/email_templates/{email_template_id}/edit",
-        "delete_url": f"/email_templates/{email_template_id}/delete",
+        "edit_url": f"/email-templates/{email_template_id}/edit",
+        "delete_url": f"/email-templates/{email_template_id}/delete",
         "error": None,
     }
 
@@ -146,6 +146,59 @@ async def email_template_detail_page(
         return templates.TemplateResponse(
             request=request, 
             name="email_template/detail.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@email_template_page_router.post("/email-templates/{email_template_id}/delete")
+async def email_template_delete_page(
+    request: Request,
+    email_template_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager", "executor")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "email_template_id": email_template_id,
+        "detail_url": f"/email-templates/{email_template_id}",
+        "error": None,
+    } 
+
+    try:
+        result = await delete_email_template(session, user.id, user.roles, email_template_id)
+
+        context.update(
+            {
+                "name": result.get("name"),
+                "deleted": "Удалено без возможности восстановления",
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="archived_restored.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="archived_restored.html",
             context=context,
             status_code=500,
         )

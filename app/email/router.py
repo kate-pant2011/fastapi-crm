@@ -12,7 +12,7 @@ from .schemas import (
 
 email_router = APIRouter()
 
-@email_router.post("/email-accounts", response_model=EmailShortResponse)
+@email_router.post("/email-account", response_model=EmailShortResponse)
 async def add_email_router(
     items: EmailPostRequest, 
     session: AsyncSession = Depends(get_db),
@@ -28,7 +28,7 @@ async def add_email_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@email_router.get("/email-accounts", response_model=EmailListResponse)
+@email_router.get("/email-account", response_model=EmailListResponse)
 async def get_email_list_router(
     session: AsyncSession = Depends(get_db),
     limit: int = Query(default=20, le=100),
@@ -49,7 +49,7 @@ async def get_email_list_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@email_router.get("/email-accounts/{id}", response_model=EmailItem)
+@email_router.get("/email-account/{id}", response_model=EmailItem)
 async def get_email_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -65,7 +65,7 @@ async def get_email_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
     
 
-@email_router.patch("/email-accounts/{id}", response_model=EmailItem)
+@email_router.patch("/email-account/{id}", response_model=EmailItem)
 async def change_email_router(
     id: int,
     item:EmailPatchRequest,
@@ -82,7 +82,7 @@ async def change_email_router(
         raise HTTPException(status_code=500, detail=f"{type(e).__name__} - {e}")
 
 
-@email_router.delete("/email-accounts/{id}", response_model=EmailStatusResponse)
+@email_router.delete("/email-account/{id}", response_model=EmailStatusResponse)
 async def delete_email_router(
     id: int,
     session: AsyncSession = Depends(get_db),

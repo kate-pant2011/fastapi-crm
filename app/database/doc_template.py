@@ -31,7 +31,10 @@ async def get_all_doc_templates(session, scope, limit, offset, is_admin, user_id
 
 
 async def get_doc_template_by_name(session, name: str):
-    stmt = select(DocumentTemplate).where(DocumentTemplate.name == name)
+    stmt = (
+        select(DocumentTemplate)
+        .where(DocumentTemplate.name == name)
+    )
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
 
@@ -40,8 +43,8 @@ async def get_doc_template_by_id(session, id: int):
     stmt = (
         select(DocumentTemplate)
         .options(selectinload(DocumentTemplate.creator))
-        .options(selectinload(DocumentTemplate.file))
         .where(DocumentTemplate.id == id)
+        .options(selectinload(DocumentTemplate.file))
     )
 
     result = await session.execute(stmt)
@@ -52,7 +55,6 @@ async def add_doc_template(session, data, creator_id):
     template = DocumentTemplate(
         name=data.name, 
         description=data.description,
-        required_entities=data.required_entities,
         is_public=data.is_public,
         creator_id=creator_id
     )

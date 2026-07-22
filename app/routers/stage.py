@@ -11,6 +11,7 @@ from app.schemas.stage import (
     StageCreation,
     StagePatchRequest,
     StageReorderRequest,
+    StageListResponse
 )
 from app.services.stage import (
     get_stage_list,
@@ -26,13 +27,13 @@ stage_router = APIRouter()
 
 
 @dataclass
-class QueryDTO:
-    sort: str | None
-    limit: int
-    offset: int
+class StageQueryDTO:
+    sort: str | None = None
+    limit: int = 20
+    offset: int = 0
 
 
-@stage_router.get("/projects/{project_id}/stages", response_model=BaseListResponse)
+@stage_router.get("/project/{project_id}/stages", response_model=StageListResponse)
 async def get_stage_list_router(
     project_id: int,
     sort: str | None = Query(default=None, description="- stands for desc"),
@@ -42,7 +43,7 @@ async def get_stage_list_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
-        query = QueryDTO(sort=sort, limit=limit, offset=offset)
+        query = StageQueryDTO(sort=sort, limit=limit, offset=offset)
         return await get_stage_list(session, user.roles, user.id, project_id, query)
 
     except ApplicationException as e:
@@ -52,7 +53,7 @@ async def get_stage_list_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_router.get("/projects/{project_id}/stages/{id}", response_model=StageItem)
+@stage_router.get("/project/{project_id}/stages/{id}", response_model=StageItem)
 async def get_stage_router(
     project_id: int,
     id: int,
@@ -69,7 +70,7 @@ async def get_stage_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_router.patch("/projects/{project_id}/stages/{stage_id}", response_model=StageItem)
+@stage_router.patch("/project/{project_id}/stages/{stage_id}", response_model=StageItem)
 async def change_stage_router(
     project_id: int,
     stage_id: int,
@@ -90,7 +91,7 @@ async def change_stage_router(
 
 
 @stage_router.patch(
-    "/projects/{project_id}/stages/reorder", response_model=list[BaseShortResponse]
+    "/project/{project_id}/stages/reorder", response_model=list[BaseShortResponse]
 )
 async def reorder_stages_router(
     item: StageReorderRequest,
@@ -108,7 +109,7 @@ async def reorder_stages_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@stage_router.post("/stages", response_model=BaseShortResponse)
+@stage_router.post("/stage", response_model=BaseShortResponse)
 async def create_stage_router(
     data: StageCreation,
     session: AsyncSession = Depends(get_db),
@@ -127,7 +128,7 @@ async def create_stage_router(
 
 
 @stage_router.delete(
-    "/projects/{project_id}/stages/{stage_id}", response_model=BaseShortResponse
+    "/project/{project_id}/stages/{stage_id}", response_model=BaseShortResponse
 )
 async def archive_stage_router(
     project_id: int,
@@ -146,7 +147,7 @@ async def archive_stage_router(
 
 
 @stage_router.post(
-    "/projects/{project_id}/stages/{id}/restore", response_model=BaseShortResponse
+    "/project/{project_id}/stages/{id}/restore", response_model=BaseShortResponse
 )
 async def restore_stage_router(
     project_id: int,

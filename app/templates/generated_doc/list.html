@@ -76,13 +76,19 @@
 
                     {% endif %}
                     
-                    <a
-                        href="/generated-docs/{{ document.file_id }}/download"
-                        class="btn btn-sm btn-outline-primary">
+                    <form
+                        action="/files/{{ document.file_id }}/download"
+                        method="post">
 
-                        Скачать
+                        <button
+                            type="submit"
+                            class="btn btn-sm btn-outline-primary">
 
-                    </a>
+                            Скачать
+
+                        </button>
+
+                    </form>
 
                     <a
                         href="/generated-docs/{{ document.id }}/send"
@@ -93,7 +99,7 @@
                     </a>
 
                     <form
-                        action="/generated-docs/{{ document.file_id }}/delete"
+                        action="/files/{{ document.file_id }}/delete"
                         method="post"
                         onsubmit="return confirm('Удалить документ?');">
 

@@ -10,6 +10,9 @@ class FileItem(BaseModel):
     creator: BaseShortResponse
     client: BaseShortResponse | None
     project: BaseShortResponse | None
+    project: BaseShortResponse | None
+    template_id: int
+
 
     class Config:
         from_attributes = True

@@ -34,7 +34,11 @@ async def check_files_access(file, session, user_id, roles):
 
     elif file.generated_document:
         if file.creator_id != user_id:
-            raise ApplicationException("Access denied", 404)
+            raise ApplicationException("Access denied", 403)
+
+    elif file.template_id:
+        if file.creator_id != user_id:
+            raise ApplicationException("Access denied", 403)
     
     else:
         file_audit.file_access_denied(
@@ -44,7 +48,7 @@ async def check_files_access(file, session, user_id, roles):
             entity_type=None, 
             entity_id=None
         )
-        raise ApplicationException("Access denied", 404)
+        raise ApplicationException("Access denied", 403)
 
 
 async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id):
@@ -165,9 +169,10 @@ async def get_file_for_download(session, user_id, roles, file_id):
     if not file:
         raise ApplicationException("File not found", 404)
 
-    await check_files_access(file, session, user_id, roles)
-
     entity_id, entity_type = await get_entity(file)
+
+    if entity_type not in ["branch", "template"]:
+        await check_files_access(file, session, user_id, roles)
     
     file_audit.file_downloaded(
         user_id=user_id, 
@@ -185,15 +190,17 @@ async def delete_file(session, user_id, roles, file_id):
     
     if not file:
         raise ApplicationException("File not found", 404)
-    
-    await check_files_access(file, session, user_id, roles)
+
+
+    entity_id, entity_type = await get_entity(file)
+
+    if entity_type not in ["branch", "template"]:
+        await check_files_access(file, session, user_id, roles)
 
     handler = FileHandler()
     handler.delete_file(file.path)
 
     await session.delete(file)
-
-    entity_id, entity_type = await get_entity(file)
 
     file_audit.file_deleted(
         user_id=user_id, 

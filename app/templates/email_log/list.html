@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}
+Журнал писем
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        Журнал писем
+    </h2>
+</div>
+
+{% include "components/error_alert.html" %}
+
+<form
+    method="get"
+    action="/email-logs"
+    id="filter-form">
+    
+    <div class="row mb-4">
+        <!-- Scope -->
+        <div class="col-md-3">
+            <label class="form-label">
+                Область видимости
+            </label>
+            <select
+                name="scope"
+                class="form-select">
+                <option value="">
+                    Все логи
+                </option>
+                <option
+                    value="mine"
+                    {% if scope == "mine" %}
+                    selected
+                    {% endif %}>
+                    Мои логи
+                </option>
+            </select>
+        </div>
+        
+        <!-- Статус -->
+        <div class="col-md-3">
+            <label class="form-label">
+                Статус
+            </label>
+            <select
+                name="status"
+                class="form-select">
+                <option value="">
+                    Все статусы
+                </option>
+                <option
+                    value="pending"
+                    {% if status == "pending" %}
+                    selected
+                    {% endif %}>
+                    В очереди
+                </option>
+                <option
+                    value="sent"
+                    {% if status == "sent" %}
+                    selected
+                    {% endif %}>
+                    Отправлено
+                </option>
+                <option
+                    value="failed"
+                    {% if status == "failed" %}
+                    selected
+                    {% endif %}>
+                    Ошибка
+                </option>
+            </select>
+        </div>
+        
+        <!-- Пользователь (только для admin/owner) -->
+        {% if "owner" in user_roles or "admin" in user_roles %}
+        <div class="col-md-3">
+            <label class="form-label">
+                Пользователь
+            </label>
+            <select
+                name="user_id"
+                class="form-select">
+                <option value="">
+                    Все пользователи
+                </option>
+                {% for u in users %}
+                <option
+                    value="{{ u.id }}"
+                    {% if user_id == u.id %}
+                    selected
+                    {% endif %}>
+                    {{ u.name or u.email }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        
+        <!-- Email получателя - собираем уникальные из всех логов -->
+        <div class="col-md-3">
+            <label class="form-label">
+                Получатель
+            </label>
+            <select
+                name="to_email"
+                class="form-select">
+                <option value="">
+                    Все получатели
+                </option>
+                {% set unique_emails = [] %}
+                {% for log in email_logs %}
+                    {% for email in log.to %}
+                        {% if email not in unique_emails %}
+                            {% set _ = unique_emails.append(email) %}
+                            <option
+                                value="{{ email }}"
+                                {% if to_email == email %}
+                                selected
+                                {% endif %}>
+                                {{ email }}
+                            </option>
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <!-- Email отправителя -->
+        <div class="col-md-3">
+            <label class="form-label">
+                Отправитель
+            </label>
+            <select
+                name="from_email"
+                class="form-select">
+                <option value="">
+                    Все отправители
+                </option>
+                {% for email in emails %}
+                <option
+                    value="{{ email.login }}"
+                    {% if from_email == email.login %}
+                    selected
+                    {% endif %}>
+                    {{ email.login }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Сортировка -->
+        <div class="col-md-3">
+            <label class="form-label">
+                Сортировка
+            </label>
+            <select
+                name="sort"
+                class="form-select">
+                <option value="">
+                    По умолчанию
+                </option>
+                <option
+                    value="status"
+                    {% if sort == "status" %}
+                    selected
+                    {% endif %}>
+                    По статусу (возр.)
+                </option>
+                <option
+                    value="-status"
+                    {% if sort == "-status" %}
+                    selected
+                    {% endif %}>
+                    По статусу (убыв.)
+                </option>
+                <option
+                    value="created_at"
+                    {% if sort == "created_at" %}
+                    selected
+                    {% endif %}>
+                    По дате (возр.)
+                </option>
+                <option
+                    value="-created_at"
+                    {% if sort == "-created_at" %}
+                    selected
+                    {% endif %}>
+                    По дате (убыв.)
+                </option>
+            </select>
+        </div>
+    </div>
+    
+    <button
+        type="submit"
+        class="btn btn-primary mb-4">
+        Применить фильтры
+    </button>
+    
+    <a
+        href="/email-logs"
+        class="btn btn-outline-secondary mb-4 ms-2">
+        Сбросить
+    </a>
+    
+</form>
+
+<div class="mb-3">
+    <span class="badge bg-secondary">
+        Всего записей: {{ total }}
+    </span>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Дата</th>
+                <th>Отправитель</th>
+                <th>Получатель</th>
+                <th>Тема</th>
+                <th>Статус</th>
+                {% if "owner" in user_roles or "admin" in user_roles %}
+                <th>Пользователь</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in email_logs %}
+            <tr>
+                <td>
+                    <a href="/email-logs/{{ log.id }}">
+                        {{ log.id }}
+                    </a>
+                </td>
+                <td>
+                    {% if log.created_at %}
+                        {{ log.created_at.strftime('%d.%m.%Y %H:%M') }}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if log.from_email %}
+                        {{ log.from_email }}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if log.to %}
+                        {{ log.to|join(', ') }}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="/email-logs/{{ log.id }}">
+                        {% if log.subject %}
+                            {{ log.subject[:50] }}{% if log.subject|length > 50 %}...{% endif %}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </a>
+                </td>
+                <td>
+                    {% if log.status.value == "pending" %}
+                        <span class="badge bg-warning text-dark">
+                            ⏳ В очереди
+                        </span>
+                    {% elif log.status.value == "sent" %}
+                        <span class="badge bg-success">
+                            ✅ Отправлено
+                        </span>
+                    {% elif log.status.value == "failed" %}
+                        <span class="badge bg-danger">
+                            ❌ Ошибка
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            {{ log.status }}
+                        </span>
+                    {% endif %}
+                </td>
+                {% if "owner" in user_roles or "admin" in user_roles %}
+                <td>
+                    {% if log.user_id %}
+                        <a href="/users/{{ log.user_id }}">
+                            Пользователь #{{ log.user_id }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+    <div class="small text-muted">
+        Показано {{ email_logs|length }} из {{ total }}
+    </div>
+    <div class="d-flex gap-2">
+        {% if offset > 0 %}
+        <a
+            href="/email-logs?offset={{ offset - limit }}{% for param in ['scope', 'status', 'user_id', 'to_email', 'from_email', 'sort'] %}{% if request.query_params.get(param) %}&{{ param }}={{ request.query_params.get(param) }}{% endif %}{% endfor %}"
+            class="btn btn-outline-secondary">
+            ← Назад
+        </a>
+        {% endif %}
+        {% if offset + limit < total %}
+        <a
+            href="/email-logs?offset={{ offset + limit }}{% for param in ['scope', 'status', 'user_id', 'to_email', 'from_email', 'sort'] %}{% if request.query_params.get(param) %}&{{ param }}={{ request.query_params.get(param) }}{% endif %}{% endfor %}"
+            class="btn btn-outline-secondary">
+            Следующая →
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% include "components/filter_script.html" %}
+
+{% endblock %}

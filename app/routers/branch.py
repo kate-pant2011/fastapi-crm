@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.responses import FileResponse
 from app.config.config import ApplicationException
 from app.auth.dependencies import require_roles, UserDTO
-from app.schemas.common import BaseShortResponse, BaseListResponse
+from app.schemas.common import BaseShortResponse, LegalEntityListResponse
 from app.schemas.branch import BranchItem, BranchCreationRequest, BranchPatchRequest
 from app.services.branch import (
     create_branch,
@@ -28,7 +28,7 @@ class BranchQueryDTO:
     offset: int = 0
 
 
-@branch_router.get("/branch", response_model=BaseListResponse)
+@branch_router.get("/branch", response_model=LegalEntityListResponse)
 async def get_branch_list_router(
     sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),

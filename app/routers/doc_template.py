@@ -81,7 +81,6 @@ async def create_doc_template_router(
     name: str = Form(...),
     description: str | None = Form(None),
     is_public: bool = Form(...),
-    required_entities: list[str] | None = Form(None),
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
@@ -91,7 +90,6 @@ async def create_doc_template_router(
             name=name,
             description=description,
             is_public=is_public,
-            required_entities=required_entities
         )
         return await create_doc_template(session, data, user.id, user.roles, file)
 

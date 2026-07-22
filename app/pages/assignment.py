@@ -157,3 +157,56 @@ async def assignment_detail_page(
             context=context,
             status_code=500,
         )
+
+
+@assignment_page_router.post("/assignments/{assignment_id}/delete")
+async def assignment_delete_page(
+    request: Request,
+    assignment_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("manager")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "assignment_id": assignment_id,
+        "detail_url": f"/assignments/{assignment_id}",
+        "error": None,
+    } 
+
+    try:
+        result = await delete_assignment(session, assignment_id, user.id)
+
+        context.update(
+            {
+                "name": result.name,
+                "deleted": "Удалено без возможности восстановления",
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="archived_restored.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="archived_restored.html",
+            context=context,
+            status_code=500,
+        )

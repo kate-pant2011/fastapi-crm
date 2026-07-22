@@ -18,7 +18,7 @@ class DocsQueryDTO:
     offset: int = 0
 
 
-@generated_doc_router.get("/generated-docs", response_model=GeneratedListResponse)
+@generated_doc_router.get("/generated-doc", response_model=GeneratedListResponse)
 async def get_generated_docs_router(
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
@@ -41,7 +41,7 @@ async def get_generated_docs_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
     
 
-@generated_doc_router.post("/generated-docs/{id}/send", response_model=EmailStatusResponse)
+@generated_doc_router.post("/generated-doc/{id}/send", response_model=EmailStatusResponse)
 async def send_generated_docs_router(
     id: int,
     item: GeneratedDocSend, 
@@ -64,7 +64,7 @@ async def send_generated_docs_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
     
 
-@generated_doc_router.post("/generated-docs/{id}/word-to-pdf", response_model=GeneratedDocResponse)
+@generated_doc_router.post("/generated-doc/{id}/word-to-pdf", response_model=GeneratedDocResponse)
 async def convert_word_to_pdf_router(
     id: int,
     session: AsyncSession = Depends(get_db),

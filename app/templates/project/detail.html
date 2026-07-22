@@ -1,73 +1,212 @@
 {% extends "base.html" %}
 
 {% block title %}
-Проект
+{{ name }}
 {% endblock %}
 
 {% block content %}
 
 <h2 class="mb-4">
 
-
-Проект
-
+    {{ name }}
 
 </h2>
 
 {% include "components/error_alert.html" %}
 
-{% include "components/full_actions.html" %}
+{% if is_archived %}
+
+    {% include "components/full_actions_archived.html" %}
+
+{% else %}
+
+    {% include "components/full_actions.html" %}
+
+{% endif %}
 
 <div class="card mb-4">
 
+    <div class="card-body">
 
-<div class="card-body">
+        <h4 class="card-title">
 
-    <h4 class="card-title">
+            {{ name }}
 
-        {{ name }}
+        </h4>
 
-    </h4>
+        {% if description %}
 
-    {% if description %}
+        <p class="text-muted mb-4">
 
-    <p class="text-muted mb-4">
+            {{ description }}
 
-        {{ description }}
+        </p>
 
-    </p>
+        {% endif %}
 
-    {% endif %}
+        <div class="row">
 
-    <div class="row">
+            <div class="col-md-6 mb-3">
 
-        <div class="col-md-6 mb-3">
+                <label class="form-label text-muted">
 
-            <label class="form-label text-muted">
+                    Клиент
 
-                Дата начала
+                </label>
 
-            </label>
+                <div>
 
-            <div>
+                    {% if client_id %}
 
-                {{ start_date.strftime("%d.%m.%Y") }}
+                    <a href="/clients/{{ client_id }}">
+
+                        {{ client_name }}
+
+                    </a>
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label text-muted">
+
+                    Email клиента
+
+                </label>
+
+                <div>
+
+                    {% if client_email %}
+
+                        {{ client_email | join(", ") }}
+
+                    {% else %}
+
+                        —
+
+                    {% endif %}
+
+                </div>
 
             </div>
 
         </div>
 
-        <div class="col-md-6 mb-3">
+        <div class="row">
 
-            <label class="form-label text-muted">
+            <div class="col-md-6 mb-3">
 
-                Дата завершения
+                <label class="form-label text-muted">
 
-            </label>
+                    Менеджер
 
-            <div>
+                </label>
 
-                {{ end_date.strftime("%d.%m.%Y") }}
+                <div>
+
+                    {% if manager %}
+
+                    <a href="/users/{{ manager.id }}">
+
+                        {{ manager.name }}
+
+                    </a>
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label text-muted">
+
+                    Договор
+
+                </label>
+
+                <div>
+
+                    {% if contract %}
+
+                    <a href="/contracts/{{ contract.id }}">
+
+                        {{ contract.number }}
+
+                    </a>
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label text-muted">
+
+                    Дата начала
+
+                </label>
+
+                <div>
+
+                    {% if start_date %}
+
+                        {{ start_date.strftime("%d.%m.%Y") }}
+
+                    {% else %}
+
+                        —
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label text-muted">
+
+                    Дата окончания
+
+                </label>
+
+                <div>
+
+                    {% if end_date %}
+
+                        {{ end_date.strftime("%d.%m.%Y") }}
+
+                    {% else %}
+
+                        —
+
+                    {% endif %}
+
+                </div>
 
             </div>
 
@@ -75,200 +214,358 @@
 
     </div>
 
-    <hr>
+</div>
 
-    <div class="row">
+<div class="card mb-4">
+    <div class="card-body">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                Файлы проекта
+            </h5>
+            
+            <form
+                action="/projects/{{ project_id }}/files/upload"
+                method="post"
+                enctype="multipart/form-data"
+                id="upload-form-{{ project_id }}">
+                
+                <div id="file-inputs-container-{{ project_id }}">
+                    <div class="d-flex gap-2 align-items-center mb-2">
+                        <input
+                            type="file"
+                            name="files"
+                            class="form-control"
+                            style="width: 300px;">
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 align-items-center mt-2">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        onclick="addFileInput('{{ project_id }}')">
+                        ➕ Добавить еще файл
+                    </button>
+                    
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+                        Загрузить все файлы
+                    </button>
+                </div>
+                
+            </form>
+        </div>
+        
+        <div>
+            {% if files and files > 0 %}
+                <a href="/projects/{{ project_id }}/files">
+                    {{ files }}
+                </a>
+                <span class="text-muted">
+                    файл(ов)
+                </span>
+            {% else %}
+                <span class="text-muted">
+                    Нет загруженных файлов
+                </span>
+            {% endif %}
+        </div>
+        
+    </div>
+</div>
 
-        <div class="col-md-6 mb-3">
+<script>
+let fileInputCounter = 1;
 
-            <label class="form-label text-muted">
+function addFileInput(projectId) {
+    const container = document.getElementById(`file-inputs-container-${projectId}`);
+    const newInput = document.createElement('div');
+    newInput.className = 'd-flex gap-2 align-items-center mb-2';
+    newInput.innerHTML = `
+        <input
+            type="file"
+            name="files"
+            class="form-control"
+            style="width: 300px;">
+        <button
+            type="button"
+            class="btn btn-outline-danger btn-sm"
+            onclick="this.parentElement.remove()">
+            ✕
+        </button>
+    `;
+    container.appendChild(newInput);
+    fileInputCounter++;
+}
+</script>
 
-                Клиент
+        <form
+            method="post"
+            action="/projects/{{ project_id }}/stage-template"
+            class="mb-4">
+
+            <label class="form-label">
+
+                Создать этапы по шаблону
 
             </label>
 
-            <div>
+            <div class="input-group">
 
-                {{ client_name }}
+                <select
+                    name="stage_template_id"
+                    class="form-select">
+
+                    {% for template in stage_templates %}
+
+                    <option value="{{ template.id }}">
+
+                        {{ template.name }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+                <button
+                    type="submit"
+                    class="btn btn-outline-primary">
+
+                    Создать
+
+                </button>
 
             </div>
 
-        </div>
+        </form>
 
-        <div class="col-md-6 mb-3">
+        <form
+            method="get"
+            action="/projects/{{ project_id }}#stages"
+            class="mb-4">
+            
+            <label class="form-label">
 
-            <label class="form-label text-muted">
-
-                Email клиента
+                Сортировка этапов
 
             </label>
 
-            <div>
+            <div class="input-group">
 
-                {% if client_email %}
+                <select
+                    name="sort"
+                    class="form-select">
 
-                    {% for email in client_email %}
+                    <option
+                        value=""
+                        {% if not sort %}
+                        selected
+                        {% endif %}
+                    >
+
+                        Пользовательский порядок
+
+                    </option>
+
+                    <option
+                        value="start_date"
+                        {% if sort == "start_date" %}
+                        selected
+                        {% endif %}
+                    >
+
+                        Начало ↑
+
+                    </option>
+
+                    <option
+                        value="-start_date"
+                        {% if sort == "-start_date" %}
+                        selected
+                        {% endif %}
+                    >
+
+                        Начало ↓
+
+                    </option>
+
+                    <option
+                        value="end_date"
+                        {% if sort == "end_date" %}
+                        selected
+                        {% endif %}
+                    >
+
+                        Окончание ↑
+
+                    </option>
+
+                    <option
+                        value="-end_date"
+                        {% if sort == "-end_date" %}
+                        selected
+                        {% endif %}
+                    >
+
+                        Окончание ↓
+
+                    </option>
+
+                </select>
+
+                <button
+                    type="submit"
+                    class="btn btn-outline-primary">
+
+                    Применить
+
+                </button>
+
+            </div>
+
+        </form>
+
+        {% if stages %}
+
+        <div class="d-flex justify-content-end mb-3">
+
+            <button
+                id="save-order"
+                class="btn btn-outline-primary">
+
+                Сохранить порядок
+
+            </button>
+
+        </div>
+
+        <ul
+            id="stages-list"
+            class="list-group">
+
+            {% for stage in stages %}
+
+            <li
+                class="list-group-item"
+                data-stage-id="{{ stage.id }}">
+
+                <div class="d-flex justify-content-between align-items-center">
 
                     <div>
 
-                        <a href="mailto:{{ email }}">
+                        <span class="badge bg-primary me-2">
 
-                            {{ email }}
+                            {{ stage.position }}
+
+                        </span>
+
+                        <a href="/projects/{{ project_id }}/stages/{{ stage.id }}/">
+
+                            {{ stage.name }}
 
                         </a>
 
                     </div>
 
-                    {% endfor %}
+                    <small class="text-muted">
 
-                {% else %}
+                        {{ stage.end_date.strftime("%d.%m.%Y") }}
 
-                    —
-
-                {% endif %}
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <hr>
-
-    <div class="row">
-
-        <div class="col-md-6 mb-3">
-
-            <label class="form-label text-muted">
-
-                Менеджер проекта
-
-            </label>
-
-            <div>
-
-                <a href="/users/{{ manager.id }}">
-
-                    {{ manager.name }}
-
-                </a>
-
-            </div>
-
-        </div>
-
-        <div class="col-md-6 mb-3">
-
-            <label class="form-label text-muted">
-
-                Договор
-
-            </label>
-
-            <div>
-
-                {% if contract %}
-
-                <a href="/contracts/{{ contract.id }}">
-
-                    {{ contract.name }}
-
-                </a>
-
-                {% else %}
-
-                —
-
-                {% endif %}
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <hr>
-
-    <div class="mb-4">
-
-        <label class="form-label text-muted">
-
-            Этапы проекта
-
-        </label>
-
-        <div>
-
-            {% if stages %}
-
-                {% for stage in stages %}
-
-                <div>
-
-                    <a href="/stages/{{ stage.id }}">
-
-                        {{ stage.name }}
-
-                    </a>
+                    </small>
 
                 </div>
 
-                {% endfor %}
+            </li>
 
-            {% else %}
+            {% endfor %}
 
-                —
+        </ul>
 
-            {% endif %}
+        {% endif %}
+
+            </div>
 
         </div>
 
     </div>
 
-<hr>
-
-<div>
-
-
-<label class="form-label text-muted">
-
-    Файлы проекта
-
-</label>
-
-<div class="d-flex align-items-center gap-3">
-
-    {% if files %}
-
-    <a href="/projects/{{ project_id }}/files">
-
-        {{ files }} файл(ов)
-
-    </a>
-
-    {% else %}
-
-    —
-
-    {% endif %}
-
-    <form
-        action="/projects/{{ project_id }}/files"
-        method="post"
-        enctype="multipart/form-data">
-
-        <input
-            type="file"
-            name="file"
-            class="form-control"
-            onchange="this.form.submit();">
-
-    </form>
-
 </div>
 
+<script>
 
-</div>
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
 
+        new Sortable(
+            document.getElementById("stages-list"),
+            {
+                animation: 150
+            }
+        );
+
+        document
+            .getElementById("save-order")
+            .addEventListener(
+                "click",
+                async function() {
+
+                    const stages = [];
+
+                    document
+                        .querySelectorAll("#stages-list li")
+                        .forEach(
+                            item => {
+                                stages.push(
+                                    Number(
+                                        item.dataset.stageId
+                                    )
+                                );
+                            }
+                        );
+
+                    try {
+
+                        const response = await fetch(
+                            "/projects/{{ project_id }}/stages/reorder",
+                            {
+                                method: "PATCH",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify(
+                                    {
+                                        stages: stages
+                                    }
+                                )
+                            }
+                        );
+
+                        if (!response.ok) {
+
+                            alert("Не удалось сохранить порядок этапов");
+
+                            return;
+
+                        }
+
+                        location.reload();
+
+                    } catch (error) {
+
+                        alert("Ошибка при сохранении порядка");
+
+                    }
+
+                }
+            );
+
+    }
+);
+
+</script>
 
 {% endblock %}

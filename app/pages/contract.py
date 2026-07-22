@@ -136,6 +136,7 @@ async def contract_detail_page(
         "contract_id": contract_id,
         "edit_url": f"/contracts/{contract_id}/edit",
         "delete_url": f"/contracts/{contract_id}/delete",
+        "restore_url": f"/contracts/{contract_id}/restore",
         "email_url":f"/email-form?contract_id={contract_id}", 
         "document_url":f"/document-form?contract_id={contract_id}", 
         "error": None,
@@ -153,7 +154,8 @@ async def contract_detail_page(
                 "valid_from": result.valid_from,
                 "valid_to": result.valid_to,
                 "branch": result.branch,
-                "company": result.company
+                "company": result.company,
+                "is_archived": result.is_archived,
             }
         )
 
@@ -178,6 +180,110 @@ async def contract_detail_page(
         return templates.TemplateResponse(
             request=request, 
             name="contract/detail.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@contract_page_router.post("/contracts/{contract_id}/delete")
+async def contract_delete_page(
+    request: Request,
+    contract_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("manager")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "contract_id": contract_id, 
+        "detail_url": f"/contracts/{contract_id}",
+        "error": None,
+    }
+
+    try:
+        result = await archive_contract(session, contract_id, user.id)
+
+        context.update(
+            {
+                "name": result.name,
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="archived_restored.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="archived_restored.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@contract_page_router.post("/contracts/{contract_id}/restore")
+async def contract_restore_page(
+    request: Request,
+    contract_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "contract_id": contract_id, 
+        "detail_url": f"/contracts/{contract_id}",
+        "error": None,
+    }
+
+    try:
+        result = await restore_contract(session, contract_id, user.roles, user.id)
+
+        context.update(
+            {
+                "name": result.name,
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="archived_restored.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="archived_restored.html",
             context=context,
             status_code=500,
         )

@@ -37,9 +37,6 @@ async def get_branch(session, branch_id):
     if not branch:
         raise ApplicationException("Company Not found", 404)
 
-    if branch.is_archived:
-        raise ApplicationException(f"A company '{branch.name}' is archived", 400, {"id": branch.id})
-
     return to_schema(BranchItem, branch)
 
 

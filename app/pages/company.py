@@ -120,6 +120,7 @@ async def company_detail_page(
         "company_id": company_id,
         "edit_url": f"/companies/{company_id}/edit",
         "delete_url": f"/companies/{company_id}/delete",
+        "restore_url": f"/companies/{company_id}/restore",
         "email_url":f"/email-form?company_id={company_id}", 
         "document_url":f"/document-form?company_id={company_id}", 
         "error": None,
@@ -131,9 +132,30 @@ async def company_detail_page(
         context.update(
             {
                 "name": result.name,
+                "is_archived": result.is_archived,
                 "inn": result.inn,
                 "client": result.client,
                 "contracts": result.contracts,
+                "kpp": result.kpp,
+                "ogrn": result.ogrn,
+                "okpo": result.okpo,
+                "okved": result.okved,
+                "okfs": result.okfs,
+                "okopf": result.okopf,
+                "okato": result.okato,
+                "legal_address": result.legal_address,
+                "address": result.address,
+                "email": result.email,
+                "telephone": result.telephone,
+                "website": result.website,
+                "director_full_name": result.director_full_name,
+                "director_short_name": result.director_short_name,
+                "director_position": result.director_position,
+                "authority_document": result.authority_document,
+                "bank_name": result.bank_name,
+                "bik": result.bik,
+                "checking_account": result.checking_account, 
+                "correspondent_account": result.correspondent_account,
             }
         )
         return templates.TemplateResponse(
@@ -162,3 +184,105 @@ async def company_detail_page(
         )
 
 
+@company_page_router.post("/companies/{company_id}/delete")
+async def company_delete_page(
+    request: Request,
+    company_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("manager")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "branch_id": company_id, 
+        "detail_url": f"/companies/{company_id}",
+        "error": None,
+    }
+
+    try:
+        result = await archive_company(session, company_id, user.id)
+
+        context.update(
+            {
+                "name": result.name,
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="archived_restored.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="archived_restored.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@company_page_router.post("/companies/{company_id}/restore")
+async def company_restore_page(
+    request: Request,
+    company_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "branch_id": company_id, 
+        "detail_url": f"/companies/{company_id}",
+        "error": None,
+    }
+
+    try:
+        result = await restore_company(session, company_id, user.roles, user.id)
+
+        context.update(
+            {
+                "name": result.name,
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="archived_restored.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="archived_restored.html",
+            context=context,
+            status_code=500,
+        )

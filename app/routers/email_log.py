@@ -15,7 +15,7 @@ class ScopeEnum(str, Enum):
     MINE = "mine"
 
 @dataclass
-class QueryDTO:
+class EmailLogQueryDTO:
     sort: str | None
     limit: int
     offset: int
@@ -25,13 +25,13 @@ class QueryDTO:
     status: EmailLogStatus | None
     scope: str | None
 
-@email_log_router.get("/email-logs", response_model=EmailLogList)
+@email_log_router.get("/email-log", response_model=EmailLogList)
 async def get_email_log_router(
     scope: ScopeEnum | None = Query(default=None, description="scope=mine, in case roles include admin + other"),
-    to_email: str | None = Query(default=None),
-    user_id: int | None = Query(default=None),
-    from_email: str | None = Query(default=None),
     status: EmailLogStatus | None = Query(default=None),
+    user_id: int | None = Query(default=None),
+    to_email: str | None = Query(default=None),
+    from_email: str | None = Query(default=None),
     sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
@@ -39,7 +39,7 @@ async def get_email_log_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        query = QueryDTO(
+        query = EmailLogQueryDTO(
             sort=sort, limit=limit, 
             offset=offset, to_email=to_email, 
             user_id=user_id, scope=scope,
@@ -56,7 +56,7 @@ async def get_email_log_router(
         raise HTTPException(status_code=500, detail=(f"{type(e).__name__} - {e}"))
     
 
-@email_log_router.get("/email-logs/{id}", response_model=EmailLogItem)
+@email_log_router.get("/email-log/{id}", response_model=EmailLogItem)
 async def get_email_log_router(
     id: int,
     session: AsyncSession = Depends(get_db),

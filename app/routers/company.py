@@ -8,7 +8,7 @@ from app.services.company import (
     change_company,
 )
 from app.schemas.company import CompanyCreation, CompanyItem, CompanyPatchRequest
-from app.schemas.common import BaseShortResponse, BaseListResponse
+from app.schemas.common import BaseShortResponse, LegalEntityListResponse
 from app.auth.dependencies import require_roles, UserDTO
 from app.config.connection import get_db
 from app.config.config import ApplicationException
@@ -27,7 +27,7 @@ class CompanyQueryDTO:
     scope: str | None = None
 
 
-@company_router.get("/company", response_model=BaseListResponse)
+@company_router.get("/company", response_model=LegalEntityListResponse)
 async def get_company_list_router(
     scope: str | None = Query(default=None, description="mine, scope ignored if manager_id provided"),
     client_id: int | None = Query(default=None),

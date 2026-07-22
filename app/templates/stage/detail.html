@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ name }}
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    Этап № {{ position }} 
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% if is_archived %}
+
+    {% include "components/full_actions_archived.html" %}
+
+{% else %}
+
+    {% include "components/full_actions.html" %}
+
+ {% endif %}
+
+<div class="card">
+
+    <div class="card-body">
+
+        <h4 class="card-title mb-4">
+
+            {{ name }}
+
+        </h4>
+
+        {% if description %}
+
+        <div class="mb-4">
+
+            <label class="form-label text-muted">
+
+                Описание
+
+            </label>
+
+            <div>
+
+                {{ description }}
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+        <div class="row mb-4">
+
+            <div class="col-md-6">
+
+                <label class="form-label text-muted">
+
+                    Дата начала
+
+                </label>
+
+                <div>
+
+                    {% if start_date %}
+
+                    {{ start_date.strftime("%d.%m.%Y") }}
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div class="col-md-6">
+
+                <label class="form-label text-muted">
+
+                    Дата окончания
+
+                </label>
+
+                <div>
+
+                    {% if end_date %}
+
+                    {{ end_date.strftime("%d.%m.%Y") }}
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="mb-4">
+
+            <label class="form-label text-muted">
+
+                Проект
+
+            </label>
+
+            <div>
+
+                {% if project %}
+
+                <a href="/projects/{{ project.id }}">
+
+                    {{ project.name }}
+
+                </a>
+
+                {% else %}
+
+                —
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <h5 class="mb-0">
+
+                Назначения
+
+            </h5>
+
+            <a
+                href="/assignments/create?stage_id={{ stage_id }}"
+                class="btn btn-sm btn-outline-primary">
+
+                Добавить назначение
+
+            </a>
+
+        </div>
+
+        {% if assignments %}
+
+        <div class="list-group">
+
+            {% for assignment in assignments %}
+
+            <a
+                href="/assignments/{{ assignment.id }}"
+                class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+
+                <span>
+
+                    {{ assignment.name }}
+
+                </span>
+
+                <span class="badge bg-primary rounded-pill">
+
+                    #{{ assignment.id }}
+
+                </span>
+
+            </a>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="text-muted">
+
+            Назначения отсутствуют
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -43,9 +43,6 @@ async def get_project(session, roles, requester_id, project_id):
     if not project:
         raise ApplicationException("project Not found", 404)
 
-    if project.is_archived:
-        raise ApplicationException("project is deleted", 400, {"id": project.id})
-
     manager = project.client.manager
     if not manager:
         raise ApplicationException("manager Not found", 404)
@@ -57,11 +54,13 @@ async def get_project(session, roles, requester_id, project_id):
         "end_date": project.end_date,
         "client_name": project.client.name,
         "client_email": project.client.email,
+        "client_id": project.client_id,
         "contract": (
             to_schema(ContractItem, project.contract) if project.contract else None
         ),
         "manager": to_schema(BaseShortResponse, manager),
         "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages if not stage.is_archived],
+        "is_archived": project.is_archived,
         "files": len(project.files or [])
     }
 
@@ -74,7 +73,7 @@ async def change_project(session, roles, user_id, project_id, item):
     project = await get_project_by_id(session, project_id, manager_id)
 
     if not project:
-        raise ApplicationException("Project Not found", 404)
+        raise ApplicationException("Проект не найден, либо у Вас нет прав!", 404)
 
     if project.is_archived:
         raise ApplicationException(f"A project '{project.name}' is archived", 400, {"id": project.id})
@@ -123,6 +122,7 @@ async def change_project(session, roles, user_id, project_id, item):
         ),
         "manager": to_schema(BaseShortResponse, manager),
         "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages],
+        "is_archived": project.is_archived,
         "files": len(project.files or [])
     }
 
@@ -165,10 +165,10 @@ async def archive_project(session, project_id, manager_id):
     project = await get_project_by_id(session, project_id, manager_id)
 
     if not project:
-        raise ApplicationException("project Not found", 404)
+        raise ApplicationException("Проект не найден, либо у Вас нет прав!", 404)
 
     if project.is_archived:
-        raise ApplicationException("project is already archived", 400)
+        raise ApplicationException("Проект уже архивирован!", 400)
 
     project.is_archived = True
     return project
@@ -182,10 +182,10 @@ async def restore_project(session, project_id, roles, requester_id):
     project = await get_project_by_id(session, project_id, manager_id)
 
     if not project:
-        raise ApplicationException("project Not found", 404)
+        raise ApplicationException("Проект не найден, либо у Вас нет прав!", 404)
 
     if project.is_archived is False:
-        raise ApplicationException("project is already active", 400)
+        raise ApplicationException("Проект уже активен!", 400)
 
     project.is_archived = False
     return project

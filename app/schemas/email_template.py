@@ -32,5 +32,5 @@ class EmailTemplatePatchRequest(BaseModel):
     model_config = {"extra": "forbid"}
 
 class EmailTemplateDeleteResponse(BaseModel):
-    result: str
+    name: str
 

@@ -42,8 +42,6 @@ async def get_contract(session, roles, requester_id, contract_id):
     if not contract:
         raise ApplicationException("Contract Not Found", 404)
 
-    if contract.is_archived:
-        raise ApplicationException("contract is archived", 400, {"id": contract.id})
 
     return to_schema(GetContractItem, contract)
 
@@ -53,7 +51,7 @@ async def change_contract(session, roles, user_id, contract_id, item):
 
     contract = await get_contract_by_id(session, contract_id, manager_id)
     if not contract:
-        raise ApplicationException("Contract Not found", 404)
+        raise ApplicationException("Контракт не найден, либо у Вас нет прав!", 404)
 
     if contract.is_archived:
         raise ApplicationException(f"A contract '{contract.name}' is archived", 400, {"id": contract.id})
@@ -95,7 +93,7 @@ async def archive_contract(session, contract_id, manager_id):
     contract = await get_contract_by_id(session, contract_id, manager_id)
 
     if not contract:
-        raise ApplicationException("contract Not found", 404)
+        raise ApplicationException("Контракт не найден, либо у Вас нет прав!", 404)
 
     if contract.is_archived:
         raise ApplicationException("contract is already archived", 400)
@@ -112,7 +110,7 @@ async def restore_contract(session, contract_id, roles, requester_id):
     contract = await get_contract_by_id(session, contract_id, manager_id)
 
     if not contract:
-        raise ApplicationException("contract Not found", 404)
+        raise ApplicationException("Контракт не найден, либо у Вас нет прав!", 404)
 
     if contract.is_archived is False:
         raise ApplicationException("contract is already active", 400)

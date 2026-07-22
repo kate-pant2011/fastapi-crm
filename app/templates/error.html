@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}
+Ошибка
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        ❌ Ошибка
+                    </h4>
+                </div>
+                <div class="card-body text-center py-5">
+                    <div class="display-1 mb-4">
+                        ⚠️
+                    </div>
+                    <h5 class="mb-4">
+                        {{ error|default("Произошла непредвиденная ошибка") }}
+                    </h5>
+                    
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        {% if detail_url %}
+                        <a href="{{ detail_url }}" class="btn btn-primary">
+                            ← Вернуться назад
+                        </a>
+                        {% else %}
+                        
+                        <button onclick="history.back()" class="btn btn-secondary">
+                            ← Назад
+                        </button>
+                        {% endif %}
+                        
+                        <a href="/" class="btn btn-outline-primary">
+                            На главную
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

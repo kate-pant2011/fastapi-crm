@@ -9,7 +9,7 @@ class DocumentTemplate(BaseModel):
     description = Column(String(500), nullable=True, unique=False)
 
     variables = Column(ARRAY(String(255)), nullable=True)
-    required_entities = Column(ARRAY(String(255)), nullable=True)
+    required_entities = Column(ARRAY(String(255)), nullable=True) 
     is_public = Column(Boolean, nullable=False)
 
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
@@ -19,5 +19,6 @@ class DocumentTemplate(BaseModel):
         "File",
         back_populates="template", 
         uselist=False, 
+        cascade="all, delete-orphan",
         passive_deletes=True
     )

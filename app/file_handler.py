@@ -79,16 +79,31 @@ class FileHandler:
         async with aiofiles.open(file_path, "wb") as f:
             while chunk:= await file.read(1024 * 1024):
                 if first_chunk:
-                    mime_type = self.check_mime(chunk, ext)
+                    try:
+                        mime_type = self.check_mime(chunk, ext)
+                    except ApplicationException as e:
+                        await f.close()
+                        if os.path.exists(file_path):
+                            
+                            os.remove(file_path)
+                        raise  
                     first_chunk = False
 
                 size += len(chunk)
 
                 if size > max_size:
+                    await f.close()
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
                     raise ApplicationException(400, "File too big")
                  
                 await f.write(chunk)
 
+        if size == 0:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            raise ApplicationException("File is empty", 400)
+        
         return FileUploadDTO(
             filenames=filenames,
             path=file_path,

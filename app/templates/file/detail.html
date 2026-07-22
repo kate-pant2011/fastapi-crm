@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}
+Файл: {{ name }}
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    {{ name }}
+</h2>
+
+{% include "components/error_alert.html" %}
+
+<div class="card mb-4">
+    <div class="card-body">
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    ID файла
+                </label>
+                <div>
+                    {{ id }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Тип файла
+                </label>
+                <div>
+                    {% if mime_type %}
+                        <span class="badge bg-secondary">
+                            {{ mime_type }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Размер
+                </label>
+                <div>
+                    {% if size %}
+                        {% if size < 1024 %}
+                            {{ size }} B
+                        {% elif size < 1024 * 1024 %}
+                            {{ (size / 1024)|round(1) }} KB
+                        {% else %}
+                            {{ (size / (1024 * 1024))|round(2) }} MB
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Расширение
+                </label>
+                <div>
+                    {% if name %}
+                        {% set extension = name.split('.')[-1] if '.' in name else '—' %}
+                        <span class="badge bg-secondary">
+                            {{ extension }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <!-- Связи -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Создатель
+                </label>
+                <div>
+                    {% if creator %}
+                        <a href="/users/{{ creator.id }}">
+                            👤 {{ creator.name or creator.email or 'Пользователь #' + creator.id|string }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        {% if client or project %}
+        <div class="row mb-4">
+            {% if client %}
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Клиент
+                </label>
+                <div>
+                    <a href="/clients/{{ client.id }}">
+                        🏢 {{ client.name or 'Клиент #' + client.id|string }}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if project %}
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Проект
+                </label>
+                <div>
+                    <a href="/projects/{{ project.id }}">
+                        📋 {{ project.name or 'Проект #' + project.id|string }}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+        
+        <hr>
+        
+        <!-- Действия с файлом -->
+        <div class="d-flex gap-2 mt-3">
+            
+            <form
+                method="post"
+                action="/files/{{ id }}/download">
+                <button
+                    type="submit"
+                    class="btn btn-success">
+                    Скачать
+                </button>
+            </form>
+            
+            <form
+                method="post"
+                action="/files/{{ id }}/delete"
+                onsubmit="return confirm('Удалить файл {{ name }}?');">
+                <button
+                    type="submit"
+                    class="btn btn-danger">
+                    Удалить
+                </button>
+            </form>
+            
+            <!-- Кнопка "Назад" - определяем откуда пришли -->
+            {% if client %}
+            <a
+                href="/clients/{{ client.id }}/files"
+                class="btn btn-outline-secondary">
+                ← Назад к файлам клиента
+            </a>
+            {% elif project %}
+            <a
+                href="/projects/{{ project.id }}/files"
+                class="btn btn-outline-secondary">
+                ← Назад к файлам проекта
+            </a>
+            {% else %}
+            <a
+                href="/files"
+                class="btn btn-outline-secondary">
+                ← Назад к списку файлов
+            </a>
+            {% endif %}
+            
+        </div>
+        
+    </div>
+</div>
+
+
+{% endblock %}

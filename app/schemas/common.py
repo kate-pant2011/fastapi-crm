@@ -31,7 +31,7 @@ class LegalEntityShortResponse(BaseModel):
     inn: str
 
 class LegalEntityListResponse(BaseModel):
-    items: list[BaseShortResponse]
+    items: list[LegalEntityShortResponse]
     total: int
     limit: int
     offset: int

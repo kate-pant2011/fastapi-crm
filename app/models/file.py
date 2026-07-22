@@ -19,6 +19,8 @@ class File(BaseModel):
     client = relationship("Client", back_populates="files")
     project = relationship("Project", back_populates="files")
     template = relationship("DocumentTemplate", back_populates="file")
-    generated_document = relationship("GeneratedDocument", back_populates="file", uselist=False)
+    generated_document = relationship(
+        "GeneratedDocument", back_populates="file", cascade="all, delete-orphan", uselist=False, passive_deletes=True
+    )
 
 

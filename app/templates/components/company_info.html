@@ -1,0 +1,334 @@
+<div class="card mb-4">
+
+    <div class="card-body">
+
+        <h3 class="mb-4">
+            Реквизиты
+        </h3>
+
+
+        <div class="row">
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    ИНН
+                </label>
+
+                <div>
+                    {{ inn or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    КПП
+                </label>
+
+                <div>
+                    {{ kpp or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    ОГРН
+                </label>
+
+                <div>
+                    {{ ogrn or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    ОКПО
+                </label>
+
+                <div>
+                    {{ okpo or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    ОКВЭД
+                </label>
+
+                <div>
+                    {{ okved or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    ОКФС
+                </label>
+
+                <div>
+                    {{ okfs or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    ОКОПФ
+                </label>
+
+                <div>
+                    {{ okopf or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    ОКАТО
+                </label>
+
+                <div>
+                    {{ okato or "—" }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <hr>
+
+
+        <h5 class="mb-3">
+            Адреса и контакты
+        </h5>
+
+
+        <div class="row">
+
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label text-muted">
+                    Юридический адрес
+                </label>
+
+                <div>
+                    {{ legal_address or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-6 mb-3">
+
+                <label class="form-label text-muted">
+                    Адрес
+                </label>
+
+                <div>
+                    {{ address or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    Email
+                </label>
+
+                <div>
+                    {{ email or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    Телефон
+                </label>
+
+                <div>
+                    {{ telephone or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    Сайт
+                </label>
+
+                <div>
+                    {{ website or "—" }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <hr>
+
+
+        <h5 class="mb-3">
+            Руководитель
+        </h5>
+
+
+        <div class="row">
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    ФИО
+                </label>
+
+                <div>
+                    {{ director_full_name or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    Краткое имя
+                </label>
+
+                <div>
+                    {{ director_short_name or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    Должность
+                </label>
+
+                <div>
+                    {{ director_position or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-12 mb-3">
+
+                <label class="form-label text-muted">
+                    Документ основания полномочий
+                </label>
+
+                <div>
+                    {{ authority_document or "—" }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+        <hr>
+
+
+        <h5 class="mb-3">
+            Банковские реквизиты
+        </h5>
+
+
+        <div class="row">
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    Банк
+                </label>
+
+                <div>
+                    {{ bank_name or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    БИК
+                </label>
+
+                <div>
+                    {{ bik or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    Расчётный счёт
+                </label>
+
+                <div>
+                    {{ checking_account or "—" }}
+                </div>
+
+            </div>
+
+
+            <div class="col-md-4 mb-3">
+
+                <label class="form-label text-muted">
+                    Корреспондентский счёт
+                </label>
+
+                <div>
+                    {{ correspondent_account or "—" }}
+                </div>
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>

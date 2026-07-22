@@ -87,6 +87,7 @@ async def change_email_template(session, item, user_id, roles, template_id):
 
 async def delete_email_template(session, user_id, roles, template_id):
     template = await get_email_template_by_id(session, template_id)
+    template_name = template.name
     if not template:
         raise ApplicationException("Template Not found", 404)
 
@@ -95,7 +96,7 @@ async def delete_email_template(session, user_id, roles, template_id):
 
     await session.delete(template)
 
-    return {"result": "deleted"}
+    return {"name": template_name}
 
 
 async def render_email_template(session, user_id, roles, template_id, query):

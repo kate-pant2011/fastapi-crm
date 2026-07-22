@@ -7,6 +7,7 @@ class EmailPostRequest(BaseModel):
     port: int | None = Field(None, gt=0)
     assigned_user_id: int | None = Field(None, gt=0)
 
+
 class EmailPatchRequest(BaseModel):
     login: EmailStr = Field(None, min_length=1)
     password: str = Field(None, min_length=1)
@@ -14,8 +15,12 @@ class EmailPatchRequest(BaseModel):
     port: int | None = Field(None, gt=0)
     owner_id: int | None = Field(None, gt=0)
 
+    model_config = {"extra": "forbid"}
+
+
 class EmailStatusResponse(BaseModel):
     status: str
+
 
 class EmailShortResponse(BaseModel):
     id: int
@@ -23,12 +28,12 @@ class EmailShortResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes = True)
 
+
 class EmailListResponse(BaseModel):
     items: list[EmailShortResponse]
     total: int
     limit: int
     offset: int
-
 
 
 class EmailItem(BaseModel):

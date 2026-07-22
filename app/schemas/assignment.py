@@ -1,14 +1,14 @@
 from pydantic import BaseModel, Field
 from app.schemas.common import BaseShortResponse
-
+from app.schemas.stage import ShortStageResponse
 
 class AssignmentItem(BaseModel):
     name: str
     description: str
-    stage: BaseShortResponse
+    stage: ShortStageResponse
     contractor: BaseShortResponse | None
     user: BaseShortResponse | None
-
+    
     class Config:
         from_attributes = True
 

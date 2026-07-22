@@ -5,6 +5,7 @@ class ContractorItem(BaseModel):
     name: str
     email: list[str] | None
     description: str
+    is_archived: bool
 
     class Config:
         from_attributes = True

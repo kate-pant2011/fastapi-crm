@@ -38,8 +38,6 @@ async def get_company(session, roles, requester_id, company_id):
     if not company:
         raise ApplicationException("Company Not Found", 404)
 
-    if company.is_archived:
-        raise ApplicationException("Company is archived", 400, {"id": company.id})
 
     return to_schema(CompanyItem, company)
 
@@ -49,7 +47,7 @@ async def change_company(session, roles, user_id, company_id, item):
 
     company = await get_company_by_id(session, company_id,  manager_id)
     if not company:
-        raise ApplicationException("Company Not found", 404)
+        raise ApplicationException("Компания не найдена.\nВозможно у вас нет прав на изменения!", 404)
 
     if company.is_archived:
         raise ApplicationException(f"A company '{company.name}' is archived", 400, {"id": company.id})
@@ -83,7 +81,7 @@ async def archive_company(session, company_id, manager_id):
     company = await get_company_by_id(session, company_id, manager_id)
 
     if not company:
-        raise ApplicationException("Company Not found", 404)
+        raise ApplicationException("Компания не найдена.\nВозможно у вас нет прав на удаление!", 404)
 
     if company.is_archived:
         raise ApplicationException("Company is already archived", 400)

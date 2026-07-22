@@ -11,9 +11,11 @@ class ProjectItem(BaseModel):
     end_date: datetime
     client_name: str
     client_email: list[str]
+    client_id: int 
     contract: ContractItem | None
     manager: BaseShortResponse
     stages: list[BaseShortResponse] | None
+    is_archived: bool
     files: int | None
 
 

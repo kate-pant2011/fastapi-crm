@@ -38,6 +38,10 @@ from .pages.generated_doc import generated_doc_page_router
 from .pages.branch import branch_page_router
 from .pages.contractor import contractor_page_router
 from .pages.template_context import template_fields_page_router
+from .pages.stage import stage_page_router
+from .email.pages import email_page_router
+from .pages.email_log import email_log_page_router
+from .pages.file import file_page_router
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.rate_limit import limiter
@@ -89,6 +93,10 @@ app.include_router(generated_doc_page_router)
 app.include_router(branch_page_router)
 app.include_router(contractor_page_router)
 app.include_router(template_fields_page_router)
+app.include_router(stage_page_router)
+app.include_router(email_page_router)
+app.include_router(email_log_page_router)
+app.include_router(file_page_router)
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)

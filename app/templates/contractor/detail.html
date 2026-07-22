@@ -16,7 +16,15 @@
 
 {% include "components/error_alert.html" %}
 
-{% include "components/edit_delete.html" %}
+{% if is_archived %}
+
+    {% include "components/edit_delete_archived.html" %}
+
+{% else %}
+
+    {% include "components/edit_delete.html" %}
+
+ {% endif %}
 
 <div class="card mb-4">
 

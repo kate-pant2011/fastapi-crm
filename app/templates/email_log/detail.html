@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}
+Детали письма #{{ email_logs_id }}
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Детали письма №{{ email_logs_id }}
+</h2>
+
+{% include "components/error_alert.html" %}
+
+<div class="card mb-4">
+    <div class="card-body">
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Статус
+                </label>
+                <div>
+                    {% if status.value == "pending" %}
+                        <span class="badge bg-warning text-dark">
+                            ⏳ В очереди
+                        </span>
+                    {% elif status.value == "sent" %}
+                        <span class="badge bg-success">
+                            ✅ Отправлено
+                        </span>
+                    {% elif status.value == "failed" %}
+                        <span class="badge bg-danger">
+                            ❌ Ошибка
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            {{ status }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Дата создания
+                </label>
+                <div>
+                    {{ created_at.strftime('%d.%m.%Y %H:%M:%S') }}
+                </div>
+            </div>
+        </div>
+        
+        {% if sent_at %}
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Дата отправки
+                </label>
+                <div>
+                    {{ sent_at.strftime('%d.%m.%Y %H:%M:%S') }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <hr>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Отправитель
+                </label>
+                <div class="border rounded p-3 bg-light">
+                    {{ from_email }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Получатели
+                </label>
+                <div class="border rounded p-3 bg-light">
+                    {{ to|join(', ') if to else '—' }}
+                </div>
+            </div>
+        </div>
+        
+        {% if cc  or bcc%}
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Копия (CC)
+                </label>
+                <div class="border rounded p-3 bg-light">
+                    {{ cc|join(', ') if cc else '—' }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Скрытая копия (BCC)
+                </label>
+                <div class="border rounded p-3 bg-light">
+                    {{ bcc|join(', ') if bcc else '—' }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="mb-4">
+            <label class="form-label text-muted">
+                Тема
+            </label>
+            <div class="border rounded p-3 bg-light">
+                {{ subject or '—' }}
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label class="form-label text-muted">
+                Текст письма
+            </label>
+            <div class="border rounded p-3 bg-light" style="white-space: pre-wrap; word-wrap: break-word;">
+                {{ body or '—' }}
+            </div>
+        </div>
+        
+        {% if files_data %}
+        <div class="mb-4">
+            <label class="form-label text-muted">
+                Вложения
+            </label>
+            <div class="border rounded p-3 bg-light">
+                {% for file in files_data %}
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span>📎</span>
+                    <span>{{ file.filename or file.name or 'Файл' }}</span>
+                    {% if file.size %}
+                    <span class="text-muted small">
+                        ({{ (file.size / 1024)|round(1) }} KB)
+                    </span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if error_message %}
+        <div class="mb-4">
+            <label class="form-label text-muted text-danger">
+                ❌ Ошибка
+            </label>
+            <div class="border rounded p-3 bg-light text-danger" style="white-space: pre-wrap; word-wrap: break-word;">
+                {{ error_message }}
+            </div>
+        </div>
+        {% endif %}
+        
+    </div>
+</div>
+
+<div class="mt-3">
+    <a
+        href="/email-logs"
+        class="btn btn-outline-secondary">
+        ← Назад к журналу
+    </a>
+    
+    {% if status == "failed" %}
+    <button
+        onclick="retrySend({{ email_logs_id }})"
+        class="btn btn-warning">
+        🔄 Повторить отправку
+    </button>
+    {% endif %}
+</div>
+
+<script>
+function retrySend(logId) {
+    if (confirm('Вы уверены, что хотите повторно отправить это письмо?')) {
+        // Здесь будет AJAX запрос для повторной отправки
+        // Пока просто заглушка
+        alert('Повторная отправка для письма #' + logId);
+        // fetch(`/email-logs/${logId}/retry`, { method: 'POST' })
+        //     .then(response => window.location.reload())
+        //     .catch(error => alert('Ошибка: ' + error));
+    }
+}
+</script>
+
+{% endblock %}

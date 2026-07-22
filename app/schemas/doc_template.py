@@ -9,6 +9,7 @@ class DocTemplateItem(BaseModel):
     variables: list[str] | None
     is_public: bool
     creator: BaseShortResponse
+    file: BaseShortResponse
 
     model_config = ConfigDict(from_attributes = True)
 

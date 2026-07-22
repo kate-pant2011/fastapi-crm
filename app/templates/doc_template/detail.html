@@ -8,9 +8,9 @@
 
 <h2 class="mb-4">
 
-```
+
 Шаблон документа
-```
+
 
 </h2>
 
@@ -20,7 +20,7 @@
 
 <div class="card mb-4">
 
-```
+
 <div class="card-body">
 
     <h4 class="card-title">
@@ -133,9 +133,29 @@
 
     </div>
 
-</div>
-```
+    <hr>
 
+    <div>
+        <label class="form-label text-muted">
+            Файл шаблона
+        </label>
+        <div>
+            {% if file %}
+                <form action="/files/{{ file.id }}/download" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-success">
+                        Скачать файл
+                    </button>
+                </form>
+                <span class="text-muted ms-2">
+                    {{ file.name }}
+                </span>
+            {% else %}
+                <span class="text-muted">Файл не загружен</span>
+            {% endif %}
+        </div>
+
+    </div>
+    
 </div>
 
 {% endblock %}

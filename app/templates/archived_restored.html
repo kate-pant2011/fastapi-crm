@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}
+Удаление-Восстановление
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+{% include "components/error_alert.html" %}
+
+{% if name and deleted %}
+
+    Действие для {{ name }} выполненно
+
+{% endif %}
+
+{% if deleted %}
+
+    <h4 class="card-title">
+
+        {{ deleted }}
+
+    </h4>
+
+{% else %}
+
+    <form
+        method="get"
+        action="{{ detail_url }}">
+
+        <button
+            type="submit"
+            class="btn btn-warning">
+
+            Вернуться в карточку
+
+        </button>
+
+    </form>
+
+{% endif %}
+
+{% endblock %}

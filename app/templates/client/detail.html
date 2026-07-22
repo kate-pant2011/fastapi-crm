@@ -16,7 +16,15 @@
 
 {% include "components/error_alert.html" %}
 
-{% include "components/full_actions.html" %}
+{% if is_archived %}
+
+    {% include "components/full_actions_archived.html" %}
+
+{% else %}
+
+    {% include "components/full_actions.html" %}
+
+ {% endif %}
 
 <div class="card mb-4">
 
@@ -205,56 +213,87 @@
 
     <hr>
 
-    <div>
-
-        <label class="form-label text-muted">
-
-            Файлы клиента
-
-        </label>
-
-        <div class="d-flex align-items-center gap-3">
-
-            {% if files_count %}
-
-            <a href="/clients/{{ client_id }}/files">
-
-                {{ files_count }} файл(ов)
-
-            </a>
-
-            {% else %}
-
-            —
-
-            {% endif %}
-
+<div class="card mb-4">
+    <div class="card-body">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                Файлы клиента
+            </h5>
+            
             <form
-                action="/clients/{{ client_id }}/files"
+                action="/clients/{{ client_id }}/files/upload"
                 method="post"
-                enctype="multipart/form-data">
-
-                <input
-                    type="file"
-                    name="file"
-                    id="client-file-upload"
-                    class="d-none"
-                    onchange="this.form.submit();">
-
-                <button
-                    type="button"
-                    class="btn btn-outline-primary btn-sm"
-                    onclick="document.getElementById('client-file-upload').click();">
-
-                    Добавить файл
-
-                </button>
-
+                enctype="multipart/form-data"
+                id="upload-form-{{ client_id }}">
+                
+                <div id="file-inputs-container-{{ client_id }}">
+                    <div class="d-flex gap-2 align-items-center mb-2">
+                        <input
+                            type="file"
+                            name="files"
+                            class="form-control"
+                            style="width: 300px;">
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 align-items-center mt-2">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        onclick="addFileInput('{{ client_id }}')">
+                        ➕ Добавить еще файл
+                    </button>
+                    
+                    <button
+                        type="submit"
+                        class="btn btn-primary">
+                        Загрузить все файлы
+                    </button>
+                </div>
+                
             </form>
-
         </div>
-
+        
+        <div>
+            {% if files_count and files_count > 0 %}
+                <a href="/clients/{{ client_id }}/files">
+                    {{ files_count }}
+                </a>
+                <span class="text-muted">
+                    файл(ов)
+                </span>
+            {% else %}
+                <span class="text-muted">
+                    Нет загруженных файлов
+                </span>
+            {% endif %}
+        </div>
+        
     </div>
+</div>
+
+<script>
+function addFileInput(clientId) {
+    const container = document.getElementById(`file-inputs-container-${clientId}`);
+    const newInput = document.createElement('div');
+    newInput.className = 'd-flex gap-2 align-items-center mb-2';
+    newInput.innerHTML = `
+        <input
+            type="file"
+            name="files"
+            class="form-control"
+            style="width: 300px;">
+        <button
+            type="button"
+            class="btn btn-outline-danger btn-sm"
+            onclick="this.parentElement.remove()">
+            ✕
+        </button>
+    `;
+    container.appendChild(newInput);
+}
+</script>
 
 </div>
 

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}
+Почтовый аккаунт
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Почтовый аккаунт
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_delete.html" %}
+
+
+<div class="card mb-4">
+    <div class="card-body">
+        
+        <h4 class="card-title">
+            {{ login }}
+        </h4>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Сервер
+                </label>
+                <div>
+                    {{ server }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Порт
+                </label>
+                <div>
+                    {{ port }}
+                </div>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Владелец
+                </label>
+                <div>
+                    {% if owner_id %}
+                        <a href="/users/{{ owner_id }}">
+                            Пользователь #{{ owner_id }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">Не указан</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Создатель
+                </label>
+                <div>
+                    {% if creator_id %}
+                        <a href="/users/{{ creator_id }}">
+                            Пользователь #{{ creator_id }}
+                        </a>
+                    {% else %}
+                        <span class="text-muted">Не указан</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <label class="form-label text-muted">
+                    Личная почта
+                </label>
+                <div>
+                    {% if owner_id %}
+                        <a href="/users/{{ owner_id }}" class="badge bg-success text-decoration-none">
+                            ✅ Да
+                        </a>
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            ❌ Нет
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+{# Дополнительная кнопка для проверки соединения (только для owner/admin) #}
+{% if "owner" in user_roles or "admin" in user_roles %}
+<div class="mt-3">
+    <button 
+        onclick="checkConnection({{ email_id }})" 
+        class="btn btn-outline-primary">
+        🔌 Проверить соединение
+    </button>
+</div>
+{% endif %}
+
+<script>
+function checkConnection(emailId) {
+    // Здесь будет AJAX запрос для проверки соединения
+    // Пока просто заглушка
+    alert('Проверка соединения для аккаунта #' + emailId);
+}
+</script>
+
+{% endblock %}

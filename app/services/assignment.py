@@ -110,10 +110,12 @@ async def create_assignment(session, data, manager_id):
 
 
 async def delete_assignment(session, id, manager_id):
-    assignment = await get_assignment_by_id(session, id, manager_id)
-
+    assignment = await get_assignment_by_id(
+        session=session, id=id, manager_id=manager_id
+    )
+            
     if not assignment:
-        raise ApplicationException("Assignment Not found", 404)
+        raise ApplicationException("Назначение не найдено, либо у вас нет прав!", 404)
 
     await session.delete(assignment)
     return assignment
