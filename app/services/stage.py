@@ -15,8 +15,9 @@ async def get_stage_list(session, roles, requester_id, project_id, query):
     access = Access(roles)
     access.require_admin_or_manager()
     manager_id = access.manager_id(requester_id)
+    executor_id = access.executor_id(requester_id)
 
-    project = await get_project_by_id(session, project_id, manager_id)
+    project = await get_project_by_id(session, project_id, manager_id, executor_id)
     if not project:
         raise ApplicationException("Project Not Found", 404)
 

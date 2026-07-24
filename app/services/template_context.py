@@ -1,4 +1,4 @@
-from app.database.project import get_project_by_id
+from app.database.project import get_project_by_for_ctx
 from app.database.user import get_user_by_id
 from app.database.stage import get_stage_by_id
 from app.database.client import get_client_by_id
@@ -10,7 +10,7 @@ VARIABLE_RESOLVERS = {
     "project_name": lambda ctx: ctx["project"].name if ctx.get("project") else "PROJECT NAME",
     "client_name": lambda ctx: ctx["client"].name if ctx.get("client") else "CLIENT NAME",
     "client_emails": lambda ctx: ctx["client"].email if ctx.get("client") else "CLIENT EMAIL",
-    "client_telephones": lambda ctx: ctx["client"].telephone if ctx.get("client") else "CLIENT TELEPHONE",
+    "client_telephones": lambda ctx: ctx["client"].telephone if ctx.get("client") else "CLIENT TELEPHONES",
     "contract_name": lambda ctx: ctx["contract"].name if ctx.get("contract") else "CONTRACT NAME",
     "contract_number": lambda ctx: ctx["contract"].number if ctx.get("contract") else "CONTRACT NUMBER",
     "contract_valid_from": lambda ctx: ctx["contract"].valid_from if ctx.get("contract") else "CONTRACT VALID FROM",
@@ -21,7 +21,8 @@ VARIABLE_RESOLVERS = {
     "user_surname": lambda ctx: ctx["user"].surname if ctx.get("user") else "SURNAME",
     "user_position": lambda ctx: ctx["user"].position if ctx.get("user") else "POSITION",
     "user_email": lambda ctx: ctx["user"].email if ctx.get("user") else "EMAIL",
-    "branch_name": lambda ctx: "BRANCH NAME",
+    "branch_name": lambda ctx: ctx["branch"].name if ctx.get("branch") else "НАИМЕНОВАНИЕ ПОДРАЗДЕЛЕНИЯ",
+    "branch_id": lambda ctx: ctx["branch"].id if ctx.get("branch") else "НАИМЕНОВАНИЕ ПОДРАЗДЕЛЕНИЯ",
     "stamp": lambda ctx: "",
     "kpp": lambda ctx: ctx["company"].kpp if ctx.get("company") else "КПП",
     "ogrn":lambda ctx: ctx["company"].ogrn if ctx.get("company") else "ОГРН",
@@ -43,6 +44,26 @@ VARIABLE_RESOLVERS = {
     "bik": lambda ctx: ctx["company"].bik if ctx.get("company") else "БИК",
     "checking_account": lambda ctx: ctx["company"].checking_account if ctx.get("company") else "Р/С",
     "correspondent_account": lambda ctx: ctx["company"].correspondent_account if ctx.get("company") else "К/C",
+    "my_kpp": lambda ctx: ctx["branch"].kpp if ctx.get("branch") else "МОЙ КПП",
+    "my_ogrn": lambda ctx: ctx["branch"].ogrn if ctx.get("branch") else "МОЙ ОГРН",
+    "my_okpo": lambda ctx: ctx["branch"].okpo if ctx.get("branch") else "МОЙ ОКПО",
+    "my_okved": lambda ctx: ctx["branch"].okved if ctx.get("branch") else "МОЙ ОКВЭД",
+    "my_okfs": lambda ctx: ctx["branch"].okfs if ctx.get("branch") else "МОЙ ОКФС",
+    "my_okopf": lambda ctx: ctx["branch"].okopf if ctx.get("branch") else "МОЙ ОКОПФ",
+    "my_okato": lambda ctx: ctx["branch"].okato if ctx.get("branch") else "МОЙ ОКАТО",
+    "my_legal_address": lambda ctx: ctx["branch"].legal_address if ctx.get("branch") else "МОЙ ЮР.АДРЕС",
+    "my_address": lambda ctx: ctx["branch"].address if ctx.get("branch") else "МОЙ ФАКТ.АДРЕС",
+    "my_email": lambda ctx: ctx["branch"].email if ctx.get("branch") else "МОЙ ПОЧТА",
+    "my_telephone": lambda ctx: ctx["branch"].telephone if ctx.get("branch") else "МОЙ ТЕЛЕФОН",
+    "my_website": lambda ctx: ctx["branch"].website if ctx.get("branch") else "МОЙ САЙТ",
+    "my_director_full_name": lambda ctx: ctx["branch"].director_full_name if ctx.get("branch") else "МОЕ ФИО",
+    "my_director_short_name": lambda ctx: ctx["branch"].director_short_name if ctx.get("branch") else "МОЯ ФАМИЛИЯ+ИНИЦИАЛЫ",
+    "my_director_position": lambda ctx: ctx["branch"].director_position if ctx.get("branch") else "МОЯ ДОЛЖНОСТЬ РУКОВОДИТЕЛЯ",
+    "my_authority_document": lambda ctx: ctx["branch"].authority_document if ctx.get("branch") else "МОЕ ОСНОВАНИЕ ПОЛНОМОЧИЙ",
+    "my_bank_name": lambda ctx: ctx["branch"].bank_name if ctx.get("branch") else "МОЙ БАНК",
+    "my_bik": lambda ctx: ctx["branch"].bik if ctx.get("branch") else "МОЙ БИК",
+    "my_checking_account": lambda ctx: ctx["branch"].checking_account if ctx.get("branch") else "МОЙ Р/С",
+    "my_correspondent_account": lambda ctx: ctx["branch"].correspondent_account if ctx.get("branch") else "МОЙ К/C",
 }
 
 
@@ -69,16 +90,18 @@ async def build_ctx_objects(session, query, user_id, is_admin):
         ctx["company"] = safe_get(stage, "project", "contract", "company")
 
     elif query.project_id:
-        project = await get_project_by_id(session, query.project_id)
+        project = await get_project_by_for_ctx(session, query.project_id)
         ctx["project"] = project
         ctx["client"] = safe_get(project, "client")
         ctx["contract"] = safe_get(project, "contract")
         ctx["company"] = safe_get(project, "contract", "company")
+        ctx["branch"] = safe_get(project, "contract", "branch")
 
     elif query.contract_id:
         contract = await get_contract_by_id(session, query.contract_id)
         ctx["contract"] = contract
         ctx["company"] = safe_get(contract, "company")
+        ctx["branch"] = safe_get(contract, "branch")
         ctx["client"] = safe_get(contract, "company", "client")
 
     elif query.company_id:
@@ -93,6 +116,11 @@ async def build_ctx_objects(session, query, user_id, is_admin):
     if query.user_id:
         user = await get_user_by_id(session, query.user_id)
         ctx["user"] = user
+        ctx["branch"] = safe_get(user, "branch")
+
+    if query.branch_id:
+        branch = await get_branch_by_id(session, query.branch_id)
+        ctx["branch"] = branch
 
     return ctx
 
@@ -105,26 +133,3 @@ def safe_get(obj, *attrs):
 
     return result
 
-
-def add_context_for_branch(context, model):
-    context["branch_name"] = model.name or "BRANCH NAME"
-    context["kpp"] = model.kpp or "КПП"
-    context["ogrn"] = model.ogrn or "ОГРН"
-    context["okpo"] = model.okpo or "ОКПО"
-    context["okved"] = model.okved or "ОКВЭД"
-    context["okfs"] = model.okfs or "ОКФС"
-    context["okopf"] = model.okopf or "ОКОПФ"
-    context["okato"] = model.okato or "ОКАТО"
-    context["legal_address"] = model.legal_address or "ЮР.АДРЕС"
-    context["address"] = model.address or "ФАКТ.АДРЕС"
-    context["email"] = model.email or "ПОЧТА"
-    context["telephone"] = model.telephone or "ТЕЛЕФОН"
-    context["website"] = model.website or "САЙТ"
-    context["director_full_name"] = model.director_full_name or "ФИО"
-    context["director_short_name"] = model.director_short_name or "ФАМИЛИЯ+ИНИЦИАЛЫ"
-    context["director_position"] = model.director_position or "ДОЛЖНОСТЬ РУКОВОДИТЕЛЯ"
-    context["authority_document"] = model.authority_document or "ОСНОВАНИЕ ПОЛНОМОЧИЙ"
-    context["bank_name"] = model.bank_name or "БАНК"
-    context["bik"] = model.bik or "БИК"
-    context["checking_account"] = model.checking_account or "Р/С"
-    context["correspondent_account"] = model.correspondent_account or "К/C"

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование шаблона документа
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        value="{{ template.name }}"
+        disabled>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Описание
+
+    </label>
+
+    <textarea
+        name="description"
+        class="form-control"
+        rows="4">{{ template.description or '' }}</textarea>
+
+</div>
+
+<div class="form-check mb-3">
+
+    <input
+        type="checkbox"
+        class="form-check-input"
+        name="is_public"
+        value="true"
+        {% if template.is_public %}checked{% endif %}>
+
+    <label class="form-check-label">
+
+        Публичный шаблон
+
+    </label>
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+{% endblock %}

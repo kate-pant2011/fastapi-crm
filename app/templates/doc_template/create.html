@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание шаблона документа
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/create_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Название
+    </label>
+
+    <input
+        type="text"
+        name="name"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Описание
+    </label>
+
+    <textarea
+        name="description"
+        class="form-control"></textarea>
+
+</div>
+
+<div class="form-check mb-3">
+
+    <input
+        type="checkbox"
+        class="form-check-input"
+        name="is_public"
+        value="true">
+
+    <label class="form-check-label">
+        Публичный шаблон
+    </label>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Файл шаблона
+    </label>
+
+    <input
+        type="file"
+        name="file"
+        class="form-control"
+        required>
+
+</div>
+
+{% include "components/create_form_end.html" %}
+
+{% endblock %}

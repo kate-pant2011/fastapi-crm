@@ -149,7 +149,7 @@ async def project_detail_page(
         "delete_url": f"/projects/{project_id}/delete",
         "restore_url": f"/projects/{project_id}/restore",
         "email_url":f"/email-form?project_id={project_id}", 
-        "document_url":f"/document-form?project_id={project_id}", 
+        "document_url":f"/doc-templates?project_id={project_id}", 
         "error": None,
     }
 

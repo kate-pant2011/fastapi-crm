@@ -11,7 +11,8 @@ from app.schemas.doc_template import (
     DocTemplateCreation, 
     DocTemplatePatchRequest, 
     DocTemplateDeleteResponse, 
-    GeneratedDocResponse
+    GeneratedDocResponse,
+     RenderDocumentDTO
 )
 from app.services.doc_template import (
     get_doc_template_list, 
@@ -20,6 +21,7 @@ from app.services.doc_template import (
     change_doc_template, 
     delete_doc_template, 
     render_doc_template,
+    prepare_doc_template
 )
 
 @dataclass
@@ -31,7 +33,6 @@ class VariablesDTO:
     stage_id: int | None 
     user_id: int | None 
     branch_id: int | None
-    stamp_width_mm: int | None
 
 doc_template_router = APIRouter()
 
@@ -80,7 +81,7 @@ async def get_doc_template_router(
 async def create_doc_template_router(
     name: str = Form(...),
     description: str | None = Form(None),
-    is_public: bool = Form(...),
+    is_public: bool | None = Form(False),
     file: UploadFile = File(...),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
@@ -133,8 +134,8 @@ async def delete_doc_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@doc_template_router.post("/doc-template/{id}/render", response_model=GeneratedDocResponse)
-async def render_doc_template_router(
+@doc_template_router.post("/doc-template/{id}/prepare", response_model=RenderDocumentDTO)
+async def prepare_doc_template_router(
     id: int,
     session: AsyncSession = Depends(get_db),
     project_id: int | None = Query(default=None),
@@ -142,9 +143,7 @@ async def render_doc_template_router(
     contract_id: int | None = Query(default=None),
     company_id: int | None = Query(default=None),
     stage_id: int | None = Query(default=None),
-    user_id: int | None = Query(default=None),
     branch_id: int | None = Query(default=None),
-    stamp_width_mm: int | None = Query(default=None),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
@@ -154,11 +153,27 @@ async def render_doc_template_router(
             contract_id=contract_id,
             company_id=company_id,
             stage_id=stage_id,
-            user_id=user_id,
+            user_id = user.id,
             branch_id=branch_id,
-            stamp_width_mm=stamp_width_mm
         )
-        return await render_doc_template(session, user.id, user.roles, id, query)
+        return await prepare_doc_template(session, user.id, user.roles, id, query)
+
+    except ApplicationException as e:
+        raise HTTPException(status_code=e.code, detail=e.name)
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
+
+
+@doc_template_router.post("/doc-template/{id}/render", response_model=GeneratedDocResponse)
+async def render_doc_template_router(
+    id: int,
+    data:  RenderDocumentDTO, 
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
+):
+    try:
+        return await render_doc_template(session, user.id, user.roles, id, data)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

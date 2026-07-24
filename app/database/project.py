@@ -5,6 +5,7 @@ from app.models.stage import Stage
 from app.models.contract import Contract
 from app.models.assignment import Assignment
 from sqlalchemy.orm import selectinload
+from sqlalchemy import exists, and_
 from .common import apply_sorting, order, get_all_and_total
 
 
@@ -50,15 +51,31 @@ async def get_project_by_id(session, id, manager_id=None, executor_id=None):
         conditions.append((Client.manager_id == manager_id))
 
     if executor_id is not None:
-        conditions.append(
-            Project.stages.any(
-                (Stage.assignments.any(Assignment.user_id == executor_id))
+        conditions.append(Project.stages.any(
+            Stage.assignments.any(Assignment.user_id == executor_id)
             )
         )
 
     if conditions:
         stmt = stmt.where(or_(*conditions))
 
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
+async def get_project_by_for_ctx(session, id):
+    stmt = (
+        select(Project)
+        .options(
+            selectinload(Project.contract).selectinload(Contract.company),
+            selectinload(Project.contract).selectinload(Contract.branch),
+            selectinload(Project.client).selectinload(Client.manager),
+            selectinload(Project.stages),
+            selectinload(Project.files),
+        )
+        .join(Project.client)
+        .where(Project.id == id)
+    )
     result = await session.execute(stmt)
     return result.scalar_one_or_none()
 

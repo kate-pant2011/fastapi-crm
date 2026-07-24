@@ -1,5 +1,5 @@
 from app.config.config import ApplicationException
-from app.schemas.doc_template import DocTemplateItem
+from app.schemas.doc_template import DocTemplateItem,  RenderDocumentDTO, GeneratedDocResponse
 from app.schemas.common import to_schema
 from app.file_handler import FileHandler
 from app.database.doc_template import (
@@ -10,7 +10,7 @@ from app.database.doc_template import (
 )
 from app.database.branch import get_branch_by_id_with_stamp
 from app.services.common import Access    
-from app.services.template_context import build_context, build_ctx_objects, add_context_for_branch
+from app.services.template_context import build_context, build_ctx_objects
 from app.services.file import upload_file
 from app.database.generated_doc import add_generated_doc
 from app.database.file import add_file
@@ -66,7 +66,7 @@ async def get_doc_template(session, template_id, roles, user_id):
                     template_name=template.name, 
                     reason="Access to template denied"
                 )
-            raise ApplicationException("Template id not found", 404)
+                raise ApplicationException("Template id not found", 404)
 
     return to_schema(DocTemplateItem, template)
 
@@ -175,11 +175,9 @@ def extract_variables_from_docx(file_path):
     variables = re.findall(pattern, text)
 
     return list(set(variables))
-    
 
-async def render_doc_template(session, user_id, roles, template_id, query):
-    is_admin = Access(roles).is_admin()
 
+async def doc_template_access(session, user_id, roles, template_id, is_admin):
     template = await get_doc_template_by_id(session, template_id)
     if not template:
         raise ApplicationException("Template Not found", 404)
@@ -193,25 +191,57 @@ async def render_doc_template(session, user_id, roles, template_id, query):
                 reason="Access to template denied"
             )
             raise ApplicationException("Template not found", 404)
-    
+
     if not template.file:
         raise ApplicationException("This template has no files", 400)
 
-    doc = DocxTemplate(template.file.path)
+    return template
 
+
+def normalize_value(value):
+    if value is None:
+        return ""
+
+    if isinstance(value, list):
+        return ", ".join(value)
+
+    return str(value)
+
+
+async def prepare_doc_template(session, user_id, roles, template_id, query):
+    is_admin = Access(roles).is_admin()
+
+    template = await doc_template_access(session, user_id, roles, template_id, is_admin)
+    template_vars = template.variables
+                              
     ctx_objects = await build_ctx_objects(session, query, user_id, is_admin)
     context = build_context(ctx_objects)
 
-    if query.branch_id:
-        branch = await get_branch_by_id_with_stamp(session, query.branch_id)
+    vars_for_template = {}
 
-        if branch:
-            add_context_for_branch(context, branch)
+    for var in template_vars:
+        vars_for_template[var] = normalize_value(context.get(var, ""))
 
-            if branch.stamp_file:            
-                if query.stamp_width_mm is not None:
-                    branch.stamp_width_mm = query.stamp_width_mm
+    # служебная переменная branch_id для последующей вставки печати
+    if "stamp" in template_vars:
+        vars_for_template["branch_id"] = str(context .get("branch_id"))
 
+    return RenderDocumentDTO(variables=vars_for_template)
+
+
+async def render_doc_template(session, user_id, roles, template_id, data):
+    is_admin = Access(roles).is_admin()
+
+    template = await doc_template_access(session, user_id, roles, template_id, is_admin)
+
+    doc = DocxTemplate(template.file.path)
+
+    context = data.variables
+
+    branch_id = context.pop("branch_id", None)
+    if branch_id is not None:
+        branch = await get_branch_by_id_with_stamp(session,  int(branch_id))
+        if branch and branch.stamp_file:            
                 context["stamp"] = InlineImage(
                     doc,
                     branch.stamp_file.path,
@@ -231,7 +261,7 @@ async def render_doc_template(session, user_id, roles, template_id, query):
 
     except Exception as e:
         logger.exception("Bad file error")
-        raise ApplicationException(f"Something went wrong", 400)
+        raise ApplicationException(f"Something went wrong - {e}", 400)
 
     size = os.path.getsize(output_path)
     now = datetime.now().strftime("%Y%m%d%H%M")
@@ -254,10 +284,16 @@ async def render_doc_template(session, user_id, roles, template_id, query):
         file_name=file.name, 
         template_id=template_id
     )
-    return {
-        "doc_id": generated_doc.id,
-        "file_id": file.id,
-        "filename": file.name,
-    }
+
+    return GeneratedDocResponse(
+        doc_id=generated_doc.id,
+        file_id=file.id,
+        filename=file.name
+
+    )
+
+
+    
+
     
 

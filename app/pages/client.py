@@ -126,7 +126,7 @@ async def client_detail_page(
         "delete_url": f"/clients/{client_id}/delete",
         "restore_url": f"/clients/{client_id}/restore",
         "email_url":f"/email-form?client_id={client_id}", 
-        "document_url":f"/document-form?client_id={client_id}", 
+        "document_url":f"/doc-templates?client_id={client_id}", 
         "error": None,
     }
 

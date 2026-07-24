@@ -17,14 +17,12 @@ class DocTemplateItem(BaseModel):
 class DocTemplateCreation(BaseModel):
     name: str = Field(min_length=1)
     description: str | None = Field(None, min_length=1)
-    required_entities: list[str] | None = Field(None, min_items=1)
     is_public: bool
     model_config = {"extra": "forbid"}
 
 
 class DocTemplatePatchRequest(BaseModel):
     description: str | None = Field(None, min_length=1)
-    required_entities: list[str] | None = Field(None, min_items=1)
     is_public: bool | None 
     model_config = {"extra": "forbid"}
 
@@ -36,3 +34,7 @@ class GeneratedDocResponse(BaseModel):
     doc_id: int
     file_id: int
     filename: str
+
+
+class RenderDocumentDTO(BaseModel):
+    variables: dict[str, str]

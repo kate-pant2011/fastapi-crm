@@ -122,7 +122,7 @@ async def company_detail_page(
         "delete_url": f"/companies/{company_id}/delete",
         "restore_url": f"/companies/{company_id}/restore",
         "email_url":f"/email-form?company_id={company_id}", 
-        "document_url":f"/document-form?company_id={company_id}", 
+        "document_url":f"/doc-templates?company_id={company_id}", 
         "error": None,
     }
 

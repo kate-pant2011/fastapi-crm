@@ -9,7 +9,7 @@ class DocumentTemplate(BaseModel):
     description = Column(String(500), nullable=True, unique=False)
 
     variables = Column(ARRAY(String(255)), nullable=True)
-    required_entities = Column(ARRAY(String(255)), nullable=True) 
+    required_entities = Column(ARRAY(String(255)), nullable=True)  #не использую, удалить
     is_public = Column(Boolean, nullable=False)
 
     creator_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)

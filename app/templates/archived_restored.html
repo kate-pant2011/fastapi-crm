@@ -1,45 +1,47 @@
 {% extends "base.html" %}
 
 {% block title %}
-Удаление-Восстановление
+Успешно
 {% endblock %}
 
 {% block content %}
 
-<h2 class="mb-4">
-
 {% include "components/error_alert.html" %}
 
-{% if name and deleted %}
+<div class="card">
 
-    Действие для {{ name }} выполненно
+    <div class="card-header bg-success text-white">
 
-{% endif %}
+        <h4 class="mb-0">
 
-{% if deleted %}
+            ✅ Успешно
 
-    <h4 class="card-title">
+        </h4>
 
-        {{ deleted }}
+    </div>
 
-    </h4>
+    <div class="card-body text-center py-5">
 
-{% else %}
+        <h5 class="mb-4">
 
-    <form
-        method="get"
-        action="{{ detail_url }}">
+            {{ message }}
 
-        <button
-            type="submit"
-            class="btn btn-warning">
+        </h5>
 
-            Вернуться в карточку
+        {% if return_url %}
 
-        </button>
+        <a
+            href="{{ return_url }}"
+            class="btn btn-primary">
 
-    </form>
+            Продолжить
 
-{% endif %}
+        </a>
+
+        {% endif %}
+
+    </div>
+
+</div>
 
 {% endblock %}

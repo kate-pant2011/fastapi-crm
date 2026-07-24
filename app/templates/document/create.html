@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание документа
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Создание документа
+</h2>
+
+<div id="error-box"></div>
+
+<div id="loading" class="alert alert-info">
+
+    Загрузка шаблона...
+
+</div>
+
+<form
+    id="render-form"
+    class="d-none">
+
+    <div
+        id="variables-container"
+        class="mb-4">
+
+    </div>
+
+    <button
+        type="submit"
+        class="btn btn-success">
+
+        Сгенерировать документ
+
+    </button>
+
+</form>
+
+<script>
+const prepareUrl = "{{ prepare_url | safe }}";
+const renderUrl = "{{ render_url | safe }}";
+
+const loading = document.getElementById("loading");
+const form = document.getElementById("render-form");
+const container = document.getElementById("variables-container");
+const errorBox = document.getElementById("error-box");
+
+console.log(prepareUrl);
+fetch(prepareUrl,{
+    method:"POST"
+})
+.then(async response=>{
+
+    if(!response.ok){
+
+        throw new Error(await response.text());
+
+    }
+
+    return response.json();
+
+})
+.then(data=>{
+
+    loading.classList.add("d-none");
+    form.classList.remove("d-none");
+
+    const vars=data.variables;
+
+    if(Object.keys(vars).length===0){
+
+        container.innerHTML=`
+        <div class="alert alert-secondary">
+
+            В шаблоне отсутствуют редактируемые переменные.
+            Документ можно сразу сгенерировать.
+
+        </div>
+        `;
+
+        return;
+    }
+
+    for(const [name,value] of Object.entries(vars)){
+
+        const block=document.createElement("div");
+
+        block.className="mb-3";
+
+        block.innerHTML=`
+
+            <label class="form-label">
+
+                ${name}
+
+            </label>
+
+            <input
+                class="form-control"
+                name="${name}"
+                value="${value ?? ""}"
+                type="text">
+
+        `;
+
+        container.appendChild(block);
+
+    }
+
+})
+.catch(error=>{
+
+    loading.classList.add("d-none");
+
+    errorBox.innerHTML=`
+
+        <div class="alert alert-danger">
+
+            ${error}
+
+        </div>
+
+    `;
+
+});
+
+form.addEventListener("submit",async(event)=>{
+
+    event.preventDefault();
+
+    const variables={};
+
+    form.querySelectorAll("input").forEach(input=>{
+
+        variables[input.name]=input.value;
+
+    });
+
+    const response=await fetch(renderUrl,{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            variables:variables
+
+        })
+
+    });
+
+    if(response.ok){
+
+        window.location="/documents";
+
+        return;
+
+    }
+
+    const text=await response.text();
+
+    errorBox.innerHTML=`
+
+        <div class="alert alert-danger">
+
+            ${text}
+
+        </div>
+
+    `;
+
+});
+
+</script>
+
+{% endblock %}
