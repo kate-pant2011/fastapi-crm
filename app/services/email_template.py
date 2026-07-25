@@ -10,7 +10,9 @@ from app.database.email_template import (
 from app.services.common import Access    
 from app.services.template_context import build_context, build_ctx_objects
 from app.audit.common import audit
-
+from app.schemas.email_template import EmailRenderDTO
+from app.email.service import get_email_list
+from jinja2 import Template
 
 async def get_email_template_list(session, scope, limit, offset, roles, user_id):
     is_admin = Access(roles).is_admin()
@@ -119,10 +121,33 @@ async def render_email_template(session, user_id, roles, template_id, query):
     ctx_objects = await build_ctx_objects(session, query, user_id, is_admin)
     context = build_context(ctx_objects)
 
-    subject = template.subject_content.format_map(SafeDict(context))
-    body = template.body_content.format_map(SafeDict(context))
+    subject = Template(template.subject_content or "").render(**context)
+    body = Template(template.body_content or "").render(**context)
 
-    return {"subject": subject, "body": body}
+    to, cc = "", ""
+    client_emails = context.get("client_emails")
+    if client_emails:
+        client_emails = client_emails.split(", ")
+        to = client_emails[0]
+        if len(client_emails) > 1:
+            cc = ", ".join(client_emails[1:])
+
+    from_emails = await get_email_list(
+        session=session, 
+        limit=1000, 
+        offset=0, 
+        user_id=user_id, 
+        roles=roles, 
+        scope="available"
+    )
+
+    return EmailRenderDTO(
+        from_emails=from_emails.get("items"),
+        to=to,
+        cc=cc,
+        subject=subject,
+        body=body,
+    )
 
 
 class SafeDict(dict):

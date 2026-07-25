@@ -97,7 +97,7 @@ async def stage_detail_page(
         "edit_url": f"/projects/{project_id}/stages/{stage_id}/edit",
         "delete_url": f"/projects/{project_id}/stages/{stage_id}/delete",
         "restore_url": f"/projects/{project_id}/stages/{stage_id}/restore",
-        "email_url":f"/email-form?stage_id={stage_id}&project_id={project_id}", 
+        "email_url":f"/email-templates?stage_id={stage_id}&project_id={project_id}", 
         "document_url":f"/doc-templates?stage_id={stage_id}", 
         "error": None,
     }

@@ -148,7 +148,7 @@ async def project_detail_page(
         "edit_url": f"/projects/{project_id}/edit",
         "delete_url": f"/projects/{project_id}/delete",
         "restore_url": f"/projects/{project_id}/restore",
-        "email_url":f"/email-form?project_id={project_id}", 
+        "email_url":f"/email-templates?project_id={project_id}", 
         "document_url":f"/doc-templates?project_id={project_id}", 
         "error": None,
     }

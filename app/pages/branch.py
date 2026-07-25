@@ -104,7 +104,7 @@ async def branch_detail_page(
         "edit_url": f"/branches/{branch_id}/edit",
         "delete_url": f"/branches/{branch_id}/delete",
         "restore_url": f"/branches/{branch_id}/restore",
-        "email_url":f"/email-form?branch_id={branch_id}", 
+        "email_url":f"/email-templates?branch_id={branch_id}", 
         "document_url":f"/doc-templates?branch_id={branch_id}", 
         "error": None,
     }

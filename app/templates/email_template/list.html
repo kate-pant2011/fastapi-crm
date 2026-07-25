@@ -29,6 +29,66 @@
     action="/email-templates"
     id="filter-form">
 
+    {# сохраняем контекст создания документа #}
+
+    {% if "user_id=" in query %}
+    <input type="hidden" name="user_id" value="{{ request.query_params.get('user_id', '') }}">
+    {% endif %}
+
+    {% if request.query_params.get("project_id") %}
+    <input
+        type="hidden"
+        name="project_id"
+        value="{{ request.query_params.get('project_id') }}">
+    {% endif %}
+
+    {% if request.query_params.get("client_id") %}
+    <input
+        type="hidden"
+        name="client_id"
+        value="{{ request.query_params.get('client_id') }}">
+    {% endif %}
+
+    {% if request.query_params.get("contract_id") %}
+    <input
+        type="hidden"
+        name="contract_id"
+        value="{{ request.query_params.get('contract_id') }}">
+    {% endif %}
+
+    {% if request.query_params.get("company_id") %}
+    <input
+        type="hidden"
+        name="company_id"
+        value="{{ request.query_params.get('company_id') }}">
+    {% endif %}
+
+    {% if request.query_params.get("stage_id") %}
+    <input
+        type="hidden"
+        name="stage_id"
+        value="{{ request.query_params.get('stage_id') }}">
+    {% endif %}
+
+    {% if request.query_params.get("branch_id") %}
+    <input
+        type="hidden"
+        name="branch_id"
+        value="{{ request.query_params.get('branch_id') }}">
+    {% endif %}
+
+    {% if request.query_params.get("generated_id") %}
+    <input
+        type="hidden"
+        name="generated_id"
+        value="{{ request.query_params.get('generated_id') }}">
+    {% endif %}
+
+<form
+    method="get"
+    action="/email-templates"
+    id="filter-form">
+
     <div class="row mb-4">
 
         <div class="col-md-4">
@@ -119,6 +179,18 @@
                 <a href="/email-templates/{{ email_template.id }}">
 
                     {{ email_template.name }}
+
+                </a>
+
+            </td>
+
+            <td>
+
+                <a
+                    href="/email-template/{{ email_template.id }}/form?{{ query }}"
+                    class="btn btn-sm btn-success">
+
+                    Создать по шаблону
 
                 </a>
 

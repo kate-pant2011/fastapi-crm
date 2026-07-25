@@ -49,6 +49,7 @@ async def add_email_template(session, data, creator_id):
         name=data.name, 
         subject_content=data.subject_content,
         body_content=data.body_content,
+        from_emails=data.from_emails,
         is_public=data.is_public,
         creator_id=creator_id
     )

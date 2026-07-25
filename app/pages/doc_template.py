@@ -443,8 +443,6 @@ async def edit_doc_template(
         )
 
 
-from urllib.parse import urlencode
-
 @doc_template_page_router.get("/doc-template/{id}/form")
 async def document_create_page(
     request: Request,
@@ -510,7 +508,7 @@ async def prepare_doc_template_page(
         contract_id=contract_id,
         company_id=company_id,
         stage_id=stage_id,
-        user_id=user.id,        # всегда берем из токена
+        user_id=user.id,        
         branch_id=branch_id,
     )
 
@@ -530,10 +528,7 @@ async def render_doc_template_page(
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles(
-            "owner",
-            "admin",
-            "manager",
-            "executor",
+            "owner", "admin", "manager", "executor",
         )
     ),
 ):

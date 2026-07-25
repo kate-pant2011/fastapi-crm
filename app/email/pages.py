@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, Form, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Form, Request, File, UploadFile
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 from app.auth.dependencies import require_page_roles, UserDTO
 from typing import Literal
 from app.config.config import ApplicationException
@@ -176,7 +177,7 @@ async def email_delete_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -186,7 +187,68 @@ async def email_delete_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@email_page_router.post("/email/send", response_model=EmailStatusResponse)
+async def send_email_page(
+    request: Request,
+    generated_id: int | None = Query(default=None),
+    files: list[UploadFile] | None = File(None),
+    email_id: int = Form(...),
+    to: str = Form(...),
+    cc: str = Form(None),
+    bcc: str = Form(None),
+    subject: str = Form(None),
+    body: str = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("owner", "admin", "manager", "executor")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "email__id": email_id,
+        "error": None,
+    } 
+    try: 
+        validated_files = await validate_fastapi_file(files)
+
+        result = await send_email_service(
+            session, 
+            validated_files,
+            email_id,
+            to,
+            cc,
+            bcc,
+            subject,
+            body,
+            user.id,
+            generated_id
+        )
+
+        return RedirectResponse(
+            "/email-logs",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
             context=context,
             status_code=500,
         )

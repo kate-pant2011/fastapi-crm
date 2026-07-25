@@ -137,7 +137,7 @@ async def contract_detail_page(
         "edit_url": f"/contracts/{contract_id}/edit",
         "delete_url": f"/contracts/{contract_id}/delete",
         "restore_url": f"/contracts/{contract_id}/restore",
-        "email_url":f"/email-form?contract_id={contract_id}", 
+        "email_url":f"/email-templates?contract_id={contract_id}", 
         "document_url":f"/doc-templates?contract_id={contract_id}", 
         "error": None,
     }

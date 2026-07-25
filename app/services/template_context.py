@@ -9,8 +9,8 @@ from app.database.branch import get_branch_by_id
 VARIABLE_RESOLVERS = {
     "project_name": lambda ctx: ctx["project"].name if ctx.get("project") else "PROJECT NAME",
     "client_name": lambda ctx: ctx["client"].name if ctx.get("client") else "CLIENT NAME",
-    "client_emails": lambda ctx: ctx["client"].email if ctx.get("client") else "CLIENT EMAIL",
-    "client_telephones": lambda ctx: ctx["client"].telephone if ctx.get("client") else "CLIENT TELEPHONES",
+    "client_emails": lambda ctx: ", ".join(ctx["client"].email or []) if ctx.get("client") else "CLIENT EMAILS",
+    "client_telephones": lambda ctx: ", ".join(ctx["client"].telephone or []) if ctx.get("client") else "CLIENT TELEPHONES",
     "contract_name": lambda ctx: ctx["contract"].name if ctx.get("contract") else "CONTRACT NAME",
     "contract_number": lambda ctx: ctx["contract"].number if ctx.get("contract") else "CONTRACT NUMBER",
     "contract_valid_from": lambda ctx: ctx["contract"].valid_from if ctx.get("contract") else "CONTRACT VALID FROM",

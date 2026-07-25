@@ -1,5 +1,6 @@
 from .database import get_email_by_id, get_email_by_login, add_email, get_all_emails
 from app.database.user import get_user_by_id
+from app.database.generated_doc import get_generated_doc_by_id
 from .utils import check_smtp_connection, send_email, define_host_and_port
 from app.database.email_log import add_email_log
 from app.models.email_log import EmailLogStatus
@@ -10,6 +11,7 @@ from app.services.common import Access
 from app.file_handler import FileHandler
 from datetime import datetime
 from dataclasses import dataclass
+from app.audit.documents import docs_audit
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,7 +22,7 @@ async def get_email_list(session, limit, offset, user_id, roles, scope):
     emails = await get_all_emails(session, limit, offset, is_admin, user_id, scope)
 
     return {
-        "items": emails.items,
+        "items": emails.items or [],
         "total": emails.total,
         "limit": limit,
         "offset": offset,
@@ -129,7 +131,9 @@ async def validate_fastapi_file(files):
     return validated_files
 
 
-async def send_email_service(session, files, email_id, to, cc, bcc, subject, body, user_id):
+async def send_email_service(
+        session, files, email_id, to, cc, bcc, subject, body, user_id, generated_doc_id=None
+):
     email = await get_email_by_id(session, email_id)
     if not email:
         raise ApplicationException(f"Email not found", 400)
@@ -145,6 +149,25 @@ async def send_email_service(session, files, email_id, to, cc, bcc, subject, bod
         raise ApplicationException("Recipient is required", 400)
     
     password = decrypt_password(email.password)
+
+    if generated_doc_id:
+        document = await get_generated_doc_by_id(session,generated_doc_id)
+
+        if not document:
+            raise ApplicationException("Document Not Found", 404)
+        
+        if document.creator_id != user_id:
+            docs_audit.document_access_denied(user_id, document.file_id, document.file.name)
+            raise ApplicationException("Document Not Found", 404)
+        
+        file = FileValidateDTO(
+            filename = document.file.name,
+            mime_type = document.file.mime_type,
+            size = document.file.size,
+            content = None,
+            path = document.file.path
+        )
+        files.append(file)
 
     files_info = []
 

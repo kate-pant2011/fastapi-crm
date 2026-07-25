@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}
+Отправка письма
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Отправка письма
+</h2>
+
+{% include "components/error_alert.html" %}
+
+<form
+    id="email-form"
+    action="/email/send{% if generated_id %}?generated_id={{ generated_id }}{% endif %}"
+    method="post"
+    enctype="multipart/form-data"
+>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            От кого
+        </label>
+
+        <select
+            id="email_id"
+            name="email_id"
+            class="form-select"
+            required
+        ></select>
+
+    </div>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Кому
+        </label>
+
+        <input
+            id="to"
+            name="to"
+            class="form-control"
+            required
+        >
+
+    </div>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            CC
+        </label>
+
+        <input
+            id="cc"
+            name="cc"
+            class="form-control"
+        >
+
+    </div>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            BCC
+        </label>
+
+        <input
+            id="bcc"
+            name="bcc"
+            class="form-control"
+        >
+
+    </div>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Тема
+        </label>
+
+        <input
+            id="subject"
+            name="subject"
+            class="form-control"
+        >
+
+    </div>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+            Текст письма
+        </label>
+
+        <textarea
+            id="body"
+            name="body"
+            rows="14"
+            class="form-control"
+        ></textarea>
+
+    </div>
+
+    {% if generated_id %}
+
+    <div class="alert alert-info">
+
+        📎 Документ CRM будет приложен автоматически.
+
+    </div>
+
+    {% endif %}
+
+    <div class="mb-3">
+
+        <label class="form-label">
+
+            Дополнительные файлы
+
+        </label>
+
+        <div id="files-container">
+
+            <div class="input-group mb-2">
+
+                <input
+                    type="file"
+                    name="files"
+                    class="form-control"
+                >
+
+                <button
+                    type="button"
+                    class="btn btn-outline-danger"
+                    onclick="removeFile(this)"
+                >
+
+                    ×
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-outline-secondary mt-2"
+            onclick="addFile()"
+        >
+
+            + Добавить файл
+
+        </button>
+
+    </div>
+
+    <button
+        class="btn btn-primary"
+        type="submit"
+    >
+
+        Отправить
+
+    </button>
+
+</form>
+
+<script>
+
+const renderUrl = "{{ render_url | safe }}";
+
+async function loadEmail() {
+
+    const response = await fetch(renderUrl, {
+        method: "POST"
+    });
+
+    if (!response.ok) {
+
+        alert(await response.text());
+        return;
+
+    }
+
+    const data = await response.json();
+
+    //------------------------------------------
+    // FROM
+    //------------------------------------------
+
+    const select = document.getElementById("email_id");
+
+    select.innerHTML = "";
+
+    for (const email of data.from_emails) {
+
+        const option = document.createElement("option");
+
+        option.value = email.id;
+        option.textContent = email.login;
+
+        select.appendChild(option);
+
+    }
+
+    //------------------------------------------
+    // Остальные поля
+    //------------------------------------------
+
+    document.getElementById("to").value =
+        data.to ?? "";
+
+    document.getElementById("cc").value =
+        data.cc ?? "";
+
+    document.getElementById("bcc").value =
+        data.bcc ?? "";
+
+    document.getElementById("subject").value =
+        data.subject ?? "";
+
+    document.getElementById("body").value =
+        data.body ?? "";
+
+}
+
+loadEmail();
+
+function addFile() {
+
+    const container = document.getElementById("files-container");
+
+    const row = document.createElement("div");
+
+    row.className = "input-group mb-2";
+
+    row.innerHTML = `
+        <input
+            type="file"
+            name="files"
+            class="form-control"
+        >
+
+        <button
+            type="button"
+            class="btn btn-outline-danger"
+            onclick="removeFile(this)"
+        >
+            ×
+        </button>
+    `;
+
+    container.appendChild(row);
+
+}
+
+function removeFile(button) {
+
+    const container = document.getElementById("files-container");
+
+    if (container.children.length === 1) {
+
+        container.querySelector("input").value = "";
+
+        return;
+
+    }
+
+    button.parentElement.remove();
+
+}
+
+</script>
+
+{% endblock %}

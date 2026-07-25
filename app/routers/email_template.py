@@ -12,7 +12,7 @@ from app.schemas.email_template import (
     EmailTemplateCreation, 
     EmailTemplatePatchRequest, 
     EmailTemplateDeleteResponse, 
-    EmailTemplateShortItem,
+    EmailRenderDTO
 )
 from app.services.email_template import (
     get_email_template_list, 
@@ -31,6 +31,8 @@ class VariablesDTO:
     company_id: int | None
     stage_id: int | None 
     user_id: int | None 
+    branch_id: int | None
+    generated_id: int | None
 
 email_template_router = APIRouter()
 
@@ -124,7 +126,7 @@ async def delete_email_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@email_template_router.post("/email-template/{id}/render", response_model=EmailTemplateShortItem)
+@email_template_router.post("/email-template/{id}/render", response_model=EmailRenderDTO)
 async def render_email_template_router(
     id: int,
     session: AsyncSession = Depends(get_db),
@@ -133,7 +135,7 @@ async def render_email_template_router(
     contract_id: int | None = Query(default=None),
     company_id: int | None = Query(default=None),
     stage_id: int | None = Query(default=None),
-    user_id: int | None = Query(default=None),
+    branch_id: int | None = Query(default=None),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
@@ -143,7 +145,8 @@ async def render_email_template_router(
             contract_id=contract_id,
             company_id=company_id,
             stage_id=stage_id,
-            user_id=user_id,
+            branch_id=branch_id,
+            user_id=user.id,
         )
         return await render_email_template(session, user.id, user.roles, id, query)
 
