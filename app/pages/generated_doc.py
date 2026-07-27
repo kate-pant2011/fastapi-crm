@@ -63,7 +63,7 @@ async def generated_doc_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="generated_doc/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -73,7 +73,7 @@ async def generated_doc_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="generated_doc/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -105,6 +105,7 @@ async def convert_word_to_pdf_page(
             "request": request,
             "user": user,
             "doc_id": doc_id,
+            "return_url": "/documents",
             "error": e.name,
         }
         return templates.TemplateResponse(
@@ -119,6 +120,7 @@ async def convert_word_to_pdf_page(
             "request": request,
             "user": user,
             "doc_id": doc_id,
+            "return_url": "/documents",
             "error": f"{type(e).__name__} - {e}",
         }
         return templates.TemplateResponse(

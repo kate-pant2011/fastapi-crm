@@ -67,7 +67,7 @@ async def contractor_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="contractor/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -77,7 +77,7 @@ async def contractor_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="contractor/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -100,6 +100,7 @@ async def contractor_detail_page(
         "edit_url": f"/contractors/{contractor_id}/edit",
         "delete_url": f"/contractors/{contractor_id}/delete",
         "restore_url": f"/contractors/{contractor_id}/restore",
+        "return_url": "/contractors",
         "error": None,
     }
 
@@ -124,7 +125,7 @@ async def contractor_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="contractor/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -134,7 +135,7 @@ async def contractor_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="contractor/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -155,6 +156,7 @@ async def contractor_delete_page(
         "user": user,
         "contractor_id": contractor_id,
         "detail_url": f"/contractors/{contractor_id}",
+        "return_url": f"/contractors/{contractor_id}",
         "error": None,
     } 
 
@@ -165,6 +167,7 @@ async def contractor_delete_page(
             {
                 "name": result.name,
                 "id": result.id,
+                "message": "удаление",
             }
         )
         return templates.TemplateResponse(
@@ -177,7 +180,7 @@ async def contractor_delete_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -187,7 +190,7 @@ async def contractor_delete_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -208,6 +211,7 @@ async def contractor_restore_page(
         "user": user,
         "contractor_id": contractor_id,
         "detail_url": f"/contractors/{contractor_id}",
+        "return_url": f"/contractors/{contractor_id}",
         "error": None,
     } 
 
@@ -218,6 +222,7 @@ async def contractor_restore_page(
             {
                 "name": result.name,
                 "id": result.id,
+                "message": "восстановление"
             }
         )
         return templates.TemplateResponse(
@@ -230,7 +235,7 @@ async def contractor_restore_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -240,7 +245,7 @@ async def contractor_restore_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

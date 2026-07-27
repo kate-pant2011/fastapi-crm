@@ -2,25 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile,  Query, File,
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from app.auth.dependencies import require_page_roles, UserDTO
-from fastapi.responses import FileResponse
 from app.config.config import ApplicationException
-from app.auth.dependencies import require_roles, UserDTO
-from app.schemas.common import BaseShortResponse, BaseListResponse
-from app.schemas.branch import BranchItem, BranchCreationRequest, BranchPatchRequest
 from app.services.branch import (
-    create_branch,
     archive_branch,
     restore_branch,
     get_branch_list,
     get_branch,
-    change_branch,
-    delete_stamp,
-    download_stamp
 )
 from app.config.connection import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.routers.branch import BranchQueryDTO
-from app.services.file import get_file_for_download, get_file_list, get_file, upload_file, delete_file
+from app.services.file import upload_file
 
 branch_page_router = APIRouter()
 
@@ -71,7 +63,7 @@ async def branch_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="branch/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -81,7 +73,7 @@ async def branch_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="branch/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -106,6 +98,7 @@ async def branch_detail_page(
         "restore_url": f"/branches/{branch_id}/restore",
         "email_url":f"/email-templates?branch_id={branch_id}", 
         "document_url":f"/doc-templates?branch_id={branch_id}", 
+        "return_url":"/branches",
         "error": None,
     }
 
@@ -152,7 +145,8 @@ async def branch_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="branch/detail.html", 
+            request=request, 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -162,7 +156,7 @@ async def branch_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="branch/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -183,7 +177,9 @@ async def branch_delete_page(
         "user": user,
         "branch_id": branch_id, 
         "detail_url": f"/branches/{branch_id}",
+        "return_url":f"/branches/{branch_id}",
         "error": None,
+        "message": None
     }
 
     try:
@@ -192,6 +188,7 @@ async def branch_delete_page(
         context.update(
             {
                 "name": result.name,
+                "message": "удаление"
             }
         )
         return templates.TemplateResponse(
@@ -202,19 +199,21 @@ async def branch_delete_page(
 
     except ApplicationException as e:
         context["error"] = e.name
+        context["return_url"] = "/branches"
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
 
     except Exception as e:
         context["error"] = f"{type(e).__name__} - {e}"
+        context["return_url"] = "/branches"
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -235,6 +234,7 @@ async def branch_restore_page(
         "user": user,
         "branch_id": branch_id, 
         "detail_url": f"/branches/{branch_id}",
+        "return_url":f"/branches/{branch_id}",
         "error": None,
     }
 
@@ -244,6 +244,7 @@ async def branch_restore_page(
         context.update(
             {
                 "name": result.name,
+                "message": "восстановление"
             }
         )
         return templates.TemplateResponse(
@@ -254,19 +255,21 @@ async def branch_restore_page(
 
     except ApplicationException as e:
         context["error"] = e.name
+        context["return_url"] = "/branches"
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
 
     except Exception as e:
         context["error"] = f"{type(e).__name__} - {e}"
+        context["return_url"] = "/branches"
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -288,6 +291,7 @@ async def branch_upload_page(
         "user": user,
         "branch_id": branch_id, 
         "detail_url": f"/branches/{branch_id}",
+        "return_url":"/branches",
         "error": None,
     }
 

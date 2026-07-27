@@ -135,6 +135,7 @@ async def email_template_detail_page(
         "email_template_id": email_template_id,
         "edit_url": f"/email-templates/{email_template_id}/edit",
         "delete_url": f"/email-templates/{email_template_id}/delete",
+        "return_url": "/email-templates",
         "error": None,
     }
 
@@ -161,7 +162,7 @@ async def email_template_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="email_template/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -171,7 +172,7 @@ async def email_template_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="email_template/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -192,6 +193,7 @@ async def email_template_delete_page(
         "user": user,
         "email_template_id": email_template_id,
         "detail_url": f"/email-templates/{email_template_id}",
+        "return_url": "/email-templates",
         "error": None,
     } 
 
@@ -201,7 +203,7 @@ async def email_template_delete_page(
         context.update(
             {
                 "name": result.get("name"),
-                "deleted": "Удалено без возможности восстановления",
+                "message": "удаление без возможности восстановления",
             }
         )
         return templates.TemplateResponse(
@@ -312,6 +314,22 @@ async def render_email_template_page(
         result = await render_email_template(session, user.id, user.roles, id, query)
         return result
 
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
     except Exception as e:
-        traceback.print_exc()
-        raise
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )

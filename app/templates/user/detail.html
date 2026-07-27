@@ -14,46 +14,71 @@
 
 {% include "components/error_alert.html" %}
 
-<div class="d-flex justify-content-end gap-2 mb-4">
+{% if is_active %}
+    <div class="d-flex justify-content-end gap-2 mb-4">
 
-    <a
-        href="/users/{{ user_id }}/edit"
-        class="btn btn-primary">
-
-        Изменить
-
-    </a>
-
-    <form
-        method="post"
-        action="/users/{{ user_id }}/resend-invitation">
-
-        <button
-            type="submit"
+        <a
+            href="/users/{{ user_id }}/edit"
             class="btn btn-primary">
 
-            Повторить приглашение
+            Изменить
 
-        </button>
+        </a>
 
-    </form>
+        <form
+            method="post"
+            action="/users/{{ user_id }}/resend-invitation">
 
-    <form
-        method="post"
-        action="/users/{{ user_id }}/delete"
-        onsubmit="return confirm('Удалить пользователя?');">
+            <button
+                type="submit"
+                class="btn btn-primary">
 
-        <button
-            type="submit"
-            class="btn btn-danger">
+                Повторить приглашение
 
-            Удалить
+            </button>
 
-        </button>
+        </form>
 
-    </form>
+        <form
+            method="post"
+            action="/users/{{ user_id }}/delete"
+            onsubmit="return confirm('Удалить пользователя?');">
 
-</div>
+            <button
+                type="submit"
+                class="btn btn-danger">
+
+                Удалить
+
+            </button>
+
+        </form>
+
+    </div>
+
+{% else %}
+
+    <div class="d-flex justify-content-end gap-2 mb-4 flex-wrap">
+
+        <form
+            method="post"
+            action="/users/{{ user_id }}/restore"
+            onsubmit="return confirm('Восстановить запись?');">
+
+            <button
+                type="submit"
+                class="btn btn-danger">
+
+                Восстановить
+
+            </button>
+
+        </form>
+
+    </div>
+
+{% endif %}
+
 
 <div class="card mb-4">
 

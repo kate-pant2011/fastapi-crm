@@ -150,6 +150,7 @@ async def project_detail_page(
         "restore_url": f"/projects/{project_id}/restore",
         "email_url":f"/email-templates?project_id={project_id}", 
         "document_url":f"/doc-templates?project_id={project_id}", 
+        "return_url": "/projects", 
         "error": None,
     }
 
@@ -192,7 +193,7 @@ async def project_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="project/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -202,7 +203,7 @@ async def project_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="project/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -223,6 +224,7 @@ async def project_delete_page(
         "user": user,
         "project_id": project_id, 
         "detail_url": f"/projects/{project_id}",
+        "return_url": "/projects",
         "error": None,
     }
 
@@ -232,6 +234,7 @@ async def project_delete_page(
         context.update(
             {
                 "name": result.name,
+                "message": "удалено",
             }
         )
         return templates.TemplateResponse(
@@ -244,7 +247,7 @@ async def project_delete_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -254,7 +257,7 @@ async def project_delete_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -276,6 +279,7 @@ async def project_restore_page(
         "project_id": project_id, 
         "detail_url": f"/projects/{project_id}",
         "error": None,
+        "return_url": "/projects",
     }
 
     try:
@@ -284,6 +288,7 @@ async def project_restore_page(
         context.update(
             {
                 "name": result.name,
+                "message": "восстановление",
             }
         )
         return templates.TemplateResponse(
@@ -296,7 +301,7 @@ async def project_restore_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -306,7 +311,7 @@ async def project_restore_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -364,7 +369,7 @@ async def project_file_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="project/file_list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -374,7 +379,7 @@ async def project_file_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="project/file_list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

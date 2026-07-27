@@ -169,6 +169,119 @@ async def user_profile_page(
         )
     
 
+@user_page_router.post("/users/{user_id}/delete")
+async def user_delete_page(
+    request: Request,
+    user_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "branch_id": user_id, 
+        "detail_url": f"/users/{user_id}",
+        "return_url":f"/users/{user_id}",
+        "error": None,
+        "message": None
+    }
+
+    try:
+        result = await archive_user(session, user_id)
+
+        context.update(
+            {
+                "name": result.name,
+                "message": "удаление"
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+        context["return_url"] = "/users"
+
+        return templates.TemplateResponse(
+            request=request, name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+        context["return_url"] = "/users"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@user_page_router.post("/users/{user_id}/restore")
+async def branch_restore_page(
+    request: Request,
+    user_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "branch_id": user_id, 
+        "detail_url": f"/users/{user_id}",
+        "return_url":f"/users/{user_id}",
+        "error": None,
+    }
+
+    try:
+        result = await restore_user(session, user_id)
+
+        context.update(
+            {
+                "name": result.name,
+                "message": "восстановление"
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+        context["return_url"] = "/users"
+
+        return templates.TemplateResponse(
+            request=request, name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+        context["return_url"] = "/users"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
 @user_page_router.get("/users/{user_id}")
 async def user_detail_page(
     request: Request,
@@ -198,7 +311,8 @@ async def user_detail_page(
                 "clients_count": result.get("clients_count"),
                 "assignments_count": result.get("assignments_count"),
                 "branch": result.get("branch"),
-                "roles": result.get("roles")
+                "roles": result.get("roles"),
+                "is_active": result.get("is_active"),
             }
         )
         return templates.TemplateResponse(

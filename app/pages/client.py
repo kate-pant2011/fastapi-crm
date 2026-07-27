@@ -92,7 +92,7 @@ async def client_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -102,7 +102,7 @@ async def client_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -127,6 +127,7 @@ async def client_detail_page(
         "restore_url": f"/clients/{client_id}/restore",
         "email_url":f"/email-templates?client_id={client_id}", 
         "document_url":f"/doc-templates?client_id={client_id}", 
+        "return_url":"/clients",
         "error": None,
     }
 
@@ -155,7 +156,7 @@ async def client_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="client/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -165,7 +166,7 @@ async def client_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -186,6 +187,7 @@ async def client_delete_page(
         "user": user,
         "client_id": client_id, 
         "detail_url": f"/clients/{client_id}",
+        "return_url":f"/clients/{client_id}",
         "error": None,
     }
 
@@ -195,6 +197,7 @@ async def client_delete_page(
         context.update(
             {
                 "name": result.name,
+                "message": "удаление",
             }
         )
         return templates.TemplateResponse(
@@ -207,7 +210,7 @@ async def client_delete_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -217,7 +220,7 @@ async def client_delete_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -238,6 +241,7 @@ async def client_restore_page(
         "user": user,
         "client_id": client_id, 
         "detail_url": f"/clients/{client_id}",
+        "return_url":f"/clients/{client_id}",
         "error": None,
     }
 
@@ -247,6 +251,7 @@ async def client_restore_page(
         context.update(
             {
                 "name": result.name,
+                "message": "восстановление",
             }
         )
         return templates.TemplateResponse(
@@ -259,7 +264,7 @@ async def client_restore_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -269,7 +274,7 @@ async def client_restore_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -295,6 +300,7 @@ async def client_file_list_page(
         "offset": offset,
         "sort": sort,
         "client_id": client_id,
+        "return_url":"/clients",
         "error": None,
     }
     try:
@@ -327,7 +333,7 @@ async def client_file_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/file_list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -337,7 +343,7 @@ async def client_file_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="client/file_list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -359,6 +365,7 @@ async def client_upload_page(
         "user": user,
         "client_id": client_id, 
         "detail_url": f"/clients/{client_id}",
+        "return_url":"/clients",
         "error": None,
     }
 

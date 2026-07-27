@@ -104,7 +104,7 @@ async def contract_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="contract/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -114,7 +114,7 @@ async def contract_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="contract/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -139,6 +139,7 @@ async def contract_detail_page(
         "restore_url": f"/contracts/{contract_id}/restore",
         "email_url":f"/email-templates?contract_id={contract_id}", 
         "document_url":f"/doc-templates?contract_id={contract_id}", 
+        "return_url": "/contracts",
         "error": None,
     }
 
@@ -169,7 +170,7 @@ async def contract_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="contract/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -179,7 +180,7 @@ async def contract_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="contract/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -200,6 +201,7 @@ async def contract_delete_page(
         "user": user,
         "contract_id": contract_id, 
         "detail_url": f"/contracts/{contract_id}",
+        "return_url": f"/contracts/{contract_id}",
         "error": None,
     }
 
@@ -209,6 +211,7 @@ async def contract_delete_page(
         context.update(
             {
                 "name": result.name,
+                "message": "удаление",
             }
         )
         return templates.TemplateResponse(
@@ -221,7 +224,7 @@ async def contract_delete_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -231,7 +234,7 @@ async def contract_delete_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -252,6 +255,7 @@ async def contract_restore_page(
         "user": user,
         "contract_id": contract_id, 
         "detail_url": f"/contracts/{contract_id}",
+        "return_url": f"/contracts/{contract_id}",
         "error": None,
     }
 
@@ -261,6 +265,7 @@ async def contract_restore_page(
         context.update(
             {
                 "name": result.name,
+                "message": "восстановление",
             }
         )
         return templates.TemplateResponse(
@@ -273,7 +278,7 @@ async def contract_restore_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -283,7 +288,7 @@ async def contract_restore_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

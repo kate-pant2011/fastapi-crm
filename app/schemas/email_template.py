@@ -5,8 +5,8 @@ from app.email.schemas import EmailShortResponse
 
 class EmailTemplateItem(BaseModel):
     name: str
-    subject_content: str
-    body_content: str
+    subject_content: str | None
+    body_content: str | None
     is_public: bool
     creator: BaseShortResponse
 

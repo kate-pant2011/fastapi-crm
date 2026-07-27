@@ -104,7 +104,7 @@ async def doc_template_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="doc_template/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -114,7 +114,7 @@ async def doc_template_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="doc_template/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -134,6 +134,7 @@ async def doc_template_page_delete(
         "user": user,
         "doc_template_id": doc_template_id,
         "detail_url": f"/doc_templates/{doc_template_id}",
+        "return_url": "/doc-templates",
         "error": None,
     }
     try:
@@ -157,7 +158,7 @@ async def doc_template_page_delete(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -167,7 +168,7 @@ async def doc_template_page_delete(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -207,6 +208,7 @@ async def create_doc_template_page(
         "request": request,
         "user": user,
         "create_url": f"/doc_templates/create",
+        "return_url": "/doc-templates",
         "error": None,
     }
 
@@ -242,7 +244,7 @@ async def create_doc_template_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="doc_templates/create.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -274,6 +276,7 @@ async def doc_template_detail_page(
         "doc_template_id": doc_template_id,
         "edit_url": f"/doc-templates/{doc_template_id}/edit",
         "delete_url": f"/doc-templates/{doc_template_id}/delete",
+        "return_url": "/doc-templates",
         "error": None,
     }
 
@@ -336,6 +339,7 @@ async def edit_doc_template_page(
         "user": user,
         "edit_url": f"/doc-templates/{id}/edit",
         "error": None,
+        "return_url": "/doc-templates",
     }
 
     try:
@@ -392,6 +396,7 @@ async def edit_doc_template(
         "request": request,
         "user": user,
         "edit_url": f"/doc-templates/{id}/edit",
+        "return_url": "/doc-templates",
         "error": None,
     }
 
@@ -417,13 +422,6 @@ async def edit_doc_template(
 
     except ApplicationException as e:
         context["error"] = e.name
-
-        try:
-            context["template"] = await get_doc_template(
-                session, id, user.roles, user.id,
-            )
-        except Exception:
-            pass
 
         return templates.TemplateResponse(
             request=request,

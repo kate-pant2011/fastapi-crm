@@ -88,7 +88,7 @@ async def company_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="company/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -98,7 +98,7 @@ async def company_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="company/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -113,7 +113,6 @@ async def company_detail_page(
         require_page_roles("owner", "admin", "manager")
     ),
 ):
-
     context = {
         "request": request,
         "user": user,
@@ -123,6 +122,7 @@ async def company_detail_page(
         "restore_url": f"/companies/{company_id}/restore",
         "email_url":f"/email-templates?company_id={company_id}", 
         "document_url":f"/doc-templates?company_id={company_id}", 
+        "return_url": "/companies",
         "error": None,
     }
 
@@ -168,7 +168,7 @@ async def company_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="company/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -178,7 +178,7 @@ async def company_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="company/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -199,6 +199,7 @@ async def company_delete_page(
         "user": user,
         "branch_id": company_id, 
         "detail_url": f"/companies/{company_id}",
+        "return_url": f"/companies/{company_id}",
         "error": None,
     }
 
@@ -208,6 +209,7 @@ async def company_delete_page(
         context.update(
             {
                 "name": result.name,
+                "message": "удаление",
             }
         )
         return templates.TemplateResponse(
@@ -220,7 +222,7 @@ async def company_delete_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -230,7 +232,7 @@ async def company_delete_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -251,6 +253,7 @@ async def company_restore_page(
         "user": user,
         "branch_id": company_id, 
         "detail_url": f"/companies/{company_id}",
+        "return_url": f"/companies/{company_id}",
         "error": None,
     }
 
@@ -260,6 +263,7 @@ async def company_restore_page(
         context.update(
             {
                 "name": result.name,
+                "message": "восстановление",
             }
         )
         return templates.TemplateResponse(
@@ -272,7 +276,7 @@ async def company_restore_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -282,7 +286,7 @@ async def company_restore_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

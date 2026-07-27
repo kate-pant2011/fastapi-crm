@@ -14,19 +14,11 @@
 
         <h4 class="mb-0">
 
-            ✅ Успешно
+            ✅ Успешное {{ message }}
 
         </h4>
 
     </div>
-
-    <div class="card-body text-center py-5">
-
-        <h5 class="mb-4">
-
-            {{ message }}
-
-        </h5>
 
         {% if return_url %}
 
@@ -34,7 +26,7 @@
             href="{{ return_url }}"
             class="btn btn-primary">
 
-            Продолжить
+            Вернуться
 
         </a>
 

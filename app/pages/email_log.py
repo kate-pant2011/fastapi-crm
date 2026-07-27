@@ -96,7 +96,7 @@ async def email_log_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="email_log/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -106,7 +106,7 @@ async def email_log_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="email_log/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -159,7 +159,7 @@ async def email_log_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="email_log/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -169,7 +169,7 @@ async def email_log_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="email_log/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

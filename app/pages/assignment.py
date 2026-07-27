@@ -183,7 +183,7 @@ async def assignment_delete_page(
         context.update(
             {
                 "name": result.name,
-                "deleted": "Удалено без возможности восстановления",
+                "message": "удаление без возможности восстановления",
             }
         )
         return templates.TemplateResponse(
@@ -196,7 +196,7 @@ async def assignment_delete_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -206,7 +206,7 @@ async def assignment_delete_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

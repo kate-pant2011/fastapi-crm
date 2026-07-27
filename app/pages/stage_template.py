@@ -6,17 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config.connection import get_db
 from app.schemas.common import BaseShortResponse, BaseListResponse
 from app.schemas.project import ProjectItem
-from app.schemas.stage_template import (
-    StageTemplateItem,
-    StageTemplateCreation,
-    StageTemplatePatchRequest,
-)
 from app.services.stage_template import (
     get_stage_template_list,
     get_stage_template,
-    create_stage_template,
-    change_stage_template,
-    create_stages_with_template,
 )
 from app.services.stage_template import get_all_stage_templates
 from app.routers.user import QueryDTO
@@ -80,7 +72,7 @@ async def stage_template_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="stage_template/list.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -90,7 +82,7 @@ async def stage_template_list_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="stage_template/list.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -112,6 +104,7 @@ async def stage_template_detail_page(
         "stage_template_id": stage_template_id,
         "edit_url": f"/stage_templates/{stage_template_id}/edit",
         "delete_url": f"/stage_templates/{stage_template_id}/delete",
+        "return_url": "/stage-templates",
         "error": None,
     }
 
@@ -135,7 +128,7 @@ async def stage_template_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="stage_template/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -145,7 +138,7 @@ async def stage_template_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="stage_template/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

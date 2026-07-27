@@ -64,7 +64,7 @@ async def file_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="file/detail.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -74,7 +74,7 @@ async def file_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="file/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -105,8 +105,8 @@ async def file_page_delete(
 
         context.update(
             {
-                "deleted": "Удален без возможности восстановления",
-                "name": "файла",
+                "message": "удаление без возможности восстановления",
+                "name": "файл",
             }
         )
 
@@ -121,7 +121,7 @@ async def file_page_delete(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -131,7 +131,7 @@ async def file_page_delete(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -169,7 +169,7 @@ async def file_page_download(
 
         return templates.TemplateResponse(
             request=request, 
-            name="file/detail.html", 
+            name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -179,7 +179,7 @@ async def file_page_download(
 
         return templates.TemplateResponse(
             request=request, 
-            name="file/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

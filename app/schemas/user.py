@@ -12,6 +12,7 @@ class UserItem(BaseModel):
     roles: list[BaseShortResponse]
     clients_count: int
     assignments_count: int
+    is_active: bool
 
 rolename = Literal["owner", "admin", "manager", "executor"]
 

@@ -63,7 +63,7 @@ async def reorder_stages_router(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="project/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -73,7 +73,7 @@ async def reorder_stages_router(
 
         return templates.TemplateResponse(
             request=request, 
-            name="project/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -99,6 +99,7 @@ async def stage_detail_page(
         "restore_url": f"/projects/{project_id}/stages/{stage_id}/restore",
         "email_url":f"/email-templates?stage_id={stage_id}&project_id={project_id}", 
         "document_url":f"/doc-templates?stage_id={stage_id}", 
+        "return_url": f"/projects/{project_id}", 
         "error": None,
     }
 
@@ -128,7 +129,7 @@ async def stage_detail_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="stage/detail.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -138,7 +139,7 @@ async def stage_detail_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="stage/detail.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -162,6 +163,7 @@ async def stage_delete_page(
         "stage_id": stage_id,
         "detail_url": f"/projects/{project_id}/stages/{stage_id}",
         "error": None,
+        "return_url": f"/projects/{project_id}", 
     }
 
     try:
@@ -170,6 +172,7 @@ async def stage_delete_page(
         context.update(
             {
                 "name": result.name,
+                "message": "удаление", 
             }
         )
         return templates.TemplateResponse(
@@ -182,7 +185,7 @@ async def stage_delete_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -192,7 +195,7 @@ async def stage_delete_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -215,6 +218,7 @@ async def stage_restore_page(
         "project_id": project_id, 
         "stage_id": stage_id,
         "detail_url": f"/projects/{project_id}/stages/{stage_id}",
+        "return_url": f"/projects/{project_id}", 
         "error": None,
     }
 
@@ -224,6 +228,7 @@ async def stage_restore_page(
         context.update(
             {
                 "name": result.name,
+                "message": "восстановление",
             }
         )
         return templates.TemplateResponse(
@@ -236,7 +241,7 @@ async def stage_restore_page(
         context["error"] = e.name
 
         return templates.TemplateResponse(
-            request=request, name="archived_restored.html", 
+            request=request, name="error.html", 
             context=context,
             status_code=e.code,
         )
@@ -246,7 +251,7 @@ async def stage_restore_page(
 
         return templates.TemplateResponse(
             request=request, 
-            name="archived_restored.html",
+            name="error.html",
             context=context,
             status_code=500,
         )

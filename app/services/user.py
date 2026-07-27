@@ -34,6 +34,7 @@ async def build_user_item(session, user):
         "roles": [to_schema(BaseShortResponse, role) for role in user.roles],
         "clients_count": clients_count,
         "assignments_count": assignments_count,
+        "is_active": user.is_active,
     }
 
 sorting_rules = {"name": ("name", "surname"), "surname": ("surname", "name")}
@@ -60,9 +61,6 @@ async def get_user(session, user_id, roles):
     user = await get_user_by_id(session, user_id)
     if not user:
         raise ApplicationException("User Not found", 404)
-
-    if not user.is_active:
-        raise ApplicationException("User is archived", 400, {"id": user.id})
 
     target_roles = list({role.name for role in user.roles})
 
