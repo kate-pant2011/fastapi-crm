@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание клиента
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/create_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Имя
+    </label>
+
+    <input
+        type="text"
+        name="name"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Email
+    </label>
+
+    <input
+        type="text"
+        name="email"
+        class="form-control">
+
+    <div class="form-text">
+        Если адресов несколько, перечислите их через запятую.
+    </div>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Телефон
+    </label>
+
+    <input
+        type="text"
+        name="telephone"
+        class="form-control">
+
+    <div class="form-text">
+        Если телефонов несколько, перечислите их через запятую.
+    </div>
+
+</div>
+
+{% include "components/create_form_end.html" %}
+
+{% endblock %}

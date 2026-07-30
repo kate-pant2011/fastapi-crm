@@ -136,7 +136,7 @@ async def create_user(session, roles, data):
     is_owner = Access(roles).is_owner()
 
     user = await get_user_by_email(session, data.email)
-    if user:
+    if user is not None:
         if not user.is_active:
             raise ApplicationException("User is archived", 400, {"id": user.id})
 
@@ -154,7 +154,7 @@ async def create_user(session, roles, data):
     
     password = generate_password()
     hashed_password = hash_password(password)
-
+  
     new_user = await add_user(
         session, data, hashed_password, branch.id, password_change=True
     )
@@ -224,9 +224,7 @@ async def resend_signup_invitation(session, user_id):
     hashed_password = hash_password(password)
 
     try:
-        await send_invitation_email(
-            session=session, to=user.email, password=password
-        )
+        await send_invitation_email(to=user.email, password=password)
     except Exception:
         logger.exception(f"SMTP error - Failed to send invitation email")
 

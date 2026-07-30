@@ -55,7 +55,6 @@ async def doc_template_list_page(
         require_page_roles("owner", "admin", "manager", "executor"))
 ):
     params = {
-        "user_id": user.id,
         "project_id": project_id,
         "client_id": client_id,
         "contract_id": contract_id,
@@ -63,6 +62,8 @@ async def doc_template_list_page(
         "stage_id": stage_id,
         "branch_id": branch_id,
     }
+    print("scope =", scope)
+    print("query_params =", dict(request.query_params))
 
     query = urlencode(
         {k: v for k, v in params.items() if v is not None}

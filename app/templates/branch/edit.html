@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование филиала
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+{% include "components/organization_form.html" %}
+
+<hr>
+
+<h5 class="mb-3">
+    Параметры печати
+</h5>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Ширина печати (мм)
+    </label>
+
+    <input
+        type="number"
+        name="stamp_width_mm"
+        class="form-control"
+        min="1"
+        value="{{ template.stamp_width_mm or '' }}">
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+{% endblock %}

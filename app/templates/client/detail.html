@@ -139,11 +139,23 @@
 
     <div class="mb-4">
 
-        <label class="form-label text-muted">
+        <div class="d-flex justify-content-between align-items-center mb-2">
 
-            Компании клиента
+            <label class="form-label text-muted mb-0">
 
-        </label>
+                Компании клиента
+
+            </label>
+
+            <a
+                href="/companies/create?client_id={{ client_id }}"
+                class="btn btn-outline-info btn-sm">
+
+                + Создать компанию
+
+            </a>
+
+        </div>
 
         <div>
 
@@ -165,7 +177,11 @@
 
             {% else %}
 
-                —
+                <span class="text-muted">
+
+                    —
+
+                </span>
 
             {% endif %}
 
@@ -177,11 +193,23 @@
 
     <div class="mb-4">
 
-        <label class="form-label text-muted">
+        <div class="d-flex justify-content-between align-items-center mb-2">
 
-            Проекты клиента
+            <label class="form-label text-muted mb-0">
 
-        </label>
+                Проекты клиента
+
+            </label>
+
+            <a
+                href="/projects/create?client_id={{ client_id }}"
+                class="btn btn-outline-info btn-sm">
+
+                + Создать проект
+
+            </a>
+
+        </div>
 
         <div>
 
@@ -203,7 +231,11 @@
 
             {% else %}
 
-                —
+                <span class="text-muted">
+
+                    —
+
+                </span>
 
             {% endif %}
 

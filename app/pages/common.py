@@ -9,11 +9,12 @@ from app.config.config import ApplicationException
 from app.config.connection import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from app.routers.assignment import get_assignments_me, QueryDTO
+from app.routers.assignment import get_assignments_me, AssignmentQueryDTO
 from app.auth.dependencies import (
     UserDTO,
     get_current_user_from_cookie,
 )
+from app.schemas.common import OrganizationPatchRequest
 
 
 common_page_router = APIRouter()
@@ -88,7 +89,7 @@ async def execution_page(
     offset: int = 0,
 ):
     
-    query = QueryDTO(
+    query = AssignmentQueryDTO(
         sort=sort,
         limit=20,
         offset=offset,
@@ -137,3 +138,57 @@ async def management_page(
             "mode": "management",
         },
     )
+
+
+async def organization_patch_form(
+    name: str | None = Form(None),
+    kpp: str | None = Form(None),
+    ogrn: str | None = Form(None),
+    okpo: str | None = Form(None),
+    okved: str | None = Form(None),
+    okfs: str | None = Form(None),
+    okopf: str | None = Form(None),
+    okato:str | None = Form(None),
+    legal_address: str | None = Form(None),
+    address: str | None = Form(None),
+    email: str | None = Form(None),
+    telephone: str | None = Form(None),
+    website: str | None = Form(None),
+    director_full_name: str | None = Form(None),
+    director_short_name: str | None = Form(None),
+    director_position: str | None = Form(None),
+    authority_document: str | None = Form(None),
+    bank_name: str | None = Form(None),
+    bik: str | None = Form(None),
+    checking_account: str | None = Form(None),
+    correspondent_account: str | None = Form(None),
+) -> OrganizationPatchRequest:
+
+    data = {
+        "name": name,
+        "kpp": kpp,
+        "ogrn": ogrn,
+        "okpo": okpo,
+        "okved": okved,
+        "okfs": okfs,
+        "okopf": okopf,
+        "okato": okato,
+        "legal_address": legal_address,
+        "address": address,
+        "email":email,
+        "telephone": telephone,
+        "website": website,
+        "director_full_name": director_full_name,
+        "director_short_name": director_short_name,
+        "director_position": director_position,
+        "authority_document": authority_document,
+        "bank_name": bank_name,
+        "bik": bik,
+        "checking_account": checking_account,
+        "correspondent_account": correspondent_account,
+    }
+
+    data = {k: v for k, v in data.items() if v not in ("", None)}
+
+    return OrganizationPatchRequest(**data)
+

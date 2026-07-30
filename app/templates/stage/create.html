@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание этапа
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    Создание этапа
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+<form
+    method="post"
+    action="{{ create_url }}">
+
+    <input
+        type="hidden"
+        name="project_id"
+        value="{{ project_id }}">
+
+    <div class="card">
+
+        <div class="card-body">
+
+            <div class="mb-4">
+
+                <label class="form-label text-muted">
+
+                    Проект
+
+                </label>
+
+                <div>
+
+                    <strong>
+
+                        {{ project_name }}
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+
+                    Название этапа
+
+                </label>
+
+                <input
+                    type="text"
+                    class="form-control"
+                    name="name"
+                    required>
+
+            </div>
+
+            <div class="mb-3">
+
+                <label class="form-label">
+
+                    Описание
+
+                </label>
+
+                <textarea
+                    class="form-control"
+                    name="description"
+                    rows="5"
+                    required></textarea>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label">
+
+                        Дата начала
+
+                    </label>
+
+                    <input
+                        type="datetime-local"
+                        class="form-control"
+                        id="start_date"
+                        name="start_date"
+                        required>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label">
+
+                        Дата окончания
+
+                    </label>
+
+                    <input
+                        type="datetime-local"
+                        class="form-control"
+                        id="end_date"
+                        name="end_date"
+                        required>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="mt-4 d-flex justify-content-between">
+
+        <a
+            href="/projects/{{ project_id }}"
+            class="btn btn-outline-secondary">
+
+            Отмена
+
+        </a>
+
+        <button
+            type="submit"
+            class="btn btn-primary">
+
+            Создать этап
+
+        </button>
+
+    </div>
+
+</form>
+
+<script>
+
+const startInput = document.getElementById("start_date");
+const endInput = document.getElementById("end_date");
+
+startInput.addEventListener("change", function () {
+
+    endInput.min = this.value;
+
+    if (endInput.value && endInput.value < this.value) {
+
+        endInput.value = "";
+
+    }
+
+});
+
+</script>
+
+{% endblock %}

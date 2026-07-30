@@ -77,14 +77,26 @@
 
     <hr>
 
-    <div>
+    <div class="mb-4">
 
-        <label class="form-label text-muted">
+        <div class="d-flex justify-content-between align-items-center mb-2">
 
-            Договоры
+            <label class="form-label text-muted mb-0">
 
-        </label>
+                Договоры
 
+            </label>
+
+            <a
+                href="/contracts/create?company_id={{ company_id }}&company_name={{ name }}"
+                class="btn btn-outline-info btn-sm">
+
+                + Создать договор
+
+            </a>
+
+        </div>
+        
         <div>
 
             {% if contracts %}

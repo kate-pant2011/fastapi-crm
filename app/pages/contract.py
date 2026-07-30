@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Form, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 from app.services.company import get_company_list
 from app.services.branch import get_branch_list
 from app.services.contract import (
@@ -16,6 +17,7 @@ from app.schemas.contract import (
     ContractListResponse,
     GetContractItem,
     ContractPatchRequest,
+    statusname
 )
 from app.auth.dependencies import require_page_roles, UserDTO
 from app.config.connection import get_db
@@ -26,6 +28,7 @@ from typing import Literal
 from app.routers.company import CompanyQueryDTO
 from app.routers.contract import ContractQueryDTO
 from app.routers.branch import BranchQueryDTO
+from datetime import datetime
 
 
 contract_page_router = APIRouter()
@@ -120,6 +123,135 @@ async def contract_list_page(
         )
 
 
+@contract_page_router.get("/contracts/create")
+async def create_contract_page_(
+    request: Request,
+    company_id: int = Query(...),
+    company_name: str= Query(...),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("manager")
+    ),
+):
+    try:
+        result = await get_branch_list(
+            session=session, 
+            query=BranchQueryDTO(limit=1000)
+        )
+        context = {
+            "request": request,
+            "user": user,
+            "create_url": "/contracts/create",
+            "company_id": company_id,
+            "client_name": company_name,
+            "branches": result.get("items", [])
+        }
+
+        return templates.TemplateResponse(
+            request=request,
+            name="contract/create.html",
+            context=context,
+        )
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+@contract_page_router.post("/contracts/create")
+async def create_contract_page(
+    request: Request,
+    number: str = Form(...),
+    status: statusname = Form(...),
+    name: str = Form(None),
+    description: str = Form(None),
+    valid_from: datetime = Form(None),
+    valid_to: datetime = Form(...),
+    branch_id: int = Form(...),
+    company_id: int = Form(...),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("manager")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "contracts/create",
+        "return_url": "/contracts",
+        "error": None,
+    }
+
+    data = СontractCreation(
+        number=number,
+        status=status,
+        name=name, 
+        description=description, 
+        company_id=company_id,
+        branch_id=branch_id,
+        valid_from=valid_from,
+        valid_to=valid_to
+    )
+
+    try:
+        result = await create_contract(session, data, user.id)
+
+        context.update(
+            {
+                "id": result.id,
+                "name": result.name,
+                "form_data": {
+                    "number": number,
+                    "name": name,
+                    "status": status,
+                    "description": description,
+                    "valid_from": valid_from,
+                    "valid_to": valid_to,
+                    "company_id": company_id,
+                    "branch_id": branch_id
+                }
+            }
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+    
 @contract_page_router.get("/contracts/{contract_id}")
 async def contract_detail_page(
     request: Request,
@@ -288,6 +420,123 @@ async def contract_restore_page(
 
         return templates.TemplateResponse(
             request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@contract_page_router.get("/contracts/{id}/edit")
+async def edit_contract_page(
+    request: Request,
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager")
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/contracts/{id}/edit",
+        "error": None,
+        "return_url": "/contracts",
+    }
+
+    try:
+        result = await get_contract(session, user.roles, user.id, id)
+
+        context["template"] = result
+
+        return templates.TemplateResponse(
+            request=request,
+            name="contract/edit.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@contract_page_router.post("/contracts/{id}/edit")
+async def contract_template(
+    request: Request,
+    id: int,
+    number: str = Form(None),
+    status: statusname = Form(None),
+    name: str = Form(None),
+    description: str = Form(None),
+    valid_from: datetime = Form(None),
+    valid_to: datetime = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", "manager"
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/contracts/{id}/edit",
+        "return_url": "/contracts",
+        "error": None,
+    }
+
+    try:
+        data = {
+            "name": name,
+            "number": number,
+            "status": status,
+            "description": description,
+            "valid_from": valid_from,
+            "valid_to": valid_to,      
+        }
+ 
+        data = {k: v for k, v in data.items() if v not in ("", None)} 
+        item = ContractPatchRequest(**data) 
+
+        result = await change_contract(session, user.roles, user.id, id, item)
+
+        context["template"] = result
+
+        return RedirectResponse(
+            url=f"/contracts/{id}",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
             name="error.html",
             context=context,
             status_code=500,

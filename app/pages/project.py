@@ -27,6 +27,10 @@ from app.services.client import form_client_list
 from app.services.contract import get_contract_list
 from app.services.file import get_file_for_download, get_file_list, get_file, upload_file, delete_file
 from app.routers.file import FileQueryDTO
+from app.services.client import get_client
+from datetime import datetime
+from app.services.company import get_company_list
+from app.routers.company import CompanyQueryDTO
 
 project_page_router = APIRouter()
 
@@ -119,6 +123,121 @@ async def project_list_page(
         return templates.TemplateResponse(
             request=request, 
             name="project/list.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@project_page_router.get("/projects/create")
+async def create_project_page_(
+    request: Request,
+    client_id: int = Query(),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("manager")
+    ),
+):
+    try:
+        client = await get_client(session, user.roles, user.id, client_id)
+        context = {
+            "request": request,
+            "user": user,
+            "create_url": "/projects/create",
+            "client_id": client_id,
+            "client_name": client.name,
+        }
+
+        return templates.TemplateResponse(
+            request=request,
+            name="project/create.html",
+            context=context,
+        )
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+@project_page_router.post("/projects/create")
+async def create_project_page(
+    request: Request,
+    name: str = Form(...),
+    description: str = Form(...),
+    start_date: datetime = Form(...),
+    end_date: datetime = Form(...),
+    client_id: int = Form(...),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("manager")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "projects/create",
+        "return_url": "/projects",
+        "error": None,
+    }
+
+    data = ProjectCreation(
+        name=name, 
+        description=description, 
+        client_id=client_id,
+        start_date=start_date,
+        end_date=end_date
+    )
+
+    try:
+        result = await create_project(session, data, user.id)
+
+        context.update(
+            {
+                "id": result.id,
+                "name": result.name,
+                "form_data": {
+                    "name": name,
+                    "description": description,
+                    "start_date": start_date,
+                    "end_date": end_date,
+                    "client_id": client_id
+                }
+            }
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
             context=context,
             status_code=500,
         )
@@ -432,6 +551,147 @@ async def project_upload_page(
         context["error"] = f"{type(e).__name__} - {e}"
         return templates.TemplateResponse(
             request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@project_page_router.get("/projects/{id}/edit")
+async def edit_project_page(
+    request: Request,
+    id: int,
+    company_id: int | None = Query(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager")
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/projects/{id}/edit",
+        "error": None,
+        "project_id": id,
+        "return_url": "/projects",
+    }
+
+    try:
+        result = await get_project(session, user.roles, user.id, id)
+
+        companies = await get_company_list(
+            session=session, 
+            roles=user.roles, 
+            requester_id=user.id, 
+            query=CompanyQueryDTO(client_id=result.get("client_id"))
+        )
+
+        contracts = await get_contract_list(
+            session=session,
+            roles=user.roles,
+            requester_id=user.id, 
+            query=ContractQueryDTO(
+                scope="mine",
+                limit=1000,
+                company_id=company_id,
+            ),
+        )
+
+        context["template"] = result
+        context["companies"] = companies.get("items", [])
+        context["contracts"] = contracts.get("items", [])
+        context["selected_company_id"] = company_id
+
+        return templates.TemplateResponse(
+            request=request,
+            name="project/edit.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@project_page_router.post("/projects/{project_id}/edit")
+async def project_template(
+    request: Request,
+    project_id: int,
+    name: str = Form(None),
+    description: str = Form(None),
+    start_date: datetime = Form(None),
+    end_date: datetime = Form(None),
+    contract_id: int = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", "manager"
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/projects/{project_id}/edit",
+        "return_url": "/projects",
+        "project_id": project_id,
+        "error": None,
+    }
+
+    try:
+        data = {
+            "name": name,
+            "description": description,
+            "start_date": start_date,
+            "end_date": end_date,      
+        }
+
+        if contract_id:
+            data["contract_id"] = contract_id
+ 
+        data = {k: v for k, v in data.items() if v not in ("", None)} 
+        item = ProjectPatchRequest(**data) 
+
+        result = await change_project(session, user.roles, user.id, project_id, item)
+
+        context["template"] = result
+
+        return RedirectResponse(
+            url=f"/projects/{project_id}",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
             name="error.html",
             context=context,
             status_code=500,

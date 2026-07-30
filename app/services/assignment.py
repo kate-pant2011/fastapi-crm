@@ -11,7 +11,7 @@ from app.database.stage import get_stage_by_id
 from app.database.user import get_user_by_id
 from .contractor import get_contractor
 
-sorting_rules = {"name": ("name",)}
+sorting_rules = {"name": ("name",), "deadline": ("deadline", "name")}
 
 async def form_assignment_list(session, query):
     assignments = await get_filtered_assignments(session, query, sorting_rules)
@@ -79,7 +79,9 @@ async def create_assignment(session, data, manager_id):
     
     stage = await get_stage_by_id(session, data.stage_id, manager_id, is_admin=False)
     if not stage:
-        raise ApplicationException("stage Not found", 404)
+        raise ApplicationException(
+            "Этап не найден или у вас нет прав добавлять назначения", 404
+        )
 
     if stage.is_archived:
         raise ApplicationException("stage is archived", 400)

@@ -26,7 +26,7 @@ async def owner_exists(session):
 async def get_all_users(session, is_admin, query, sorting_rules):
     stmt = select(User).join(User.roles)
 
-    if query.is_active is None:
+    if query.is_active is None or query.is_active is True:
         stmt = stmt.where(User.is_active.is_(True))
     else:
         stmt = stmt.where(User.is_active.is_(False))

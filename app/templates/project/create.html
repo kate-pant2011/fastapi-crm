@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание проекта
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Создание проекта
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/create_form_start.html" %}
+
+<div class="alert alert-info mb-4">
+
+    Проект будет создан для клиента
+
+    <strong>
+
+        {{ client_name }}
+
+    </strong>
+
+</div>
+
+<input
+    type="hidden"
+    name="client_id"
+    value="{{ client_id }}">
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название проекта
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        name="name"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Описание
+
+    </label>
+
+    <textarea
+        class="form-control"
+        name="description"
+        rows="5"
+        required></textarea>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Дата начала
+
+        </label>
+
+        <input
+            type="datetime-local"
+            class="form-control"
+            name="start_date"
+            required>
+
+    </div>
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Дата окончания
+
+        </label>
+
+        <input
+            type="datetime-local"
+            class="form-control"
+            name="end_date"
+            required>
+
+    </div>
+
+</div>
+
+{% include "components/create_form_end.html" %}
+
+{% endblock %}

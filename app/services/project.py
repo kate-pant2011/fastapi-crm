@@ -145,14 +145,6 @@ async def create_project(session, data, manager_id):
     if client.is_archived:
         raise ApplicationException("project is archived", 400, {"id": client.id})
 
-    if data.contract_id:
-        contract = await get_contract_by_id(session, data.contract_id, manager_id)
-        if not contract:
-            raise ApplicationException("contract Not found", 404)
-
-        if contract.is_archived:
-            raise ApplicationException("contract is archived", 400, {"id": contract.id})
-
     if data.start_date > data.end_date:
         raise ApplicationException("End-date cannot be less than start-date", 400)
 

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание компании
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Создание компании
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/create_form_start.html" %}
+
+<div class="alert alert-info mb-4">
+
+    Компания будет создана для клиента
+
+    <strong>
+
+        {{ client_name }}
+
+    </strong>
+
+</div>
+
+<input
+    type="hidden"
+    name="client_id"
+    value="{{ client_id }}">
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название компании
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        name="name"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        ИНН
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        name="inn"
+        required>
+
+</div>
+
+{% include "components/create_form_end.html" %}
+
+{% endblock %}

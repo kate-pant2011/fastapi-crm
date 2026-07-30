@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from app.schemas.contract import ContractItem
-from app.schemas.common import BaseShortResponse
+from app.schemas.common import BaseShortResponse, OrganizationPatchRequest
 
 
 class CompanyCreation(BaseModel):
@@ -46,32 +46,5 @@ class CompanyItem(BaseModel):
         from_attributes = True
 
 
-class CompanyPatchRequest(BaseModel):
-    name: str | None = Field(None, min_length=1)
-
-    kpp: str | None = None
-    ogrn: str | None = None
-    okpo: str | None = None
-    okved: str | None = None
-    okfs: str | None = None
-    okopf: str | None = None
-    okato: str | None = None
-
-    legal_address: str | None = None
-    address: str | None = None
-
-    email: str | None = None
-    telephone: str | None = None
-    website: str | None = None
-
-    director_full_name: str | None = None
-    director_short_name: str | None = None
-    director_position: str | None = None
-    authority_document: str | None = None
-
-    bank_name: str | None = None
-    bik: str | None = None
-    checking_account: str | None = None
-    correspondent_account: str | None = None
-
-    model_config = {"extra": "forbid"}
+class CompanyPatchRequest(OrganizationPatchRequest):
+    pass

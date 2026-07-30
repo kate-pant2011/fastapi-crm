@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Form, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 from app.services.client import form_client_list
 from app.services.company import (
     get_company_list,
@@ -18,6 +19,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Literal
 from app.routers.company import CompanyQueryDTO
 from app.routers.client import ClientQueryDTO
+from .common import organization_patch_form
+from app.services.client import get_client
 
 company_page_router = APIRouter()
 
@@ -104,6 +107,113 @@ async def company_list_page(
         )
 
 
+@company_page_router.get("/companies/create")
+async def create_company_page_(
+    request: Request,
+    client_id: int = Query(),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("manager")
+    ),
+):
+    try:
+        client = await get_client(session, user.roles, user.id, client_id)
+        context = {
+            "request": request,
+            "user": user,
+            "create_url": "/companies/create",
+            "client_id": client_id,
+            "client_name": client.name,
+        }
+
+        return templates.TemplateResponse(
+            request=request,
+            name="company/create.html",
+            context=context,
+        )
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+@company_page_router.post("/companies/create")
+async def create_company_page(
+    request: Request,
+    name: str = Form(...),
+    inn: str = Form(...),
+    client_id: int = Form(...),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("manager")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "companies/create",
+        "return_url": "/companies",
+        "error": None,
+    }
+
+    data = CompanyCreation(
+        name=name, inn=inn, client_id=client_id
+    )
+
+    try:
+        result = await create_company(session, data, user.id)
+
+        context.update(
+            {
+                "id": result.id,
+                "name": result.name,
+                "form_data": {
+                    "name": name,
+                    "inn": inn,
+                    "client_id": client_id
+                }
+            }
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+    
 @company_page_router.get("/companies/{company_id}")
 async def company_detail_page(
     request: Request,
@@ -286,6 +396,113 @@ async def company_restore_page(
 
         return templates.TemplateResponse(
             request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@company_page_router.get("/companies/{id}/edit")
+async def edit_company_page(
+    request: Request,
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", "manager", 
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/companies/{id}/edit",
+        "error": None,
+        "return_url": "/companies",
+    }
+    
+    try:
+        result = await get_company(session, user.roles, user.id, id)
+
+        context["template"] = result
+
+        return templates.TemplateResponse(
+            request=request,
+            name="company/edit.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@company_page_router.post("/companies/{id}/edit")
+async def company_template(
+    request: Request,
+    id: int,
+    item: CompanyPatchRequest = Depends(organization_patch_form),
+    stamp_width_mm: int | None = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", "manager"
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/companies/{id}/edit",
+        "return_url": "/companies",
+        "error": None,
+    }
+    
+    try:
+        data = item.model_dump(exclude_none=True)
+
+        company_item = CompanyPatchRequest(**data)
+
+        result = await change_company(session, user.roles, user.id, id, company_item)
+
+        context["template"] = result
+
+        return RedirectResponse(
+            url=f"/companies/{id}",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
             name="error.html",
             context=context,
             status_code=500,

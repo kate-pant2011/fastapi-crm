@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание шаблона этапов
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/create_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Название
+    </label>
+
+    <input
+        type="text"
+        name="name"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Этапы
+    </label>
+
+    <textarea
+        name="stage_list"
+        class="form-control"
+        rows="5"
+        required
+        placeholder="Заявка, Подготовка КП, Согласование, Подписание договора, Исполнение"></textarea>
+
+    <div class="form-text">
+        Укажите названия этапов в нужном порядке, разделяя их запятыми.
+    </div>
+
+</div>
+
+{% include "components/create_form_end.html" %}
+
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование клиента
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Имя
+    </label>
+
+    <input
+        type="text"
+        name="name"
+        class="form-control"
+        value="{{ template.name }}">
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Email
+    </label>
+
+    <input
+        type="text"
+        name="email"
+        class="form-control"
+        value="{{ template.email | join(', ') if template.email else '' }}">
+
+    <div class="form-text">
+        Если адресов несколько, перечислите их через запятую.
+    </div>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Телефон
+    </label>
+
+    <input
+        type="text"
+        name="telephone"
+        class="form-control"
+        value="{{ template.telephone | join(', ') if template.telephone else '' }}">
+
+    <div class="form-text">
+        Если телефонов несколько, перечислите их через запятую.
+    </div>
+
+</div>
+
+{% if user.roles and ("owner" in user.roles or "admin" in user.roles) %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Менеджер
+    </label>
+
+    <select
+        name="manager_id"
+        class="form-select">
+
+        <option value="">
+            Не менять
+        </option>
+
+        {% for manager in managers %}
+
+        <option
+            value="{{ manager.id }}"
+            {% if template.manager_id == manager.id %}selected{% endif %}>
+
+            {{ manager.name }}
+
+        </option>
+
+        {% endfor %}
+
+    </select>
+
+</div>
+
+{% endif %}
+
+{% include "components/edit_form_end.html" %}
+
+{% endblock %}

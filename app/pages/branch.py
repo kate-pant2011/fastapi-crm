@@ -2,17 +2,21 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile,  Query, File,
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse
 from app.auth.dependencies import require_page_roles, UserDTO
+from app.schemas.branch import BranchPatchRequest
 from app.config.config import ApplicationException
 from app.services.branch import (
     archive_branch,
     restore_branch,
     get_branch_list,
     get_branch,
+    create_branch,
+    change_branch
 )
 from app.config.connection import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.routers.branch import BranchQueryDTO
 from app.services.file import upload_file
+from .common import organization_patch_form
 
 branch_page_router = APIRouter()
 
@@ -79,6 +83,102 @@ async def branch_list_page(
         )
 
 
+@branch_page_router.get("/branches/create")
+async def create_branch_page_(
+    request: Request,
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin")
+    ),
+):
+    try:
+        context = {
+            "request": request,
+            "user": user,
+            "create_url": "/branches/create",
+        }
+
+        return templates.TemplateResponse(
+            request=request,
+            name="branch/create.html",
+            context=context,
+        )
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+@branch_page_router.post("/branches/create")
+async def create_branch_page(
+    request: Request,
+    name: str = Form(...),
+    inn: str = Form(...),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("owner", "admin")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "/branches/create",
+        "return_url": "/branches",
+        "error": None,
+    }
+
+    try:
+        result = await create_branch(session, inn, name)
+
+        context.update(
+            {
+                "id": result.id,
+                "name": result.name,
+                "form_data": {
+                    "name": name,
+                    "inn": inn,
+                }
+            }
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+    
 @branch_page_router.get("/branches/{branch_id}")
 async def branch_detail_page(
     request: Request,
@@ -327,3 +427,117 @@ async def branch_upload_page(
             context=context,
             status_code=500,
         )
+
+
+@branch_page_router.get("/branches/{id}/edit")
+async def edit_branch_page(
+    request: Request,
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", 
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/branches/{id}/edit",
+        "error": None,
+        "return_url": "/branches",
+    }
+
+    try:
+        result = await get_branch(session, id)
+
+        context["template"] = result
+
+        return templates.TemplateResponse(
+            request=request,
+            name="branch/edit.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@branch_page_router.post("/branches/{id}/edit")
+async def branch_template(
+    request: Request,
+    id: int,
+    item: BranchPatchRequest = Depends(organization_patch_form),
+    stamp_width_mm: int | None = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", 
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/branches/{id}/edit",
+        "return_url": "/branches",
+        "error": None,
+    }
+    
+    try:
+        data = item.model_dump(exclude_none=True)
+
+        if stamp_width_mm is not None:
+            data["stamp_width_mm"] = stamp_width_mm
+
+        branch_item = BranchPatchRequest(**data)
+
+        result = await change_branch(
+            session=session, branch_id=id, item=branch_item,
+        )
+
+        context["template"] = result
+
+        return RedirectResponse(
+            url=f"/branches/{id}",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+

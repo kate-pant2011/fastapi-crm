@@ -93,7 +93,7 @@ async def create_email_template_router(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
 
 
-@email_template_router.patch("/email-template/{id}", response_model=EmailTemplateItem)
+@email_template_router.patch("/email-template/{id}", response_model=BaseShortResponse)
 async def change_email_template_router(
     data: EmailTemplatePatchRequest,
     id: int,
@@ -101,7 +101,7 @@ async def change_email_template_router(
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        return await change_email_template(session, data, user.id, user.roles, id)
+        return await change_email_template(session, data, user.id, id)
 
     except ApplicationException as e:
         raise HTTPException(status_code=e.code, detail=e.name)

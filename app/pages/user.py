@@ -65,16 +65,20 @@ async def user_list_page(
         "error": None,
     }
     try:
+        if show_archived:
+            is_active=False
+        else:
+            is_active=True
+
         query = QueryDTO(
             branch_id=branch_id,
-            is_active=False if show_archived else None,
+            is_active=is_active,
             role_name=role_name,
             sort=sort,
             limit=limit,
             offset=offset,
         )
         result = await get_user_list(session=session, roles=user.roles, query=query)
-
         branches_result = await get_branch_list(
             session=session,
             query=BranchQueryDTO(limit=1000)
@@ -227,7 +231,7 @@ async def user_delete_page(
 
 
 @user_page_router.post("/users/{user_id}/restore")
-async def branch_restore_page(
+async def user_restore_page(
     request: Request,
     user_id: int,
     session: AsyncSession = Depends(get_db),
@@ -239,7 +243,7 @@ async def branch_restore_page(
     context = {
         "request": request,
         "user": user,
-        "branch_id": user_id, 
+        "user_id": user_id, 
         "detail_url": f"/users/{user_id}",
         "return_url":f"/users/{user_id}",
         "error": None,
@@ -281,6 +285,185 @@ async def branch_restore_page(
             status_code=500,
         )
 
+
+@user_page_router.post("/users/{user_id}/resend-invitation")
+async def user_restore_page(
+    request: Request,
+    user_id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin")
+    ),
+):
+
+    context = {
+        "request": request,
+        "user": user,
+        "user_id": user_id, 
+        "detail_url": f"/users/{user_id}",
+        "return_url":f"/users/{user_id}",
+        "error": None,
+    }
+
+    try:
+        result = await resend_signup_invitation(session, user_id)
+
+        context.update(
+            {
+                "name": result.get("name", ""),
+                "message": "отправление приглашения"
+            }
+        )
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+        context["return_url"] = "/users"
+
+        return templates.TemplateResponse(
+            request=request, name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+        context["return_url"] = "/users"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+    
+@user_page_router.get("/users/create")
+async def create_contractor_page_(
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin")
+    ),
+):
+    try:
+        branches_result = await get_branch_list(
+            session=session,
+            query=BranchQueryDTO(limit=1000)
+        )
+        context = {
+            "request": request,
+            "user": user,
+            "create_url": "/users/create",
+            "branches": branches_result.get("items", []),
+        }
+
+        return templates.TemplateResponse(
+            request=request,
+            name="user/create.html",
+            context=context,
+        )
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+@user_page_router.post("/users/create")
+async def create_contractor_page(
+    request: Request,
+    name: str = Form(...),
+    surname: str = Form(...),
+    position: str = Form(...),
+    email: str = Form(...), 
+    branch_id: int = Form(...),
+    roles: list[str] = Form(...),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("owner", "admin")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "/users/create",
+        "return_url": "/users",
+        "error": None,
+    }
+
+    try:
+        data = UserCreationRequest(
+            name=name,
+            email=email,
+            surname=surname,
+            position=position,
+            branch_id=branch_id,
+            roles=roles
+        )
+
+        result = await create_user(session,  user.roles, data)
+
+        branches_result = await get_branch_list(
+            session=session,
+            query=BranchQueryDTO(limit=1000)
+        )
+        context.update(
+            {
+                "user_id": result.get("user_id"),
+                "name": result.get("name"),
+                "branches": branches_result.get("items", []),
+                "form_data": {
+                    "name": name,
+                    "email": email,
+                    "surname": surname,
+                    "position": position,
+                    "branch_id":branch_id
+                }
+            }
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+    
 
 @user_page_router.get("/users/{user_id}")
 async def user_detail_page(
@@ -336,6 +519,143 @@ async def user_detail_page(
         return templates.TemplateResponse(
             request=request, 
             name="user/detail.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@user_page_router.get("/users/{id}/edit")
+async def edit_user_page(
+    request: Request,
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", 
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/users/{id}/edit",
+        "error": None,
+        "return_url": "/users",
+    }
+
+    try:
+        result = await get_user(session, id, user.roles)
+        branches_result = await get_branch_list(
+            session=session,
+            query=BranchQueryDTO(limit=1000)
+        )
+
+        context["template"] = result
+        context['branches'] = branches_result.get("items", [])
+
+        return templates.TemplateResponse(
+            request=request,
+            name="user/edit.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@user_page_router.post("/users/{id}/edit")
+async def user_template(
+    request: Request,
+    id: int,
+    name: str = Form(None),
+    surname: str = Form(None),
+    position: str = Form(None),
+    branch_id: int = Form(None),
+    role: list[str] = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", 
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/contractors/{id}/edit",
+        "return_url": "/contractors",
+        "error": None,
+    }
+        
+    try:
+        data = UserPatchRequest(
+            name=name,
+            surname=surname,
+            position=position,
+            branch_id=branch_id,
+            role=role
+        )
+        data = {
+            "name": name,
+            "surname": surname,
+            "position": position,      
+        }
+
+        if branch_id:
+            data["branch_id"] = branch_id
+        if role:
+            data["role"] = role
+
+        item = UserPatchRequest(**data)  
+
+        result = await change_user(
+            session=session,
+            roles=user.roles,
+            user_id=id,
+            item=item,
+
+        )
+
+        context["template"] = result
+
+        return RedirectResponse(
+            url=f"/users/{id}",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
             context=context,
             status_code=500,
         )

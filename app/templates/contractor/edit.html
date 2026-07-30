@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование подрядчика
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название
+
+    </label>
+
+    <input
+        type="text"
+        name="name"
+        class="form-control"
+        value="{{ template.name }}"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Описание
+
+    </label>
+
+    <textarea
+        name="description"
+        class="form-control"
+        rows="4"
+        required>{{ template.description }}</textarea>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Email
+
+    </label>
+
+    <input
+        type="text"
+        name="email"
+        class="form-control"
+        value="{{ template.email | join(', ') if template.email else '' }}"
+        placeholder="mail1@example.com, mail2@example.com">
+
+    <div class="form-text">
+
+        Укажите один или несколько email-адресов через запятую.
+
+    </div>
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование этапа
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    Редактирование этапа
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название этапа
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        name="name"
+        value="{{ template.name }}"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Описание
+
+    </label>
+
+    <textarea
+        class="form-control"
+        name="description"
+        rows="5"
+        required>{{ template.description }}</textarea>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Дата начала
+
+        </label>
+
+        <input
+            type="datetime-local"
+            class="form-control"
+            name="start_date"
+            value="{% if template.start_date %}{{ template.start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+            required>
+
+    </div>
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Дата окончания
+
+        </label>
+
+        <input
+            type="datetime-local"
+            class="form-control"
+            name="end_date"
+            value="{% if template.end_date %}{{ template.end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+            required>
+
+    </div>
+
+</div>
+
+<hr class="my-4">
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label text-muted">
+
+            Проект
+
+        </label>
+
+        <div class="form-control-plaintext">
+
+            <a href="/projects/{{ template.project.id }}">
+
+                {{ template.project.name }}
+
+            </a>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label text-muted">
+
+            Позиция этапа
+
+        </label>
+
+        <div class="form-control-plaintext">
+
+            {{ template.position }}
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="mb-4">
+
+    <label class="form-label text-muted">
+
+        Задания этапа
+
+    </label>
+
+    <div>
+
+        {% if template.assignments %}
+
+            {% for assignment in template.assignments %}
+
+            <div>
+
+                <a href="/assignments/{{ assignment.id }}">
+
+                    {{ assignment.name }}
+
+                </a>
+
+            </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <span class="text-muted">
+
+                Заданий пока нет
+
+            </span>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+<script>
+
+document.querySelector('[name="start_date"]').addEventListener('change', function () {
+
+    document.querySelector('[name="end_date"]').min = this.value;
+
+});
+
+</script>
+
+{% endblock %}

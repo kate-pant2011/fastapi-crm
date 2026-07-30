@@ -10,6 +10,8 @@ from .service import add_email_user, send_email_service, get_email_list, get_ema
 from .schemas import (
     EmailShortResponse, EmailPostRequest, EmailStatusResponse, EmailListResponse, EmailItem, EmailPatchRequest
 )
+from app.services.user import get_user_list
+from app.routers.user import QueryDTO
 
 email_page_router = APIRouter()
 
@@ -81,6 +83,132 @@ async def email_list_page(
         )
 
 
+@email_page_router.get("/email-accounts/create")
+async def create_email_page_(
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin")
+    ),
+):
+
+    try:
+        query = QueryDTO(
+            limit=1000,
+            offset=0,
+        )
+        result = await get_user_list(session=session, roles=user.roles, query=query)
+        context = {
+            "users": result.get("items", []),
+            "request": request,
+            "user": user,
+            "create_url": "/email-accounts/create",
+        }
+
+        return templates.TemplateResponse(
+            request=request,
+            name="email/create.html",
+            context=context,
+        )
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@email_page_router.post("/email-accounts/create")
+async def create_email_page(
+    request: Request,
+    login: str = Form(...), 
+    password: str = Form(...),
+    server: str = Form(None),
+    port: int = Form(None),
+    assigned_user_id: int = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("owner", "admin")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "/email-accounts/create",
+        "return_url": "/email-accounts",
+        "error": None,
+    }
+
+    try:
+        query = QueryDTO(
+            is_active=True,
+            limit=1000,
+            offset=0,
+        )
+        result = await get_user_list(session=session, roles=user.roles, query=query)
+        context.update({"users": result.get("items", [])})
+        data = EmailPostRequest(
+            login=login, 
+            password=password,
+            server=server,
+            port=port,
+            assigned_user_id=assigned_user_id,
+        )
+
+        result = await add_email_user(session, data, user.id)
+
+        context.update(
+            {
+                "id": result.id,
+                "login": result.login,
+                "form_data": {
+                    "login": login,
+                    "password": password,
+                    "server": server,
+                    "port": port,
+                    "assigned_user_id": assigned_user_id
+                }
+            }
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+    
 @email_page_router.get("/email-accounts/{email_id}")
 async def email_detail_page(
     request: Request,
@@ -248,6 +376,131 @@ async def send_email_page(
 
         return templates.TemplateResponse(
             request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@email_page_router.get("/email-accounts/{id}/edit")
+async def email_contractor_page(
+    request: Request,
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin",
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/email-accounts/{id}/edit",
+        "error": None,
+        "return_url": "/email-accounts",
+    }
+
+    try:
+        result = await get_email(session, id)
+
+        context["template"] = result
+
+        query = QueryDTO(
+            limit=1000,
+            offset=0,
+        )
+        users = await get_user_list(session=session, roles=user.roles, query=query)
+        context["users"] = users.get("items", [])
+
+        return templates.TemplateResponse(
+            request=request,
+            name="email/edit.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@email_page_router.post("/email-accounts/{id}/edit")
+async def contractor_template(
+    request: Request,
+    id: int,
+    login: str = Form(None), 
+    password: str = Form(None),
+    server: str = Form(None),
+    port: int = Form(None),
+    owner_id: int = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", 
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/email-accounts/{id}/edit",
+        "return_url": "/email-accounts",
+        "error": None,
+    }
+        
+    try:
+        data = {
+            "login": login,
+            "server": server,
+            "port": port,
+            "owner_id": owner_id,
+        }
+
+        if password:
+            data["password"] = password
+
+        item = EmailPatchRequest(**data)   
+
+        result = await change_email(session, item, id, user.id)
+
+        context["template"] = result
+
+        return RedirectResponse(
+            url=f"/email-accounts/{id}",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
             name="error.html",
             context=context,
             status_code=500,

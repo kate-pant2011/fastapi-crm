@@ -35,6 +35,5 @@ class ProjectCreation(BaseModel):
     start_date: datetime
     end_date: datetime
     client_id: int = Field(gt=0)
-    contract_id: int | None
 
     model_config = {"extra": "forbid"}

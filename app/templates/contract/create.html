@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание договора
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Создание договора
+</h2>
+
+{% include "components/error_alert.html" %}
+
+<div class="card mb-4">
+    <div class="card-body">
+
+        <div class="mb-0">
+
+            <label class="form-label text-muted">
+
+                Компания
+
+            </label>
+
+            <div class="fw-semibold">
+
+                {{ client_name }}
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<form action="{{ create_url }}" method="post">
+
+    <input
+        type="hidden"
+        name="company_id"
+        value="{{ company_id }}">
+
+    <div class="row">
+
+        <div class="col-md-6 mb-3">
+
+            <label class="form-label">
+
+                Номер договора
+
+            </label>
+
+            <input
+                type="text"
+                class="form-control"
+                name="number"
+                required>
+
+        </div>
+
+        <div class="col-md-6 mb-3">
+
+            <label class="form-label">
+
+                Статус
+
+            </label>
+
+            <select
+                class="form-select"
+                name="status"
+                required>
+
+                <option value="draft">Черновик</option>
+                <option value="pending">На согласовании</option>
+                <option value="signed">Подписан</option>
+                <option value="expired">Истек</option>
+                <option value="terminated">Расторгнут</option>
+
+            </select>
+
+        </div>
+
+    </div>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+
+            Название
+
+        </label>
+
+        <input
+            type="text"
+            class="form-control"
+            name="name">
+
+    </div>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+
+            Описание
+
+        </label>
+
+        <textarea
+            class="form-control"
+            rows="5"
+            name="description"></textarea>
+
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-6 mb-3">
+
+            <label class="form-label">
+
+                Действует с
+
+            </label>
+
+            <input
+                type="datetime-local"
+                class="form-control"
+                name="valid_from">
+
+        </div>
+
+        <div class="col-md-6 mb-3">
+
+            <label class="form-label">
+
+                Действует до
+
+            </label>
+
+            <input
+                type="datetime-local"
+                class="form-control"
+                name="valid_to"
+                required>
+
+        </div>
+
+    </div>
+
+    <div class="mb-4">
+
+        <label class="form-label">
+
+            Филиал
+
+        </label>
+
+        <select
+            class="form-select"
+            name="branch_id"
+            required>
+
+            {% for branch in branches %}
+
+            <option value="{{ branch.id }}">
+
+                {{ branch.name }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+    {% include "components/create_form_end.html" %}
+
+</form>
+
+<script>
+
+document.querySelector('[name="valid_from"]').addEventListener("change", function(){
+
+    document.querySelector('[name="valid_to"]').min=this.value;
+
+});
+
+</script>
+
+{% endblock %}

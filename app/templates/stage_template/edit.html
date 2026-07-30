@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование шаблона этапов
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        value="{{ template.name }}"
+        disabled>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Этапы
+
+    </label>
+
+    <textarea
+        name="stage_list"
+        class="form-control"
+        rows="5"
+        required>{{ template.stage_list | join(", ") }}</textarea>
+
+    <div class="form-text">
+
+        Укажите названия этапов в нужном порядке, разделяя их запятыми.
+
+    </div>
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+{% endblock %}

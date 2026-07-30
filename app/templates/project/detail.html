@@ -301,16 +301,34 @@ function addFileInput(projectId) {
 }
 </script>
 
+<div class="card mb-4" id="stages">
+
+    <div class="card-header">
+
+        <h5 class="mb-0">
+
+            Этапы
+
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+<div class="mb-4">
+
+    <label class="form-label">
+
+        Добавление этапов
+
+    </label>
+
+    <div class="d-flex gap-2 align-items-start">
+
         <form
             method="post"
             action="/projects/{{ project_id }}/stage-template"
-            class="mb-4">
-
-            <label class="form-label">
-
-                Создать этапы по шаблону
-
-            </label>
+            class="flex-grow-1">
 
             <div class="input-group">
 
@@ -334,13 +352,25 @@ function addFileInput(projectId) {
                     type="submit"
                     class="btn btn-outline-primary">
 
-                    Создать
+                    Создать по шаблону
 
                 </button>
 
             </div>
 
         </form>
+
+        <a
+            href="/stages/create?project_id={{ project_id }}&project_name={{ name }}"
+            class="btn btn-outline-success">
+
+            + Создать этап
+
+        </a>
+
+    </div>
+
+</div>
 
         <form
             method="get"

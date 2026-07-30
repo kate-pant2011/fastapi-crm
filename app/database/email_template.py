@@ -11,13 +11,10 @@ async def get_all_email_templates(session, scope, limit, offset, is_admin, user_
         .options(selectinload(EmailTemplate.creator))
         .join(EmailTemplate.creator)
     )
-    if not is_admin:
+    if scope == "mine":
         stmt = stmt.where(EmailTemplate.creator_id == user_id)
 
-    elif scope == "mine":
-        stmt = stmt.where(EmailTemplate.creator_id == user_id)
-
-    elif scope == "available":
+    elif scope == "available" or not is_admin:
         stmt = stmt.where(
             or_(
                 EmailTemplate.creator_id == user_id,

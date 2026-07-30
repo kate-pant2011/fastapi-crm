@@ -26,7 +26,7 @@ assignment_router = APIRouter()
 
 
 @dataclass
-class QueryDTO:
+class AssignmentQueryDTO:
     sort: str | None
     limit: int = 20
     offset: int = 0
@@ -47,7 +47,7 @@ async def client_list(
     user: UserDTO = Depends(require_roles("owner", "admin")),
 ):
     try:
-        query = QueryDTO( 
+        query = AssignmentQueryDTO( 
             sort=sort, 
             limit=limit, 
             offset=offset, 
@@ -75,7 +75,7 @@ async def get_assignment_router(
     user: UserDTO = Depends(require_roles("executor")),
 ):
     try:
-        query = QueryDTO(
+        query = AssignmentQueryDTO(
             sort=sort, 
             limit=limit, 
             offset=offset, 

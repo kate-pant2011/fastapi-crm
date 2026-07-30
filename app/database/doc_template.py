@@ -10,13 +10,11 @@ async def get_all_doc_templates(session, scope, limit, offset, is_admin, user_id
         .options(selectinload(DocumentTemplate.creator))
         .join(DocumentTemplate.creator)
     )
-    if not is_admin:
+
+    if scope == "mine":
         stmt = stmt.where(DocumentTemplate.creator_id == user_id)
 
-    elif scope == "mine":
-        stmt = stmt.where(DocumentTemplate.creator_id == user_id)
-
-    elif scope == "available":
+    if scope == "available" or not is_admin:
         stmt = stmt.where(
             or_(
                 DocumentTemplate.creator_id == user_id,

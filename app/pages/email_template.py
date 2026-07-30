@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Form, Request
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import RedirectResponse
 from app.auth.dependencies import require_page_roles, UserDTO
 from typing import Literal
 from app.config.config import ApplicationException
@@ -95,6 +96,103 @@ async def email_template_list_page(
         return templates.TemplateResponse(
             request=request,
             name="email_template/list.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@email_template_page_router.get("/email-templates/create")
+async def create_email_template_page_(
+    request: Request,
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager", "executor")
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "/email-templates/create",
+    }
+
+    return templates.TemplateResponse(
+        request=request,
+        name="email_template/create.html",
+        context=context,
+    )
+
+
+@email_template_page_router.post("/email-templates/create")
+async def create_email_template_page(
+    request: Request,
+    name: str = Form(...),
+    subject_content: str | None = Form(None),
+    body_content: str | None = Form(None),
+    from_emails: str | None = Form(None),
+    is_public: bool | None = Form(False),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("owner", "admin", "manager", "executor")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": f"/email-templates/create",
+        "return_url": "/email-templates",
+        "error": None,
+    }
+
+    if from_emails:
+        if "," in from_emails:
+            from_emails = from_emails.split(",")
+        else:
+            from_emails = [from_emails]
+
+    try:
+        data = EmailTemplateCreation(
+            name=name,
+            subject_content=subject_content,
+            body_content=body_content,
+            from_emails=from_emails,
+            is_public=is_public,
+        )
+
+        result = await create_email_template(session, data, user.id)
+
+        context.update(
+            {
+                "id": result.id,
+                "name": result.name,
+                "form_data": {
+                    "name": name,
+                    "subject_content": subject_content,
+                    "body_content": body_content,
+                    "from_emails": from_emails,
+                    "is_public": is_public,
+                }
+            }
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
             context=context,
         )
 
@@ -329,6 +427,135 @@ async def render_email_template_page(
 
         return templates.TemplateResponse(
             request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@email_template_page_router.get("/email-templates/{id}/edit")
+async def edit_doc_template_page(
+    request: Request,
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner",
+            "admin",
+            "manager",
+            "executor",
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/email-templates/{id}/edit",
+        "error": None,
+        "return_url": "/email-templates",
+    }
+
+    try:
+        result = await get_email_template(
+            session,
+            id,
+            user.roles,
+            user.id, 
+        )
+
+        context["template"] = result
+
+        return templates.TemplateResponse(
+            request=request,
+            name="email_template/edit.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@email_template_page_router.post("/email-templates/{id}/edit")
+async def edit_doc_template(
+    request: Request,
+    id: int,
+    subject_content: str | None = Form(None),
+    body_content: str | None = Form(None),
+    from_emails: list[str] | None = Form(None),
+    is_public: bool | None = Form(False),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", "manager","executor",
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/email-templates/{id}/edit",
+        "return_url": "/email-templates",
+        "error": None,
+    }
+
+    if "," in from_emails:
+        from_emails = from_emails.split(",")
+        
+    try:
+        data = EmailTemplatePatchRequest(
+            subject_content=subject_content,
+            is_public=is_public,
+            body_content=body_content,
+            from_emails=from_emails
+
+        )
+
+        result = await change_email_template(
+            session=session,
+            item=data,
+            user_id=user.id,
+            template_id=id,
+        )
+
+        context["template"] = result
+
+        return RedirectResponse(
+            url=f"/email-templates/{id}",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
             name="error.html",
             context=context,
             status_code=500,

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование проекта
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Редактирование проекта
+</h2>
+
+{% include "components/error_alert.html" %}
+
+<div class="card mb-4">
+    <div class="card-body">
+
+        <div class="mb-4">
+
+            <label class="form-label">
+                Компания
+            </label>
+
+            <form
+                method="get"
+                action="/projects/{{ project_id }}/edit">
+
+                <select
+                    class="form-select"
+                    name="company_id"
+                    onchange="this.form.submit()">
+
+                    <option value="">
+
+                        Все компании клиента
+
+                    </option>
+
+                    {% for company in companies %}
+
+                    <option
+                        value="{{ company.id }}"
+                        {% if company_id == company.id %}selected{% endif %}>
+
+                        {{ company.name }}
+
+                    </option>
+
+                    {% endfor %}
+
+                </select>
+
+            </form>
+
+            <div class="form-text">
+
+                Выберите компанию, чтобы показать только её договоры.
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% include "components/edit_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название проекта
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        name="name"
+        value="{{ template.name }}"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Описание
+
+    </label>
+
+    <textarea
+        class="form-control"
+        name="description"
+        rows="5"
+        required>{{ template.description }}</textarea>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+            Дата начала
+        </label>
+
+        <input
+            type="datetime-local"
+            class="form-control"
+            id="start_date"
+            name="start_date"
+            value="{% if template.start_date %}{{ template.start_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+
+    </div>
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+            Дата окончания
+        </label>
+
+        <input
+            type="datetime-local"
+            class="form-control"
+            id="end_date"
+            name="end_date"
+            value="{% if template.end_date %}{{ template.end_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+
+    </div>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Договор
+
+    </label>
+
+    <select
+        class="form-select"
+        name="contract_id">
+
+        <option value="">
+
+            Без договора
+
+        </option>
+
+        {% for contract in contracts %}
+
+        <option
+            value="{{ contract.id }}"
+            {% if template.contract_id == contract.id %}selected{% endif %}>
+
+            {{ contract.name }}
+
+        </option>
+
+        {% endfor %}
+
+    </select>
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+<script>
+
+const startInput = document.getElementById("start_date");
+const endInput = document.getElementById("end_date");
+
+function updateLimits() {
+
+    if (startInput.value) {
+        endInput.min = startInput.value;
+    }
+
+    if (endInput.value) {
+        startInput.max = endInput.value;
+    }
+
+}
+
+updateLimits();
+
+startInput.addEventListener("change", updateLimits);
+endInput.addEventListener("change", updateLimits);
+
+</script>
+
+
+{% endblock %}

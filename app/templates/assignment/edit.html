@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование задания
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    Редактирование задания
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название
+
+    </label>
+
+    <input
+        type="text"
+        class="form-control"
+        name="name"
+        value="{{ template.name }}"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Описание
+
+    </label>
+
+    <textarea
+        class="form-control"
+        name="description"
+        rows="5"
+        required>{{ template.description }}</textarea>
+
+</div>
+
+<hr class="my-4">
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label text-muted">
+
+            Этап
+
+        </label>
+
+        <div class="form-control-plaintext">
+
+            {% if template.stage %}
+
+                <a href="/stages/{{ template.stage.id }}">
+                    {{ template.stage.name }}
+                </a>
+
+            {% else %}
+
+                —
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label text-muted">
+
+            Исполнитель
+
+        </label>
+
+        <div class="form-control-plaintext">
+
+            {% if template.contractor %}
+
+                <a href="/contractors/{{ template.contractor.id }}">
+                    {{ template.contractor.name }}
+                </a>
+
+            {% elif template.user %}
+
+                <a href="/users/{{ template.user.id }}">
+                    {{ template.user.name }}
+                </a>
+
+            {% else %}
+
+                —
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<hr class="my-4">
+
+<div class="form-check form-switch mb-4">
+
+    <input
+        class="form-check-input"
+        type="checkbox"
+        id="is_done"
+        name="is_done"
+        value="true"
+        {% if template.is_done %}checked{% endif %}>
+
+    <label
+        class="form-check-label"
+        for="is_done">
+
+        Задание выполнено
+
+    </label>
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+{% endblock %}

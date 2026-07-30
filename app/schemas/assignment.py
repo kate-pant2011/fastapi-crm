@@ -5,6 +5,7 @@ from app.schemas.stage import ShortStageResponse
 class AssignmentItem(BaseModel):
     name: str
     description: str
+    is_done: bool
     stage: ShortStageResponse
     contractor: BaseShortResponse | None
     user: BaseShortResponse | None

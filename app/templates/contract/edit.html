@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование договора
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    Редактирование договора
+</h2>
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Номер договора
+
+        </label>
+
+        <input
+            class="form-control"
+            name="number"
+            value="{{ template.number }}"
+            required>
+
+    </div>
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Статус
+
+        </label>
+
+        <select
+            class="form-select"
+            name="status">
+
+            <option value="draft"
+                {% if template.status=="draft" %}selected{% endif %}>
+                Черновик
+            </option>
+
+            <option value="pending"
+                {% if template.status=="pending" %}selected{% endif %}>
+                На согласовании
+            </option>
+
+            <option value="signed"
+                {% if template.status=="signed" %}selected{% endif %}>
+                Подписан
+            </option>
+
+            <option value="expired"
+                {% if template.status=="expired" %}selected{% endif %}>
+                Истек
+            </option>
+
+            <option value="terminated"
+                {% if template.status=="terminated" %}selected{% endif %}>
+                Расторгнут
+            </option>
+
+        </select>
+
+    </div>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Название
+
+    </label>
+
+    <input
+        class="form-control"
+        name="name"
+        value="{{ template.name or '' }}">
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Описание
+
+    </label>
+
+    <textarea
+        class="form-control"
+        rows="5"
+        name="description">{{ template.description or '' }}</textarea>
+
+</div>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Действует с
+
+        </label>
+
+        <input
+            type="datetime-local"
+            class="form-control"
+            name="valid_from"
+            value="{% if template.valid_from %}{{ template.valid_from.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+
+    </div>
+
+    <div class="col-md-6 mb-3">
+
+        <label class="form-label">
+
+            Действует до
+
+        </label>
+
+        <input
+            type="datetime-local"
+            class="form-control"
+            name="valid_to"
+            value="{% if template.valid_to %}{{ template.valid_to.strftime('%Y-%m-%dT%H:%M') }}{% endif %}"
+            required>
+
+    </div>
+
+</div>
+
+<div class="mb-4">
+
+    <label class="form-label">
+
+        Компания
+
+    </label>
+
+    <input
+        class="form-control"
+        value="{{ template.company.name }}"
+        disabled>
+
+</div>
+
+<div class="mb-4">
+
+    <label class="form-label">
+
+        Филиал
+
+    </label>
+
+    <input
+        class="form-control"
+        value="{{ template.branch.name }}"
+        disabled>
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+<script>
+
+document.querySelector('[name="valid_from"]').addEventListener("change",function(){
+
+    document.querySelector('[name="valid_to"]').min=this.value;
+
+});
+
+</script>
+
+{% endblock %}

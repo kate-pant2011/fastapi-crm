@@ -108,6 +108,118 @@ async def client_list_page(
         )
 
 
+@client_page_router.get("/clients/create")
+async def create_client_page_(
+    request: Request,
+    user: UserDTO = Depends(
+        require_page_roles("manager")
+    ),
+):
+    try:
+        context = {
+            "request": request,
+            "user": user,
+            "create_url": "/clients/create",
+        }
+
+        return templates.TemplateResponse(
+            request=request,
+            name="client/create.html",
+            context=context,
+        )
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+@client_page_router.post("/clients/create")
+async def create_client_page(
+    request: Request,
+    name: str = Form(...),
+    email: str = Form(None),
+    telephone: str = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(require_page_roles("manager")),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "clients/create",
+        "return_url": "/clients",
+        "error": None,
+    }
+
+    if "," in email:
+        email = email.split(",")
+    else:
+        email = [email]
+
+    if "," in telephone:
+        telephone = telephone.split(",")
+    else:
+        telephone = [telephone]
+
+    data = ClientCreation(
+        name=name, email=email, telephone=telephone
+    )
+
+    try:
+        result = await create_client(session, data, user.id)
+
+        context.update(
+            {
+                "id": result.id,
+                "name": result.name,
+                "form_data": {
+                    "name": name,
+                    "email": email,
+                    "telephone": telephone
+                }
+            }
+        )
+
+        return templates.TemplateResponse(
+            request=request,
+            name="archived_restored.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html", 
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__} - {e}"
+
+        return templates.TemplateResponse(
+            request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+    
+
 @client_page_router.get("/clients/{client_id}")
 async def client_detail_page(
     request: Request,
@@ -397,6 +509,143 @@ async def client_upload_page(
         context["error"] = f"{type(e).__name__} - {e}"
         return templates.TemplateResponse(
             request=request, 
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+
+@client_page_router.get("/clients/{id}/edit")
+async def edit_user_page(
+    request: Request,
+    id: int,
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles("owner", "admin", "manager")
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/clients/{id}/edit",
+        "error": None,
+        "return_url": "/clients",
+    }
+
+    try:
+        result = await get_client(session, user.roles, user.id, id)
+
+        managers = await get_user_list(
+            session=session,
+            roles=user.roles,
+            query=QueryDTO(
+                role_name="manager",
+                limit=1000,
+            ),
+        )
+
+        context["template"] = result
+        context["managers"] = managers.get("items", [])
+
+        return templates.TemplateResponse(
+            request=request,
+            name="client/edit.html",
+            context=context,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=500,
+        )
+
+
+@client_page_router.post("/clients/{id}/edit")
+async def user_template(
+    request: Request,
+    id: int,
+    name: str = Form(None),
+    email: str = Form(None),
+    telephone: str = Form(None),
+    manager_id: int = Form(None),
+    session: AsyncSession = Depends(get_db),
+    user: UserDTO = Depends(
+        require_page_roles(
+            "owner", "admin", "manager"
+        )
+    ),
+):
+    context = {
+        "request": request,
+        "user": user,
+        "edit_url": f"/clients/{id}/edit",
+        "return_url": "/clients",
+        "error": None,
+    }
+    if email:
+        if "," in email:
+            email = email.split(",")
+        else:
+            email = [email]
+
+    if telephone: 
+        if"," in telephone:
+            telephone = telephone.split(",")
+        else:
+            telephone = [telephone]
+
+    try:
+        data = {
+            "name": name,
+            "email": email,
+            "telephone": telephone,      
+        }
+
+        if manager_id:
+            data["manager_id"] = manager_id
+ 
+        data = {k: v for k, v in data.items() if v not in ("", None)} 
+        item = ClientPatchRequest(**data) 
+
+        result = await change_client(session, user.roles, user.id, id, item)
+
+        context["template"] = result
+
+        return RedirectResponse(
+            url=f"/clients/{id}",
+            status_code=303,
+        )
+
+    except ApplicationException as e:
+        context["error"] = e.name
+
+        return templates.TemplateResponse(
+            request=request,
+            name="error.html",
+            context=context,
+            status_code=e.code,
+        )
+
+    except Exception as e:
+        context["error"] = f"{type(e).__name__}: {e}"
+
+        return templates.TemplateResponse(
+            request=request,
             name="error.html",
             context=context,
             status_code=500,

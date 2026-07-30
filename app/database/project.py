@@ -92,7 +92,6 @@ async def add_project(session, data):
         start_date=data.start_date,
         end_date=data.end_date,
         client_id=data.client_id,
-        contract_id=data.contract_id,
     )
 
     session.add(project)

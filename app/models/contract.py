@@ -32,7 +32,7 @@ class Contract(BaseModel):
         default=ContractStatus.DRAFT,
     )
 
-    description = Column(String(500), nullable=False)
+    description = Column(String(500), nullable=True)
     number = Column(String(255), nullable=False)
     name = Column(String(255), nullable=True)
     valid_from = Column(DateTime, nullable=True)

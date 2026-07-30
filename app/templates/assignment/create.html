@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание задания
+{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+
+    Создание задания
+
+</h2>
+
+{% include "components/error_alert.html" %}
+
+<form
+    method="post"
+    action="{{ create_url }}">
+
+    <input
+        type="hidden"
+        name="stage_id"
+        value="{{ stage_id }}">
+
+    <div class="mb-3">
+
+        <label class="form-label">
+
+            Этап
+
+        </label>
+
+        <input
+            type="text"
+            class="form-control"
+            value="{{ stage_name }}"
+            disabled>
+
+    </div>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+
+            Название исполнителя
+
+        </label>
+
+        <input
+            type="text"
+            class="form-control"
+            name="name"
+            required>
+
+    </div>
+
+    <div class="mb-4">
+
+        <label class="form-label">
+
+            Описание
+
+        </label>
+
+        <textarea
+            class="form-control"
+            name="description"
+            rows="5"
+            required></textarea>
+
+    </div>
+
+    <hr>
+
+    <div class="mb-3">
+
+        <label class="form-label">
+
+            Исполнитель
+
+        </label>
+
+        <select
+            class="form-select"
+            id="performer_type">
+
+            <option value="none" selected>
+
+                Не назначать
+
+            </option>
+
+            <option value="user">
+
+                Сотрудник компании
+
+            </option>
+
+            <option value="contractor">
+
+                Сторонний исполнитель
+
+            </option>
+
+        </select>
+
+    </div>
+
+    <div
+        class="mb-3"
+        id="user-block"
+        style="display:none;">
+
+        <label class="form-label">
+
+            Сотрудник
+
+        </label>
+
+        <select
+            class="form-select"
+            name="user_id">
+
+            <option value="">
+
+                Выберите сотрудника
+
+            </option>
+
+            {% for item in users %}
+
+            <option value="{{ item.id }}">
+
+                {{ item.name }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+    <div
+        class="mb-4"
+        id="contractor-block"
+        style="display:none;">
+
+        <label class="form-label">
+
+            Исполнитель
+
+        </label>
+
+        <select
+            class="form-select"
+            name="contractor_id">
+
+            <option value="">
+
+                Выберите исполнителя
+
+            </option>
+
+            {% for item in contractors %}
+
+            <option value="{{ item.id }}">
+
+                {{ item.name }}
+
+            </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+    <div class="d-flex gap-2">
+
+        <button
+            class="btn btn-primary"
+            type="submit">
+
+            Создать
+
+        </button>
+
+        <a
+            href="/projects/{{ stage_id }}"
+            class="btn btn-outline-secondary">
+
+            Отмена
+
+        </a>
+
+    </div>
+
+</form>
+
+<script>
+
+const type = document.getElementById("performer_type");
+const userBlock = document.getElementById("user-block");
+const contractorBlock = document.getElementById("contractor-block");
+
+const userSelect = document.querySelector('[name="user_id"]');
+const contractorSelect = document.querySelector('[name="contractor_id"]');
+
+function updatePerformer() {
+
+    userBlock.style.display = "none";
+    contractorBlock.style.display = "none";
+
+    userSelect.value = "";
+    contractorSelect.value = "";
+
+    if (type.value === "user") {
+        userBlock.style.display = "block";
+    }
+
+    if (type.value === "contractor") {
+        contractorBlock.style.display = "block";
+    }
+
+}
+
+type.addEventListener("change", updatePerformer);
+
+updatePerformer();
+
+</script>
+
+{% endblock %}

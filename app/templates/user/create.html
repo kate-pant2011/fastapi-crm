@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание пользователя
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/create_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Имя
+    </label>
+
+    <input
+        type="text"
+        name="name"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Фамилия
+    </label>
+
+    <input
+        type="text"
+        name="surname"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Должность
+    </label>
+
+    <input
+        type="text"
+        name="position"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Email
+    </label>
+
+    <input
+        type="email"
+        name="email"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Подразделение
+    </label>
+
+    <select
+        name="branch_id"
+        class="form-select"
+        required>
+
+        <option
+            value=""
+            selected
+            disabled>
+
+            Выберите подразделение
+
+        </option>
+
+        {% for branch in branches %}
+
+        <option value="{{ branch.id }}">
+
+            {{ branch.name }}
+
+        </option>
+
+        {% endfor %}
+
+    </select>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Роли
+    </label>
+
+    <div class="border rounded p-3">
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="roles"
+                value="owner"
+                id="role-owner">
+
+            <label
+                class="form-check-label"
+                for="role-owner">
+
+                Owner
+
+            </label>
+
+        </div>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="roles"
+                value="admin"
+                id="role-admin">
+
+            <label
+                class="form-check-label"
+                for="role-admin">
+
+                Admin
+
+            </label>
+
+        </div>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="roles"
+                value="manager"
+                id="role-manager">
+
+            <label
+                class="form-check-label"
+                for="role-manager">
+
+                Manager
+
+            </label>
+
+        </div>
+
+        <div class="form-check">
+
+            <input
+                class="form-check-input"
+                type="checkbox"
+                name="roles"
+                value="executor"
+                id="role-executor">
+
+            <label
+                class="form-check-label"
+                for="role-executor">
+
+                Executor
+
+            </label>
+
+        </div>
+
+    </div>
+
+    <div class="form-text">
+
+        Можно выбрать несколько ролей.
+
+    </div>
+
+</div>
+
+{% include "components/create_form_end.html" %}
+
+{% endblock %}

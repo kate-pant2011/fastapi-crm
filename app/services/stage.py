@@ -13,7 +13,6 @@ sorting_rules = {"start_date": ("start_date", "name"), "end_date": ("end_date", 
 
 async def get_stage_list(session, roles, requester_id, project_id, query):
     access = Access(roles)
-    access.require_admin_or_manager()
     manager_id = access.manager_id(requester_id)
     executor_id = access.executor_id(requester_id)
 
@@ -38,7 +37,6 @@ async def get_stage_list(session, roles, requester_id, project_id, query):
 
 async def get_stage(session, roles, requester_id, project_id, stage_id):
     access = Access(roles)
-    access.require_admin_or_manager()
     is_admin = access.is_admin()
     executor_id = access.executor_id(requester_id)
     manager_id = access.manager_id(requester_id)

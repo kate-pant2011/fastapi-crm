@@ -11,6 +11,7 @@ from app.services.common import Access
 from app.services.template_context import build_context, build_ctx_objects
 from app.audit.common import audit
 from app.schemas.email_template import EmailRenderDTO
+from app.schemas.common import BaseShortResponse
 from app.email.service import get_email_list
 from jinja2 import Template
 
@@ -66,10 +67,10 @@ async def create_email_template(session, data, creator_id):
         )
 
     new_template = await add_email_template(session, data, creator_id)
-    return new_template
+    return to_schema(BaseShortResponse, new_template)
 
 
-async def change_email_template(session, item, user_id, roles, template_id):
+async def change_email_template(session, item, user_id, template_id):
     template = await get_email_template_by_id(session, template_id)
 
     if not template:
@@ -83,7 +84,7 @@ async def change_email_template(session, item, user_id, roles, template_id):
     for name, value in update_data.items():
         setattr(template, name, value)
 
-    return to_schema(EmailTemplateItem, template)
+    return to_schema(BaseShortResponse, template)
 
 
 

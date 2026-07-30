@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактирование почтового аккаунта
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/edit_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Логин
+
+    </label>
+
+    <input
+        type="email"
+        name="login"
+        class="form-control"
+        value="{{ template.login }}"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Пароль
+
+    </label>
+
+    <input
+        type="password"
+        name="password"
+        class="form-control"
+        placeholder="Введите новый пароль">
+
+    <div class="form-text">
+
+        Оставьте поле пустым, если пароль менять не требуется.
+
+    </div>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        SMTP-сервер
+
+    </label>
+
+    <input
+        type="text"
+        name="server"
+        class="form-control"
+        value="{{ template.server }}"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Порт
+
+    </label>
+
+    <input
+        type="number"
+        name="port"
+        class="form-control"
+        value="{{ template.port }}"
+        min="1"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Владелец
+
+    </label>
+
+    <select
+        name="owner_id"
+        class="form-select">
+
+        <option value="">
+            Не выбран
+        </option>
+
+        {% for user in users %}
+
+        <option
+            value="{{ user.id }}"
+            {% if user.id == template.owner_id %}selected{% endif %}>
+
+            {{ user.name }}
+
+        </option>
+
+        {% endfor %}
+
+    </select>
+
+</div>
+
+{% include "components/edit_form_end.html" %}
+
+{% endblock %}

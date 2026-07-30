@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}
+Создание шаблона Email
+{% endblock %}
+
+{% block content %}
+
+{% include "components/error_alert.html" %}
+
+{% include "components/create_form_start.html" %}
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Название
+    </label>
+
+    <input
+        type="text"
+        name="name"
+        class="form-control"
+        required>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Тема письма
+    </label>
+
+    <textarea
+        name="subject_content"
+        class="form-control"
+        rows="2"></textarea>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Текст письма
+    </label>
+
+    <textarea
+        name="body_content"
+        class="form-control"
+        rows="10"></textarea>
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+        Email отправителей
+    </label>
+
+    <input
+        type="text"
+        name="from_emails"
+        class="form-control"
+        placeholder="mail1@example.com, mail2@example.com">
+
+    <div class="form-text">
+        Укажите один или несколько адресов через запятую.
+    </div>
+
+</div>
+
+<div class="form-check mb-3">
+
+    <input
+        type="checkbox"
+        class="form-check-input"
+        name="is_public"
+        value="true">
+
+    <label class="form-check-label">
+        Публичный шаблон
+    </label>
+
+</div>
+
+{% include "components/create_form_end.html" %}
+
+{% endblock %}
