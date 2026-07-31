@@ -168,9 +168,7 @@ async def create_company_page(
         "error": None,
     }
 
-    data = CompanyCreation(
-        name=name, inn=inn, client_id=client_id
-    )
+    data = CompanyCreation(name=name, inn=inn, client_id=client_id)
 
     try:
         result = await create_company(session, data, user.id)
@@ -458,7 +456,6 @@ async def company_template(
     request: Request,
     id: int,
     item: CompanyPatchRequest = Depends(organization_patch_form),
-    stamp_width_mm: int | None = Form(None),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles(

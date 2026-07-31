@@ -51,11 +51,11 @@ async def send_generated_doc(
     document = await get_generated_doc_by_id(session, generated_doc_id)
 
     if not document:
-        raise ApplicationException("Document Not Found", 404)
+        raise ApplicationException("Документ не найден", 404)
     
     if document.creator_id != user_id:
         docs_audit.document_access_denied(user_id, document.file_id, document.file.name)
-        raise ApplicationException("Document Not Found", 404)
+        raise ApplicationException("Документ не найден. либо у Вас нет прав", 404)
     
     files = FileValidateDTO(
         filename = document.file.name,
@@ -86,15 +86,15 @@ async def convert_word_to_pdf(
     document = await get_generated_doc_by_id(session, generated_doc_id)
 
     if not document:
-        raise ApplicationException("Document Not Found", 404)
+        raise ApplicationException("Документ не найден", 404)
     
     if document.creator_id != user_id:
         docs_audit.document_access_denied(user_id, document.file_id, document.file.name)
-        raise ApplicationException("Access to the document denied", 404)
+        raise ApplicationException("Документ не найден, либо у Вас нет прав", 404)
     
     if "word" not in document.file.mime_type:
         raise ApplicationException(
-            "Only DOCX files can be converted to PDF",
+            "Только файл DOCX может быть конвертирован в PDF",
             400,
         )
     
@@ -118,7 +118,7 @@ async def convert_word_to_pdf(
 
     if return_code != 0:
         raise ApplicationException(
-            "PDF generation failed",
+            "Произошла ошибка при PDF генерации",
             500,
         )
 
@@ -129,7 +129,7 @@ async def convert_word_to_pdf(
 
     if not pdf_path.exists():
         raise ApplicationException(
-            "PDF generation failed",
+            "Произошла ошибка при PDF генерации",
             500,
         )
 

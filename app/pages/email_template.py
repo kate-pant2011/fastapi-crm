@@ -160,7 +160,9 @@ async def create_email_template_page(
     }
 
     if from_emails:
-        if "," in from_emails:
+        if from_emails[-1] == ",":
+            from_emails = [from_emails[ 0:-1]]
+        elif "," in from_emails:
             from_emails = from_emails.split(",")
         else:
             from_emails = [from_emails]
@@ -440,10 +442,7 @@ async def edit_doc_template_page(
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles(
-            "owner",
-            "admin",
-            "manager",
-            "executor",
+            "owner", "admin", "manager", "executor",
         )
     ),
 ):

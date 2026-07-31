@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from app.schemas.contract import ContractItem
 from app.schemas.common import BaseShortResponse
+from app.schemas.user import UserShortResponse
 
 
 class ProjectItem(BaseModel):
@@ -13,7 +14,7 @@ class ProjectItem(BaseModel):
     client_email: list[str]
     client_id: int 
     contract: ContractItem | None
-    manager: BaseShortResponse
+    manager: UserShortResponse
     stages: list[BaseShortResponse] | None
     is_archived: bool
     files: int | None

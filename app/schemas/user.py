@@ -2,6 +2,18 @@ from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from app.schemas.common import BaseShortResponse
 from typing import Literal
 
+class UserShortResponse(BaseModel):
+    id: int
+    name: str
+    surname: str
+
+    model_config = ConfigDict(from_attributes = True)
+
+class UserListResponse(BaseModel):
+    items: list[UserShortResponse]
+    total: int
+    limit: int
+    offset: int
 
 class UserItem(BaseModel):
     name: str
@@ -42,4 +54,3 @@ class UserCreationRequest(BaseModel):
 class UserCreationResponse(BaseModel):
     name: str
     user_id: int
-

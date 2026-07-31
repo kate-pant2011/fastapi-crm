@@ -132,10 +132,11 @@ async def create_stage_template_page(
         "error": None,
     }
 
-    if "," in stage_list:
-        stage_list = stage_list.split(",")
-    else:
-        stage_list = [stage_list]
+    if stage_list:
+        if "," in stage_list:
+            stage_list = stage_list.split(",")
+        else:
+            stage_list = [stage_list]
 
     try:
         data = StageTemplateCreation(
@@ -310,10 +311,11 @@ async def stage_doc_template(
         "error": None,
     }
 
-    if "," in stage_list:
-        stage_list = stage_list.split(",")
-    else:
-        stage_list = [stage_list]
+    if stage_list:
+        if "," in stage_list:
+            stage_list = stage_list.split(",")
+        else:
+            stage_list = [stage_list]
         
     try:
         data = StageTemplatePatchRequest(

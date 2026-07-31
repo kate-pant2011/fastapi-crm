@@ -95,6 +95,7 @@ async def create_branch_page_(
             "request": request,
             "user": user,
             "create_url": "/branches/create",
+            "error": None
         }
 
         return templates.TemplateResponse(

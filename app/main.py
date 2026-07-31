@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 import app.models_loader
 import logging
@@ -48,6 +49,20 @@ from app.rate_limit import limiter
 
 
 app = FastAPI()
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+
+    if exc.status_code == 403:
+
+        return RedirectResponse(
+            url="/?warning=forbidden",
+            status_code=303,
+        )
+
+    raise exc
+
 
 templates = Jinja2Templates(
     directory="app/templates"

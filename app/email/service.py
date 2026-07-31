@@ -33,7 +33,7 @@ async def get_email(session, email_id):
     email = await get_email_by_id(session, email_id)
 
     if not email:
-        raise ApplicationException(f"Email not found", 404)
+        raise ApplicationException(f"Email не найден", 404)
 
     return email
 
@@ -48,13 +48,13 @@ async def change_email(session, item, email_id, user_id):
             user = await get_user_by_id(session, value)
 
             if user is None:  
-                    raise ApplicationException("User not found", 404)
+                    raise ApplicationException("Пользователь не найден", 404)
             
             email.owner_id = value
 
         else:
             if email.creator_id != user_id:
-                raise ApplicationException("Only creator can update email settings", 403)
+                raise ApplicationException("Только создатель аккаунта может наносить изменения", 403)
 
             if name == "password":
                 value = encrypt_password(value)
@@ -77,7 +77,9 @@ async def delete_email(session, email_id, user_id, roles):
     email = await get_email(session, email_id)
 
     if email.creator_id != user_id and not is_owner:
-        raise ApplicationException(f"Only creator or owner can delete account", 403)  
+        raise ApplicationException(
+            f"Только создатель email аккаунта, либо владелец CRM может удалять аккаунт", 403
+        )  
 
     await session.delete(email)
 
@@ -87,12 +89,12 @@ async def delete_email(session, email_id, user_id, roles):
 async def add_email_user(session, items, user_id):
     login = await get_email_by_login(session, items.login)
     if login:
-        raise ApplicationException(f"Email {items.login} is already used", 400)
+        raise ApplicationException(f"Email {items.login} уже используется", 400)
 
     if items.assigned_user_id is not None:
         user = await get_user_by_id(session, items.assigned_user_id)
         if not user:
-            raise ApplicationException(f"User with id {items.assigned_user_id} not found", 404)
+            raise ApplicationException(f"Пользователь не найден", 404)
 
     smtp = define_host_and_port(items)
     check_smtp_connection(smtp.server, smtp.port, items.login, items.password)
@@ -136,17 +138,17 @@ async def send_email_service(
 ):
     email = await get_email_by_id(session, email_id)
     if not email:
-        raise ApplicationException(f"Email not found", 400)
+        raise ApplicationException(f"Email не найден", 400)
     
     if email.owner_id is not None:
         if email.owner_id != user_id:
-            raise ApplicationException("Cannot use this email", 403)
+            raise ApplicationException("Это личный email-аккаунт", 403)
     
     cc_list = convert_to_brackets(cc)
     bcc_list = convert_to_brackets(bcc)
     to_list = convert_to_brackets(to)
     if not to_list:
-        raise ApplicationException("Recipient is required", 400)
+        raise ApplicationException("Укажите получателя", 400)
     
     password = decrypt_password(email.password)
 
@@ -154,11 +156,11 @@ async def send_email_service(
         document = await get_generated_doc_by_id(session,generated_doc_id)
 
         if not document:
-            raise ApplicationException("Document Not Found", 404)
+            raise ApplicationException("Сгенерированный документ не найден", 404)
         
         if document.creator_id != user_id:
             docs_audit.document_access_denied(user_id, document.file_id, document.file.name)
-            raise ApplicationException("Document Not Found", 404)
+            raise ApplicationException("Сгенерированный документ не найден, либо у Вас нет прав", 404)
         
         file = FileValidateDTO(
             filename = document.file.name,

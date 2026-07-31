@@ -10,6 +10,7 @@ from app.database.project import (
 )
 from app.schemas.common import to_schema, BaseShortResponse
 from app.schemas.contract import ContractItem
+from app.schemas.user import UserShortResponse
 from .common import Access
 
 sorting_rules = {"start_date": ("start_date", "name"), "name": ("name",)}
@@ -24,7 +25,7 @@ async def get_project_list(session, roles, requester_id, query):
     )
 
     if not projects:
-        raise ApplicationException("projects Not Found", 404)
+        raise ApplicationException("Проект не найден", 404)
 
     return {
         "items": projects.items,
@@ -41,11 +42,11 @@ async def get_project(session, roles, requester_id, project_id):
 
     project = await get_project_by_id(session, project_id, manager_id, executor_id)
     if not project:
-        raise ApplicationException("project Not found", 404)
+        raise ApplicationException("Проект не найден", 404)
 
     manager = project.client.manager
     if not manager:
-        raise ApplicationException("manager Not found", 404)
+        raise ApplicationException("Менеджер не найден", 404)
 
     return {
         "name": project.name,
@@ -58,7 +59,7 @@ async def get_project(session, roles, requester_id, project_id):
         "contract": (
             to_schema(ContractItem, project.contract) if project.contract else None
         ),
-        "manager": to_schema(BaseShortResponse, manager),
+        "manager": to_schema(UserShortResponse, manager),
         "stages": [to_schema(BaseShortResponse, stage) for stage in project.stages if not stage.is_archived],
         "is_archived": project.is_archived,
         "files": len(project.files or [])
@@ -73,28 +74,28 @@ async def change_project(session, roles, user_id, project_id, item):
     project = await get_project_by_id(session, project_id, manager_id)
 
     if not project:
-        raise ApplicationException("Проект не найден, либо у Вас нет прав!", 404)
+        raise ApplicationException("Проект не найден, либо у Вас нет прав", 404)
 
     if project.is_archived:
-        raise ApplicationException(f"A project '{project.name}' is archived", 400, {"id": project.id})
+        raise ApplicationException(f"Проект '{project.name}' архивирован", 400, {"id": project.id})
 
     manager = await get_user_by_id(session, project.client.manager_id)
     if not manager:
-        raise ApplicationException("manager Not found", 404)
+        raise ApplicationException("Менеджер не найден", 404)
 
     update_data = item.model_dump(exclude_unset=True)
 
     if "contract_id" in update_data:
         contract = await get_contract_by_id(session, update_data.get("contract_id"), manager_id)
         if not contract:
-            raise ApplicationException("contract Not found", 404)
+            raise ApplicationException("Контракт не найден, либо у Вас нет прав", 404)
 
         if contract.is_archived:
-            raise ApplicationException("contract is archived", 400, {"id": contract.id})
+            raise ApplicationException("Контракт архивирован", 400, {"id": contract.id})
         
         if project.client.id != contract.company.client.id:
             raise ApplicationException(
-                "Contract and project have different client-relations", 400,
+                "Контракт и проект не относятся друг к другу", 400,
                 {
                     "project_client_id": project.client.id, 
                     "contract_client_id": contract.company.client.id
@@ -105,7 +106,7 @@ async def change_project(session, roles, user_id, project_id, item):
     end_date = update_data.get("end_date", None) or project.end_date
 
     if start_date > end_date:
-        raise ApplicationException("End-date cannot be less than start-date", 400)
+        raise ApplicationException("Дата окончания не может быть раньше даты начала", 400)
 
     for name, value in update_data.items():
         setattr(project, name, value)
@@ -133,20 +134,20 @@ async def create_project(session, data, manager_id):
     if project:
         if project.is_archived:
             raise ApplicationException(
-                f"Project  named {data.name} is archived", 400, {"id": project.id}
+                f"Проект с названием {data.name} архивирован", 400, {"id": project.id}
             )
 
-        raise ApplicationException(f"Project named {data.name} already exists", 400)
+        raise ApplicationException(f"Проект с названием {data.name} уже существует", 400)
 
     client = await get_client_by_id(session, data.client_id, manager_id)
     if not client:
-        raise ApplicationException("client Not found", 404)
+        raise ApplicationException("Клиент не найден", 404)
 
     if client.is_archived:
-        raise ApplicationException("project is archived", 400, {"id": client.id})
+        raise ApplicationException("Проект архивирован", 400, {"id": client.id})
 
     if data.start_date > data.end_date:
-        raise ApplicationException("End-date cannot be less than start-date", 400)
+        raise ApplicationException("Дата окончания не может быть раньше даты начала", 400)
 
     new_project = await add_project(session, data)
 
@@ -157,10 +158,10 @@ async def archive_project(session, project_id, manager_id):
     project = await get_project_by_id(session, project_id, manager_id)
 
     if not project:
-        raise ApplicationException("Проект не найден, либо у Вас нет прав!", 404)
+        raise ApplicationException("Проект не найден, либо у Вас нет прав", 404)
 
     if project.is_archived:
-        raise ApplicationException("Проект уже архивирован!", 400)
+        raise ApplicationException("Проект уже архивирован", 400)
 
     project.is_archived = True
     return project
@@ -174,10 +175,10 @@ async def restore_project(session, project_id, roles, requester_id):
     project = await get_project_by_id(session, project_id, manager_id)
 
     if not project:
-        raise ApplicationException("Проект не найден, либо у Вас нет прав!", 404)
+        raise ApplicationException("Проект не найден, либо у Вас нет прав", 404)
 
     if project.is_archived is False:
-        raise ApplicationException("Проект уже активен!", 400)
+        raise ApplicationException("Проект уже восстановлен", 400)
 
     project.is_archived = False
     return project

@@ -56,15 +56,15 @@ async def login_user(session, email, password, device, ip):
     user = await get_user_by_email(session, email)
     if not user:
         auth_audit.unknown_email_detected(email, ip, device)
-        raise ApplicationException("invalid Credentials: login or password", 401)
+        raise ApplicationException("Неверный login или password", 401)
 
     if not user.is_active:
-        raise ApplicationException("User is archived", 400, {"id": user.id})
+        raise ApplicationException("Пользователь неактивен", 400, {"id": user.id})
 
     now = datetime.now(timezone.utc)
 
     if user.locked_until and user.locked_until > now:
-        raise ApplicationException(f"User has been blocked until {user.locked_until}", 403)
+        raise ApplicationException(f"Пользователь заблокирован до {user.locked_until}", 403)
         
     if not verify_password(password, user.password_hash):
         user.failed_login_attempts += 1
@@ -89,7 +89,7 @@ async def login_user(session, email, password, device, ip):
 
         await session.commit()
 
-        raise ApplicationException("invalid Credentials: login or password", 401)
+        raise ApplicationException("Неверный login или password", 401)
 
     user.last_login_at = now
     user.last_login_ip = ip
@@ -131,7 +131,7 @@ async def logout_user(session, refresh_jwt):
     refresh = await get_refresh_by_jwt(session, decoded.jti)
 
     if not refresh:
-        raise ApplicationException("Refresh token not found", 401)
+        raise ApplicationException("Refresh token не найден", 401)
 
     user_id = refresh.user_id
 
@@ -150,13 +150,13 @@ async def update_tokens(session, refresh_jwt, device, ip):
         old_refresh = await verify_refresh_jwt(session, decoded.jti)
 
         if not old_refresh:
-            raise ApplicationException("Refresh token not found", 401)
+            raise ApplicationException("Refresh token не найден", 401)
 
         user_id = old_refresh.user_id
         user = await get_user_by_id(session, user_id)
 
         if not user.is_active:
-            raise ApplicationException("User is inactive error", 403)
+            raise ApplicationException("Пользователь неактивен", 403)
 
         roles = list({role.name for role in user.roles})
         status = user.must_change_password
@@ -189,11 +189,11 @@ async def signup_user(session, user_data, ip) -> dict:
         auth_audit.self_registration_attempt(
             user_data.email, ip
         )
-        raise ApplicationException(f"Only admins can sign you up", 400)
+        raise ApplicationException(f"Только владелец или администратор может зарегистрировать", 400)
 
     password_validity = check_password(user_data.password)
     if password_validity:
-        raise ApplicationException(f"The password is weak: {password_validity}", 400)
+        raise ApplicationException(f"Слабый пароль: {password_validity}", 400)
 
     new_company = await add_branch(session, user_data.inn, user_data.company)
     hashed_password = hash_password(user_data.password)
@@ -220,19 +220,19 @@ async def signup_user(session, user_data, ip) -> dict:
 async def change_user_password(session, user_id, password, ip):
     user = await get_user_by_id(session, user_id)
     if not user:
-        raise ApplicationException("invalid Credentials: login or password", 401)
+        raise ApplicationException("Неверный login или password", 401)
 
     if not user.is_active:
-        raise ApplicationException("User is archived", 400, {"id": user.id})
+        raise ApplicationException("Пользователь неактивен", 400, {"id": user.id})
 
     if not user.must_change_password:
         raise ApplicationException(
-            f"User {user.email} has not applied for password-change", 400
+            f"Пользователь {user.email} не запрашивал изменение пароля", 400
         )
 
     password_validity = check_password(password)
     if password_validity:
-        raise ApplicationException(f"The password is weak: {password_validity}", 400)
+        raise ApplicationException(f"Слабый пароль: {password_validity}", 400)
 
     hashed_password = hash_password(password)
 
@@ -244,19 +244,19 @@ async def change_user_password(session, user_id, password, ip):
 
 def check_password(password):
     if len(password) < 8:
-        return "too short"
+        return "слишком короткий"
 
     if len(password) > 16:
-        return "too long"
+        return "слишком длинный"
 
     if not str.isascii(password):
-        return "includes forbidden symbols"
+        return "включает в себя запрещенные символы"
 
     if not any(c.isdigit() for c in password):
-        return "doesn't include digit"
+        return "не хватает цифр"
 
     if not any(c.isalpha() for c in password):
-        return "doesn't include letter"
+        return "не хватает букв"
 
     return None
 
@@ -282,7 +282,7 @@ async def create_password_reset_token(session, login, device, ip):
             "Failed to send change-password email"
         )
         await session.rollback()
-        raise ApplicationException(f"Something went wrong!", 500)
+        raise ApplicationException(f"Что-то пошло не так!", 500)
     
     auth_audit.password_reset_requested(user.id, ip)
 
@@ -299,19 +299,19 @@ async def reset_user_password(session, token, password, ip):
 
         if decoded.token_type != "password_reset":
             raise ApplicationException(
-                "Invalid token type", 401
+                "Неверный тип токена", 401
             )
         
         existing_reset_token = await verify_reset_jwt(session, decoded.jti)
 
         if not existing_reset_token:
-            raise ApplicationException("Reset token not found", 401)
+            raise ApplicationException("Reset token не найден", 401)
 
         user_id = existing_reset_token.user_id
         user = await get_user_by_id(session, user_id)
 
         if not user.is_active:
-            raise ApplicationException("User is inactive error", 403)
+            raise ApplicationException("Пользователь неактивен", 403)
 
     except ResetTokenReuseDetection as e:
         auth_audit.token_reuse_detected(e.user_id, ip)
@@ -334,7 +334,7 @@ async def reset_user_password(session, token, password, ip):
 
     password_validity = check_password(password.password)
     if password_validity:
-        raise ApplicationException(f"The password is weak: {password_validity}", 400)
+        raise ApplicationException(f"Слабый пароль: {password_validity}", 400)
 
     hashed_password = hash_password(password.password)
 

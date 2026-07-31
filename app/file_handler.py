@@ -95,14 +95,14 @@ class FileHandler:
                     await f.close()
                     if os.path.exists(file_path):
                         os.remove(file_path)
-                    raise ApplicationException(400, "File too big")
+                    raise ApplicationException(400, "Файл слишком большой")
                  
                 await f.write(chunk)
 
         if size == 0:
             if os.path.exists(file_path):
                 os.remove(file_path)
-            raise ApplicationException("File is empty", 400)
+            raise ApplicationException("Файл пуст", 400)
         
         return FileUploadDTO(
             filenames=filenames,
@@ -122,7 +122,7 @@ class FileHandler:
         file_mime = magic.from_buffer(chunk[:2048], mime=True)
 
         if file_mime not in ALLOWED_MIME[ext]:
-            raise ApplicationException(400, f"Invalid mime type {file_mime} for extension {ext}")
+            raise ApplicationException(400, f"Неверный mime тип '{file_mime}' для расширения {ext}")
         
         return file_mime
     
@@ -151,7 +151,7 @@ class FileHandler:
             size += len(chunk)
 
             if size > max_size:
-                raise ApplicationException(400, "File too big")
+                raise ApplicationException(400, "Файл слишком большой")
             
             chunks.append(chunk)
         

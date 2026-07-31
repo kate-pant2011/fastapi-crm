@@ -137,15 +137,20 @@ async def create_project_page_(
         require_page_roles("manager")
     ),
 ):
+    context = {
+        "request": request,
+        "error": None,
+        "user": user,
+        "create_url": "/projects/create",
+    }
     try:
         client = await get_client(session, user.roles, user.id, client_id)
-        context = {
-            "request": request,
-            "user": user,
-            "create_url": "/projects/create",
+        context.update(
+            {
             "client_id": client_id,
             "client_name": client.name,
         }
+        ) 
 
         return templates.TemplateResponse(
             request=request,

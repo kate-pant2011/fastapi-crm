@@ -115,13 +115,12 @@ async def create_client_page_(
         require_page_roles("manager")
     ),
 ):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "/clients/create",
+    }
     try:
-        context = {
-            "request": request,
-            "user": user,
-            "create_url": "/clients/create",
-        }
-
         return templates.TemplateResponse(
             request=request,
             name="client/create.html",
@@ -164,15 +163,21 @@ async def create_client_page(
         "error": None,
     }
 
-    if "," in email:
-        email = email.split(",")
-    else:
-        email = [email]
+    if email:
+        if email[-1] == ",":
+            email = [email[ 0:-1]]
+        elif "," in email:
+            email = email.split(",")
+        else:
+            email = [email]
 
-    if "," in telephone:
-        telephone = telephone.split(",")
-    else:
-        telephone = [telephone]
+    if telephone:
+        if "," in telephone:
+            telephone = telephone.split(",")
+        elif telephone[-1] == ",":
+            telephone = [telephone[ 0:-1]]
+        else:
+            telephone = [telephone]
 
     data = ClientCreation(
         name=name, email=email, telephone=telephone
@@ -598,7 +603,9 @@ async def user_template(
         "error": None,
     }
     if email:
-        if "," in email:
+        if email[-1] == ",":
+            email = [email[ 0:-1]]
+        elif "," in email:
             email = email.split(",")
         else:
             email = [email]
@@ -606,6 +613,8 @@ async def user_template(
     if telephone: 
         if"," in telephone:
             telephone = telephone.split(",")
+        elif telephone[-1] == ",":
+            telephone = [telephone[0:-1]]
         else:
             telephone = [telephone]
 

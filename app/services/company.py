@@ -36,7 +36,7 @@ async def get_company(session, roles, requester_id, company_id):
 
     company = await get_company_by_id(session, company_id, manager_id)
     if not company:
-        raise ApplicationException("Company Not Found", 404)
+        raise ApplicationException("Компания не найдена", 404)
 
 
     return to_schema(CompanyItem, company)
@@ -47,10 +47,10 @@ async def change_company(session, roles, user_id, company_id, item):
 
     company = await get_company_by_id(session, company_id,  manager_id)
     if not company:
-        raise ApplicationException("Компания не найдена.\nВозможно у вас нет прав на изменения!", 404)
+        raise ApplicationException("Компания не найдена, либо у Вас нет прав на изменения", 404)
 
     if company.is_archived:
-        raise ApplicationException(f"A company '{company.name}' is archived", 400, {"id": company.id})
+        raise ApplicationException(f"Компания '{company.name}' архивирована", 400, {"id": company.id})
 
     update_data = item.model_dump(exclude_unset=True)
 
@@ -64,13 +64,13 @@ async def create_company(session, data, manager_id):
     company = await get_company_by_inn(session, data.inn)
     if company:
         if company.is_archived:
-            raise ApplicationException(f"Company with inn {data.inn} is archived", 400, {"id": company.id})
+            raise ApplicationException(f"Компания с ИНН {data.inn} архивирована", 400, {"id": company.id})
 
-        raise ApplicationException(f"Company with inn {data.inn} already exists", 400)
+        raise ApplicationException(f"Компания с ИНН {data.inn} уже существует", 400)
 
     client = await get_client_by_id(session, data.client_id, manager_id)
     if not client:
-        raise ApplicationException("Client Not Found or Client Access Forbidden ", 404)
+        raise ApplicationException("Клиент не найден, либо у Вас нет прав ", 404)
 
     new_company = await add_company(session, data)
 
@@ -84,7 +84,7 @@ async def archive_company(session, company_id, manager_id):
         raise ApplicationException("Компания не найдена.\nВозможно у вас нет прав на удаление!", 404)
 
     if company.is_archived:
-        raise ApplicationException("Company is already archived", 400)
+        raise ApplicationException("Компания уже архивирована", 400)
 
     company.is_archived = True
     return company
@@ -98,10 +98,10 @@ async def restore_company(session, company_id, roles, requester_id):
     company = await get_company_by_id(session, company_id, manager_id)
 
     if not company:
-        raise ApplicationException("Company Not found", 404)
+        raise ApplicationException("Компания не найдена", 404)
 
     if company.is_archived is False:
-        raise ApplicationException("Company is already active", 400)
+        raise ApplicationException("Компания восстановлена", 400)
 
     company.is_archived = False
     return company

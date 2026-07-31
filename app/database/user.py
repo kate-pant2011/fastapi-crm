@@ -93,14 +93,16 @@ async def add_user_role(session, is_owner: bool, user, new_roles: list[str], is_
         existing_roles = {role.name for role in user.roles}
 
         if "owner" in existing_roles and "owner" not in new_roles:
-            raise ApplicationException("Owner role cannot be removed", 403)
+            raise ApplicationException("Роль owner не может быть удалена", 403)
 
         if "owner" not in existing_roles and "owner" in new_roles:
-            raise ApplicationException("Owner role cannot be applied", 400)
+            raise ApplicationException("Роль owner не может быть применена", 400)
 
     for role in new_roles:
         if role in {"admin"} and not is_owner:
-            raise ApplicationException("Only owner can assign admin roles", 403)
+            raise ApplicationException(
+                "Только пользователь с ролью owner может назначать роли админам", 403
+            )
 
     result = await session.execute(select(Role).where(Role.name.in_(new_roles)))
     role_objects = result.scalars().all()

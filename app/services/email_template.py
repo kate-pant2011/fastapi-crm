@@ -43,7 +43,7 @@ async def get_email_template(session, template_id, roles, user_id):
     template = await get_email_template_by_id(session, template_id)
 
     if not template:
-        raise ApplicationException("Template Not found", 404)
+        raise ApplicationException("Шаблон не найден", 404)
     
     if not template.is_public:
 
@@ -53,7 +53,7 @@ async def get_email_template(session, template_id, roles, user_id):
                 entity_id=template_id,
                 entity_name="template"
             )
-            raise ApplicationException("Template Not found", 404)
+            raise ApplicationException("Шаблон не найден, либо у Вас нет прав", 404)
 
     return to_schema(EmailTemplateItem, template)
 
@@ -63,7 +63,7 @@ async def create_email_template(session, data, creator_id):
 
     if template:
         raise ApplicationException(
-            f"Template named {data.name} already exists", 400
+            f"Шаблон с названием {data.name} уже существует", 400
         )
 
     new_template = await add_email_template(session, data, creator_id)
@@ -74,10 +74,10 @@ async def change_email_template(session, item, user_id, template_id):
     template = await get_email_template_by_id(session, template_id)
 
     if not template:
-        raise ApplicationException("Template Not found", 404)
+        raise ApplicationException("Шаблон не найден", 404)
 
     if user_id != template.creator_id:
-        raise ApplicationException("Only template-creator can make changes", 403)
+        raise ApplicationException("Только создатель шаблона может делать изменения", 403)
 
     update_data = item.model_dump(exclude_unset=True)
 
@@ -92,10 +92,10 @@ async def delete_email_template(session, user_id, roles, template_id):
     template = await get_email_template_by_id(session, template_id)
     template_name = template.name
     if not template:
-        raise ApplicationException("Template Not found", 404)
+        raise ApplicationException("Шаблон не найден", 404)
 
     if user_id != template.creator.id:
-        raise ApplicationException("Only template-creator can delete template", 403)
+        raise ApplicationException("Только создатель шаблона может его удалять", 403)
 
     await session.delete(template)
 
@@ -108,7 +108,7 @@ async def render_email_template(session, user_id, roles, template_id, query):
     template = await get_email_template_by_id(session, template_id)
 
     if not template:
-        raise ApplicationException("Template Not found", 404)
+        raise ApplicationException("Шаблон не найден", 404)
 
     if not template.is_public:
         if not is_admin and template.creator_id != user_id:
@@ -117,7 +117,7 @@ async def render_email_template(session, user_id, roles, template_id, query):
                 entity_id=template_id,
                 entity_name="template"
             )
-            raise ApplicationException("Template Not found", 404)
+            raise ApplicationException("Шаблон не найден, либо у Вас нет прав", 404)
 
     ctx_objects = await build_ctx_objects(session, query, user_id, is_admin)
     context = build_context(ctx_objects)

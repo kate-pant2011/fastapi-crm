@@ -23,7 +23,7 @@ async def get_contract_list(session, roles, requester_id, query):
     )
 
     if not contracts:
-        raise ApplicationException("contracts Not Found", 404)
+        raise ApplicationException("Список контрактов не найден", 404)
 
     return {
         "items": contracts.items,
@@ -40,7 +40,7 @@ async def get_contract(session, roles, requester_id, contract_id):
 
     contract = await get_contract_by_id(session, contract_id, manager_id)
     if not contract:
-        raise ApplicationException("Contract Not Found", 404)
+        raise ApplicationException("Контракт не найден", 404)
 
 
     return to_schema(GetContractItem, contract)
@@ -51,10 +51,10 @@ async def change_contract(session, roles, user_id, contract_id, item):
 
     contract = await get_contract_by_id(session, contract_id, manager_id)
     if not contract:
-        raise ApplicationException("Контракт не найден, либо у Вас нет прав!", 404)
+        raise ApplicationException("Контракт не найден, либо у Вас нет прав", 404)
 
     if contract.is_archived:
-        raise ApplicationException(f"A contract '{contract.name}' is archived", 400, {"id": contract.id})
+        raise ApplicationException(f"Контракт'{contract.name}' архивирован", 400, {"id": contract.id})
 
     update_data = item.model_dump(exclude_unset=True)
 
@@ -63,7 +63,7 @@ async def change_contract(session, roles, user_id, contract_id, item):
 
     if start_date:
         if start_date > end_date:
-            raise ApplicationException("End-date cannot be less than start-date", 400)
+            raise ApplicationException("Дата окончания должна быть позже даты начала", 400)
 
     for name, value in update_data.items():
         setattr(contract, name, value)
@@ -74,15 +74,15 @@ async def change_contract(session, roles, user_id, contract_id, item):
 async def create_contract(session, data, manager_id):
     company = await get_company_by_id(session, data.company_id, manager_id)
     if not company:
-        raise ApplicationException("Company Not Found ", 404)
+        raise ApplicationException("Компания не найдена, либо у Вас нет прав", 404)
 
     branch = await get_branch_by_id(session, data.branch_id)
     if not branch:
-        raise ApplicationException("Branch Not Found ", 404)
+        raise ApplicationException("Подразделение не найдено, либо у Вас нет прав", 404)
     
     if data.valid_from:
         if data.valid_from > data.valid_to:
-            raise ApplicationException("End-date cannot be less than start-date", 400)
+            raise ApplicationException("Дата окончания должна быть позже даты начала", 400)
 
     contract = await add_contract(session, data)
 
@@ -93,10 +93,10 @@ async def archive_contract(session, contract_id, manager_id):
     contract = await get_contract_by_id(session, contract_id, manager_id)
 
     if not contract:
-        raise ApplicationException("Контракт не найден, либо у Вас нет прав!", 404)
+        raise ApplicationException("Контракт не найден, либо у Вас нет прав", 404)
 
     if contract.is_archived:
-        raise ApplicationException("contract is already archived", 400)
+        raise ApplicationException("Контракт уже архивирован", 400)
 
     contract.is_archived = True
     return contract
@@ -113,7 +113,7 @@ async def restore_contract(session, contract_id, roles, requester_id):
         raise ApplicationException("Контракт не найден, либо у Вас нет прав!", 404)
 
     if contract.is_archived is False:
-        raise ApplicationException("contract is already active", 400)
+        raise ApplicationException("Контракт уже восстановлен", 400)
 
     contract.is_archived = False
     return contract

@@ -37,7 +37,23 @@
 
     <label class="form-label">
 
-        Описание
+        Дедлайн
+
+    </label>
+
+    <input
+        type="datetime-local"
+        class="form-control"
+        name="deadline"
+        value="{% if template.deadline %}{{ template.deadline.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+
+</div>
+
+<div class="mb-3">
+
+    <label class="form-label">
+
+        Описание задания
 
     </label>
 

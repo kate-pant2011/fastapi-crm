@@ -426,7 +426,7 @@ async def edit_stage_page(
 
 
 @stage_page_router.post("/projects/{project_id}/stages/{id}/edit")
-async def stage_template(
+async def stage_edit_page(
     request: Request,
     id: int,
     project_id: int,

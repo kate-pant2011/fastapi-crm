@@ -8,7 +8,7 @@ class Assignment(BaseModel):
 
     stage_id = Column(Integer, ForeignKey("stages.id"), nullable=False, index=True)
 
-    #deadline = Column(DateTime, , nullable=False)
+    deadline = Column(DateTime, nullable=False)
 
     contractor_id = Column(
         Integer, ForeignKey("contractors.id"), nullable=True, index=True

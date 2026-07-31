@@ -121,10 +121,11 @@ async def create_contractor_page(
         "error": None,
     }
 
-    if "," in email:
-        email = email.split(",")
-    else:
-        email = [email]
+    if email:
+        if "," in email:
+            email = email.split(",")
+        else:
+            email = [email]
 
     try:
         data = ContractorCreation(
@@ -415,12 +416,13 @@ async def contractor_template(
         "error": None,
     }
 
-    if email[-1] == ",":
-       email = [email[ 0:-1]]
-    elif "," in email:
-        email = email.split(",")
-    else:
-        email = [email]
+    if email:
+        if email[-1] == ",":
+            email = [email[ 0:-1]]
+        elif "," in email:
+            email = email.split(",")
+        else:
+            email = [email]
         
     try:
         data = ContractorPatchRequest(

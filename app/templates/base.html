@@ -50,79 +50,47 @@
             </a>
 
         </div>
-
+        
         <div class="ms-auto d-flex align-items-center gap-2">
 
-            <div class="dropdown">
+            <form action="/switch-mode" method="post" class="m-0">
+
+                <input
+                    type="hidden"
+                    name="mode"
+                    value="execution">
 
                 <button
-                    class="btn btn-outline-light dropdown-toggle"
-                    type="button"
-                    data-bs-toggle="dropdown">
+                    type="submit"
+                    class="btn {% if mode == 'execution' %}btn-light text-primary fw-bold{% else %}btn-outline-light fw-bold{% endif %}">
 
-                    {% if mode == "execution" %}
-                        Исполнение
-                    {% else %}
-                        Управление
-                    {% endif %}
+                    Мои задачи
 
                 </button>
 
-                <ul class="dropdown-menu dropdown-menu-end">
+            </form>
 
-                    <li>
+            <form action="/switch-mode" method="post" class="m-0">
 
-                        <form
-                            action="/switch-mode"
-                            method="post">
+                <input
+                    type="hidden"
+                    name="mode"
+                    value="management">
 
-                            <input
-                                type="hidden"
-                                name="mode"
-                                value="management">
+                <button
+                    type="submit"
+                    class="btn {% if mode == 'management' %}btn-light text-primary fw-bold{% else %}btn-outline-light fw-bold{% endif %}">
 
-                            <button
-                                type="submit"
-                                class="dropdown-item">
+                    Главная
 
-                                Управление
+                </button>
 
-                            </button>
-
-                        </form>
-
-                    </li>
-
-                    <li>
-
-                        <form
-                            action="/switch-mode"
-                            method="post">
-
-                            <input
-                                type="hidden"
-                                name="mode"
-                                value="execution">
-
-                            <button
-                                type="submit"
-                                class="dropdown-item">
-
-                                Исполнение
-
-                            </button>
-
-                        </form>
-
-                    </li>
-
-                </ul>
-
-            </div>
+            </form>
 
             <form
                 action="/auth/logout-page"
-                method="post">
+                method="post"
+                class="m-0">
 
                 <button
                     type="submit"

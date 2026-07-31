@@ -17,7 +17,7 @@ async def get_email_log_list(session, roles, user_id, query):
     )
 
     if not email_logs:
-        raise ApplicationException("EmailLogs Not Found", 404)
+        raise ApplicationException("Запись сообщения не найдена", 404)
 
     return {
         "items": email_logs.items,
@@ -33,6 +33,6 @@ async def get_email_log(session, roles, user_id, email_log_id):
 
     email_log = await get_email_log_by_id(session, is_admin, user_id, email_log_id)
     if not email_log:
-        raise ApplicationException("EmailLog Not Found", 404)
+        raise ApplicationException("Запись сообщения не найдена", 404)
 
     return email_log

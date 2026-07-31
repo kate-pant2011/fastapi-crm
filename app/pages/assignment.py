@@ -25,6 +25,7 @@ from typing import Literal
 from app.routers.user import get_user_list, QueryDTO
 from app.services.contractor import get_contractor_list
 from app.routers.assignment import AssignmentQueryDTO
+from datetime import datetime
 
 assignment_page_router = APIRouter()
 
@@ -396,9 +397,11 @@ async def edit_assignment_page(
 async def assignment_template(
     request: Request,
     id: int,
+    forward: Literal["execution", "list"] | None = Query(default=None),
     name: str = Form(None),
     description: str = Form(None),
     is_done: bool = Form(None),
+    deadline: datetime = Form(None),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles("manager", "executor")
@@ -417,6 +420,7 @@ async def assignment_template(
             "name": name,
             "is_done": is_done,
             "description": description,
+            "deadline": deadline,
     
         }
  
@@ -427,11 +431,22 @@ async def assignment_template(
 
         context["template"] = result
 
-        return RedirectResponse(
-            url=f"/assignments/{id}",
-            status_code=303,
-        )
-
+        if forward == "list":
+            return RedirectResponse(
+                url=f"/assignments",
+                status_code=303,
+            )
+        elif forward == "execution":
+            return RedirectResponse(
+                url=f"/execution",
+                status_code=303,
+            )
+        else:
+            return RedirectResponse(
+                url=f"/assignments/{id}",
+                status_code=303,
+            )
+        
     except ApplicationException as e:
         context["error"] = e.name
 

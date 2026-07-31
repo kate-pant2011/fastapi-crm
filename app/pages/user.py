@@ -350,17 +350,18 @@ async def create_contractor_page_(
         require_page_roles("owner", "admin")
     ),
 ):
+    context = {
+        "request": request,
+        "user": user,
+        "create_url": "/users/create",
+        "error": None
+    }
     try:
         branches_result = await get_branch_list(
             session=session,
             query=BranchQueryDTO(limit=1000)
         )
-        context = {
-            "request": request,
-            "user": user,
-            "create_url": "/users/create",
-            "branches": branches_result.get("items", []),
-        }
+        context["branches"] = branches_result.get("items", [])
 
         return templates.TemplateResponse(
             request=request,

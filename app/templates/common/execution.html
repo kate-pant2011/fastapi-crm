@@ -105,6 +105,8 @@
         <tr>
             <th>ID</th>
             <th>Название</th>
+            <th>Дедлайн</th>
+            <th>Статус</th>
         </tr>
 
     </thead>
@@ -131,6 +133,61 @@
 
             </td>
 
+        <td>
+            {% if assignment.deadline %}
+                {{ assignment.deadline.strftime("%d.%m.%Y") }}
+            {% else %}
+                —
+            {% endif %}
+        </td>
+
+        <td>
+            {% if not assignment.is_done %}
+
+            <form
+                action="/assignments/{{ assignment.id }}/edit?forward=execution"
+                method="post"
+                class="m-0">
+
+                <input
+                    type="hidden"
+                    name="is_done"
+                    value="true">
+
+                <button
+                    type="submit"
+                    class="btn btn-sm btn-success">
+
+                    ✓ Выполнить
+
+                </button>
+
+            </form>
+
+            {% else %}
+
+            <form
+                action="/assignments/{{ assignment.id }}/edit?forward=execution"
+                method="post"
+                class="m-0">
+
+                <input
+                    type="hidden"
+                    name="is_done"
+                    value="false">
+
+                <button
+                    type="submit"
+                    class="btn btn-sm btn-success">
+
+                    ✓ Убрать выполнение
+
+                </button>
+
+            </form>
+
+            {% endif %}
+        </td>
 
         </tr>
 

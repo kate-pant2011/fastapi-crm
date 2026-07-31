@@ -53,7 +53,7 @@ async def get_assignment(session, roles, requester_id, assignment_id):
     )
 
     if not assignment:
-        raise ApplicationException("Assignment Not found", 404)
+        raise ApplicationException("Назначение не найдено, либо у Вас нет прав", 404)
 
     return to_schema(AssignmentItem, assignment)
 
@@ -63,19 +63,22 @@ async def change_assignment(session, assignment_id, item, roles, user_id):
 
     assignment = await get_assignment_by_id(session, assignment_id, manager_id)
     if not assignment:
-        raise ApplicationException("Assignment Not found", 404)
+        raise ApplicationException("Назначение не найдено, либо у Вас нет прав", 404)
 
     update_data = item.model_dump(exclude_unset=True)
 
+    if "is_done" not in update_data:
+        update_data["is_done"] = False
+        
     for name, value in update_data.items():
         setattr(assignment, name, value)
-
+    
     return to_schema(AssignmentItem, assignment)
 
 
 async def create_assignment(session, data, manager_id):
     if data.contractor_id and data.user_id:
-        raise ApplicationException("Assignment cannot have both contractor and user", 400)
+        raise ApplicationException("Нельзя назначать подрядчика и сотрудника компании одновременно", 400)
     
     stage = await get_stage_by_id(session, data.stage_id, manager_id, is_admin=False)
     if not stage:
@@ -84,29 +87,30 @@ async def create_assignment(session, data, manager_id):
         )
 
     if stage.is_archived:
-        raise ApplicationException("stage is archived", 400)
+        raise ApplicationException("этап архивирован", 400)
 
     if data.user_id is not None:
         user = await get_user_by_id(session, data.user_id)
         if not user:
-            raise ApplicationException("User Not found", 404)
+            raise ApplicationException("Пользователь не найден", 404)
 
         if not user.is_active:
-            raise ApplicationException("User is archived", 400)
+            raise ApplicationException("Пользователь архивирован", 400)
 
         target_roles = list({role.name for role in user.roles})
         if not target_roles:
-            raise ApplicationException("Roles Not found", 404)
+            raise ApplicationException("Роли не найдены", 404)
 
         is_executor = Access(target_roles).is_executor()
         if not is_executor:
             raise ApplicationException(
-                f"Cannot assign user with {target_roles} status", 403
+                f"Только пользователь с ролью executor может быть назначен", 403
             )
 
     if data.contractor_id is not None:
         contractor = await get_contractor(session, data.contractor_id)
 
+    data.deadline = stage.end_date
     new_assignment = await add_assignment(session, data)
     return new_assignment
 

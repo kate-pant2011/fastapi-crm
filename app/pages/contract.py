@@ -133,20 +133,21 @@ async def create_contract_page_(
         require_page_roles("manager")
     ),
 ):
+    context = {
+        "error": None,
+        "request": request,
+        "user": user,
+        "create_url": "/contracts/create",
+        "company_id": company_id,
+        "client_name": company_name,
+    }
     try:
         result = await get_branch_list(
             session=session, 
             query=BranchQueryDTO(limit=1000)
         )
-        context = {
-            "request": request,
-            "user": user,
-            "create_url": "/contracts/create",
-            "company_id": company_id,
-            "client_name": company_name,
-            "branches": result.get("items", [])
-        }
-
+        context["branches"] = result.get("items", [])
+        
         return templates.TemplateResponse(
             request=request,
             name="contract/create.html",
@@ -194,18 +195,17 @@ async def create_contract_page(
         "error": None,
     }
 
-    data = СontractCreation(
-        number=number,
-        status=status,
-        name=name, 
-        description=description, 
-        company_id=company_id,
-        branch_id=branch_id,
-        valid_from=valid_from,
-        valid_to=valid_to
-    )
-
     try:
+        data = СontractCreation(
+            number=number,
+            status=status,
+            name=name, 
+            description=description, 
+            company_id=company_id,
+            branch_id=branch_id,
+            valid_from=valid_from,
+            valid_to=valid_to
+        )
         result = await create_contract(session, data, user.id)
 
         context.update(

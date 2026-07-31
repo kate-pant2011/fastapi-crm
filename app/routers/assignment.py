@@ -4,11 +4,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth.dependencies import require_roles
 from app.auth.dependencies import UserDTO
 from app.config.connection import get_db
-from app.schemas.common import BaseShortResponse, BaseListResponse
+from app.schemas.common import BaseShortResponse
 from app.schemas.assignment import (
     AssignmentItem,
     AssignmentCreation,
     AssignmentPatchRequest,
+    AssignmentListResponse
 )
 from app.services.assignment import (
     form_assignment_list,
@@ -33,7 +34,7 @@ class AssignmentQueryDTO:
     is_done: bool | None = None
     scope: str | None = None
 
-@assignment_router.get("/assignment", response_model=BaseListResponse)
+@assignment_router.get("/assignment", response_model=AssignmentListResponse)
 async def client_list(
     is_done: bool | None = Query(default=None),
     scope: Literal["users", "contractors"] | None = Query(
@@ -65,7 +66,7 @@ async def client_list(
         raise HTTPException(status_code=500, detail=f" {type(e).__name__} - {e}")
     
 
-@assignment_router.get("/assignments/me", response_model=BaseListResponse)
+@assignment_router.get("/assignments/me", response_model=AssignmentListResponse)
 async def get_assignment_router(
     is_done: bool | None = Query(default=None),
     sort: str | None = Query(default=None, description="- stands for desc"),

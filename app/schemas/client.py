@@ -1,12 +1,13 @@
 from pydantic import BaseModel, EmailStr, Field, computed_field
 from app.schemas.common import BaseShortResponse
+from app.schemas.user import UserShortResponse
 
 
 class ClientItem(BaseModel):
     name: str
     email: list[str] | None
     telephone: list[str] | None
-    manager: BaseShortResponse
+    manager: UserShortResponse
     projects: list[BaseShortResponse] | None
     companies: list[BaseShortResponse] | None
     files_count: int | None = None

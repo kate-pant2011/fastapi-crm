@@ -32,7 +32,7 @@ def apply_sorting(stmt, model: type[BaseModel], sort: str, sorting_rules):
     allowed_fields = sorting_rules.get(sort)
 
     if not allowed_fields:
-        raise ApplicationException(f"Cannot sort by {sort}", 400)
+        raise ApplicationException(f"Сортировка по такому параметру как {sort} невозможна", 400)
 
     rule = allowed_fields[0]
     extra_rule = allowed_fields[1] if len(allowed_fields) > 1 else None

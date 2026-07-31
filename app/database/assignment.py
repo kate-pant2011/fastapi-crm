@@ -28,7 +28,7 @@ async def get_filtered_assignments(session, query, sorting_rules, user_id=None):
     if query.sort:
         stmt = apply_sorting(stmt=stmt, model=Assignment, sort=query.sort, sorting_rules=sorting_rules)
     else:
-        stmt = order(stmt=stmt, model=Assignment)
+        stmt =apply_sorting(stmt=stmt, model=Assignment, sort="deadline", sorting_rules=sorting_rules)
 
     result = await get_all_and_total(session, stmt, query.limit, query.offset)
     return result
@@ -70,6 +70,7 @@ async def add_assignment(session, data):
         stage_id=data.stage_id,
         user_id=data.user_id,
         contractor_id=data.contractor_id,
+        deadline=data.deadline,
     )
 
     session.add(assignment)

@@ -34,11 +34,11 @@ async def check_files_access(file, session, user_id, roles):
 
     elif file.generated_document:
         if file.creator_id != user_id:
-            raise ApplicationException("Access denied", 403)
+            raise ApplicationException("Доступ к файлу запрещен", 403)
 
     elif file.template_id:
         if file.creator_id != user_id:
-            raise ApplicationException("Access denied", 403)
+            raise ApplicationException("Доступ к файлу запрещен", 403)
     
     else:
         file_audit.file_access_denied(
@@ -48,7 +48,7 @@ async def check_files_access(file, session, user_id, roles):
             entity_type=None, 
             entity_id=None
         )
-        raise ApplicationException("Access denied", 403)
+        raise ApplicationException("Доступ к файлу запрещен", 403)
 
 
 async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id):
@@ -62,7 +62,7 @@ async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id
         manager_id, executor_id = None, None
 
     if entity_type not in ("client", "project", "branch"):
-        raise ApplicationException("File location Not Found", 400)
+        raise ApplicationException("Файл не найден", 400)
 
     if entity_type == "project":
         entity = await get_project_by_id(session, entity_id, manager_id, executor_id)
@@ -74,11 +74,11 @@ async def check_roles_and_entity(session, user_id, roles, entity_type, entity_id
         entity = await get_branch_by_id(session, entity_id)
 
     if not entity: 
-        raise ApplicationException(f"{entity_type} not found", 404)
+        raise ApplicationException(f"{entity_type} не найден", 404)
 
 
     if entity.is_archived:
-        raise ApplicationException(f"{entity_type} is archived", 400)
+        raise ApplicationException(f"{entity_type} архивирован", 400)
 
 
 async def get_file_list(session, user_id, roles, entity_id, entity_type, query):
@@ -98,7 +98,7 @@ async def get_file(session, user_id, roles, file_id):
     file = await get_file_by_id(session, file_id)
 
     if not file:
-        raise ApplicationException("File not found", 404)
+        raise ApplicationException("Файл не найден", 404)
     
     await check_files_access(file, session, user_id, roles)
 
@@ -167,7 +167,7 @@ async def get_file_for_download(session, user_id, roles, file_id):
     file = await get_file_by_id(session, file_id)
 
     if not file:
-        raise ApplicationException("File not found", 404)
+        raise ApplicationException("Файл не найден", 404)
 
     entity_id, entity_type = await get_entity(file)
 
@@ -189,7 +189,7 @@ async def delete_file(session, user_id, roles, file_id):
     file = await get_file_by_id(session, file_id)
     
     if not file:
-        raise ApplicationException("File not found", 404)
+        raise ApplicationException("Файл не найден", 404)
 
 
     entity_id, entity_type = await get_entity(file)

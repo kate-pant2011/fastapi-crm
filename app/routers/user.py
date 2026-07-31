@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config.config import ApplicationException
 from app.config.connection import get_db
 from app.auth.dependencies import require_roles
-from app.schemas.common import BaseShortResponse, BaseListResponse
+from app.schemas.common import BaseShortResponse
 from app.services.user import (
     create_user,
     archive_user,
@@ -19,6 +19,8 @@ from app.schemas.user import (
     UserCreationRequest,
     UserCreationResponse,
     UserPatchRequest,
+    UserListResponse,
+    UserShortResponse
 )
 from app.auth.dependencies import UserDTO
 from dataclasses import dataclass
@@ -36,7 +38,7 @@ class QueryDTO:
     offset: int = 0
 
 
-@user_router.get("/user", response_model=BaseListResponse)
+@user_router.get("/user", response_model=UserListResponse)
 async def get_user_list_router(
     branch_id: int | None = Query(default=None),
     is_active: bool | None = Query(default=None),

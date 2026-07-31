@@ -28,7 +28,7 @@ async def get_filtered_email_logs(session, is_admin, query, sorting_rules, user_
 
     if query.user_id is not None:
         if not is_admin:
-            raise ApplicationException("Not enough permissions", 403)
+            raise ApplicationException("Нет прав на просмотр чужих сообщений", 403)
         
         stmt = stmt.where(EmailLog.user_id == query.user_id)
 

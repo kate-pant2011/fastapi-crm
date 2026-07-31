@@ -56,7 +56,7 @@ async def get_doc_template(session, template_id, roles, user_id):
     template = await get_doc_template_by_id(session, template_id)
 
     if not template:
-        raise ApplicationException("Template Not found", 404)
+        raise ApplicationException("Шаблон не найден", 404)
     
     if not template.is_public:
             if not is_admin and not template.creator_id == user_id:
@@ -66,7 +66,7 @@ async def get_doc_template(session, template_id, roles, user_id):
                     template_name=template.name, 
                     reason="Access to template denied"
                 )
-                raise ApplicationException("Template id not found", 404)
+                raise ApplicationException("Шаблон не найден, либо у Вас нет прав", 404)
 
     return to_schema(DocTemplateItem, template)
 
@@ -75,7 +75,7 @@ async def change_doc_template(session, item, user_id, template_id):
     template = await get_doc_template_by_id(session, template_id)
 
     if not template:
-        raise ApplicationException("Template Not found", 404)
+        raise ApplicationException("Шаблон не найден", 404)
 
     if user_id != template.creator_id:
         docs_audit.template_access_denied(
@@ -85,7 +85,7 @@ async def change_doc_template(session, item, user_id, template_id):
             reason="Only creator can edit"
         )
 
-        raise ApplicationException("Only template-creator can make changes", 403)
+        raise ApplicationException("Только создатель шаблона может делать изменения", 403)
 
     update_data = item.model_dump(exclude_unset=True)
 
@@ -104,7 +104,7 @@ async def change_doc_template(session, item, user_id, template_id):
 async def delete_doc_template(session, user_id, template_id):
     template = await get_doc_template_by_id(session, template_id)
     if not template:
-        raise ApplicationException("Template Not found", 404)
+        raise ApplicationException("Шаблон не найден", 404)
 
     if user_id != template.creator.id:
         docs_audit.template_access_denied(
@@ -114,7 +114,7 @@ async def delete_doc_template(session, user_id, template_id):
             reason="Only creator can delete"
         )
 
-        raise ApplicationException("Only template-creator can delete template", 403)
+        raise ApplicationException("Только создатель шаблона может его удалить", 403)
     
     handler = FileHandler()
 
@@ -122,7 +122,7 @@ async def delete_doc_template(session, user_id, template_id):
         deleted = handler.delete_file(template.file.path)
 
         if not deleted:
-            raise ApplicationException("Failed to delete file", 400)
+            raise ApplicationException("Ошибка при удалении файла", 400)
 
         await session.delete(template)
         
@@ -139,7 +139,7 @@ async def create_doc_template(session, data, creator_id, roles, file):
 
     if template:
         raise ApplicationException(
-            f"Template named {data.name} already exists", 400
+            f"Шаблон {data.name} уже существует", 400
         )
     
     new_template = await add_doc_template(session, data, creator_id)
@@ -180,7 +180,7 @@ def extract_variables_from_docx(file_path):
 async def doc_template_access(session, user_id, roles, template_id, is_admin):
     template = await get_doc_template_by_id(session, template_id)
     if not template:
-        raise ApplicationException("Template Not found", 404)
+        raise ApplicationException("Шаблон не найден", 404)
     
     if not template.is_public:
         if not is_admin and template.creator_id != user_id:
@@ -190,10 +190,10 @@ async def doc_template_access(session, user_id, roles, template_id, is_admin):
                 template_name=template.name, 
                 reason="Access to template denied"
             )
-            raise ApplicationException("Template not found", 404)
+            raise ApplicationException("Шаблон не найден", 404)
 
     if not template.file:
-        raise ApplicationException("This template has no files", 400)
+        raise ApplicationException("У этого шаблона нет файлов", 400)
 
     return template
 
@@ -261,7 +261,7 @@ async def render_doc_template(session, user_id, roles, template_id, data):
 
     except Exception as e:
         logger.exception("Bad file error")
-        raise ApplicationException(f"Something went wrong - {e}", 400)
+        raise ApplicationException(f"Что-то пошло не так - {e}", 400)
 
     size = os.path.getsize(output_path)
     now = datetime.now().strftime("%Y%m%d%H%M")

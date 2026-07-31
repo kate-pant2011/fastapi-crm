@@ -24,7 +24,7 @@ class Access:
     def require_admin_or_manager(self):
         if not (self.is_admin() or self.is_manager()):
             raise ApplicationException(
-                f"Cannot access client with roles {self.roles}", 403
+                f"Нельзя получить доступ к пользователю с ролями: {self.roles}", 403
             )
 
     def executor_id(self, user_id):
