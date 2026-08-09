@@ -24,6 +24,21 @@ templates = Jinja2Templates(
 )
 
 
+def preparing_list_for_db(name, context, request):
+    if name:
+        if name[-1] == ",":
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
+        elif "," in name:
+            return name.split(",")
+        else:
+            return [name]
+
 @common_page_router.get("/")
 async def home_page(
     request: Request,

@@ -21,6 +21,7 @@ from app.routers.user import QueryDTO
 from app.routers.stage import StageQueryDTO
 from app.services.stage import get_stage_list
 from app.services.user import get_user_list
+from .common import preparing_list_for_db
 
 
 stage_template_page_router = APIRouter()
@@ -133,7 +134,15 @@ async def create_stage_template_page(
     }
 
     if stage_list:
-        if "," in stage_list:
+        if stage_list[-1] == ",":
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
+        elif "," in stage_list:
             stage_list = stage_list.split(",")
         else:
             stage_list = [stage_list]
@@ -312,7 +321,15 @@ async def stage_doc_template(
     }
 
     if stage_list:
-        if "," in stage_list:
+        if stage_list[-1] == ",":
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
+        elif "," in stage_list:
             stage_list = stage_list.split(",")
         else:
             stage_list = [stage_list]

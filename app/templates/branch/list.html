@@ -85,6 +85,37 @@
 
         </div>
 
+        <div class="col-md-2">
+
+            <label class="form-label">
+                Статус
+            </label>
+
+            <select
+                name="is_archived"
+                class="form-select">
+
+                <option
+                    value=""
+                    {% if is_archived is none %}
+                    selected
+                    {% endif %}
+                >
+                    Активные
+                </option>
+
+                <option
+                    value="true"
+                    {% if is_archived %}
+                    selected
+                    {% endif %}
+                >
+                    Архивные
+                </option>
+
+            </select>
+
+        </div>
     </div>
 
     <button

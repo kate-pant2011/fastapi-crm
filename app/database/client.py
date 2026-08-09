@@ -6,7 +6,13 @@ from .common import apply_sorting, order, get_all_and_total
 
 
 async def get_filtered_clients(session, manager_id, query, sorting_rules):
-    stmt = select(Client).join(Client.manager).where(Client.is_archived == False)
+    stmt = select(Client).join(Client.manager)
+    
+    if query.is_archived is None:
+        stmt = stmt.where(Client.is_archived == False)
+
+    if query.is_archived is True:
+        stmt = stmt.where(Client.is_archived.is_(True))
 
     if manager_id is not None:
         stmt = stmt.where(Client.manager_id == manager_id)

@@ -25,6 +25,7 @@ class ClientQueryDTO:
     limit: int = 20
     offset: int = 0
     manager_id: int | None = None
+    is_archived: bool | None = None
     scope: str | None = None
 
 
@@ -37,12 +38,13 @@ async def client_list(
     sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
+    is_archived: bool | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager")),
 ):
     try:
         query = ClientQueryDTO(
-            sort=sort, limit=limit, offset=offset, manager_id=manager_id, scope=scope
+            sort=sort, limit=limit, offset=offset, manager_id=manager_id, scope=scope, is_archived=is_archived
         )
         return await form_client_list(
             session=session, roles=user.roles, requester_id=user.id, query=query

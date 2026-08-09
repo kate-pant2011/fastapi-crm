@@ -1,0 +1,8 @@
+/venv
+.git/
+.gitignore
+*.pyc
+/__pycache__
+/docs
+.env
+uploads/

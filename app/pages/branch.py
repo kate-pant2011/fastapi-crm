@@ -30,6 +30,7 @@ async def branch_list_page(
     sort: str | None = Query(default=None),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
+    is_archived: bool | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles("owner", "admin", "manager", "executor"))
@@ -42,10 +43,11 @@ async def branch_list_page(
         "limit": limit,
         "offset": offset,
         "sort": sort,
+        "is_archived": is_archived,
         "error": None,
     }
     try:
-        query = BranchQueryDTO(sort=sort, limit=limit, offset=offset)
+        query = BranchQueryDTO(sort=sort, limit=limit, offset=offset, is_archived=is_archived)
         result = await get_branch_list(session, query)
 
         context.update(

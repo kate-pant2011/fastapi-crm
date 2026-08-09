@@ -11,7 +11,7 @@ class FileItem(BaseModel):
     client: BaseShortResponse | None
     project: BaseShortResponse | None
     project: BaseShortResponse | None
-    template_id: int
+    template_id: int | None
 
 
     class Config:

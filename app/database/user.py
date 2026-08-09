@@ -93,7 +93,7 @@ async def add_user_role(session, is_owner: bool, user, new_roles: list[str], is_
         existing_roles = {role.name for role in user.roles}
 
         if "owner" in existing_roles and "owner" not in new_roles:
-            raise ApplicationException("Роль owner не может быть удалена", 403)
+            new_roles.append("owner")
 
         if "owner" not in existing_roles and "owner" in new_roles:
             raise ApplicationException("Роль owner не может быть применена", 400)

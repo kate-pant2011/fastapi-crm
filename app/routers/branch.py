@@ -26,6 +26,7 @@ class BranchQueryDTO:
     sort: str | None = None
     limit: int = 20
     offset: int = 0
+    is_archived: bool | None = None
 
 
 @branch_router.get("/branch", response_model=LegalEntityListResponse)
@@ -33,11 +34,12 @@ async def get_branch_list_router(
     sort: str | None = Query(default=None, description="- stands for desc"),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
+    is_archived: bool | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(require_roles("owner", "admin", "manager", "executor")),
 ):
     try:
-        query = BranchQueryDTO(sort=sort, limit=limit, offset=offset)
+        query = BranchQueryDTO(sort=sort, limit=limit, offset=offset, is_archived=is_archived)
         return await get_branch_list(session, query)
 
     except ApplicationException as e:

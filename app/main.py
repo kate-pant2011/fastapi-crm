@@ -55,7 +55,6 @@ app = FastAPI()
 async def http_exception_handler(request: Request, exc: HTTPException):
 
     if exc.status_code == 403:
-
         return RedirectResponse(
             url="/?warning=forbidden",
             status_code=303,
@@ -114,20 +113,18 @@ app.include_router(email_log_page_router)
 app.include_router(file_page_router)
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 formatter = logging.Formatter(
     "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 
-handler = RotatingFileHandler(
-    "app.log",
-    maxBytes=1_000_000,
-    backupCount=3
-)
-handler.setLevel(logging.DEBUG)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+console.setFormatter(formatter)
+
+logger.handlers.clear()
+logger.addHandler(console)
 
 

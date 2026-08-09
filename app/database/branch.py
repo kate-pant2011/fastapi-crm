@@ -5,7 +5,13 @@ from .common import apply_sorting, order, get_all_and_total
 
 
 async def get_all_branches(session, query, sorting_rules):
-    stmt = select(Branch).where(Branch.is_archived.is_(False))
+    stmt = select(Branch)
+
+    if query.is_archived is None:
+        stmt = stmt.where(Branch.is_archived.is_(False))
+
+    if query.is_archived is True:
+        stmt = stmt.where(Branch.is_archived.is_(True))
 
     if not query.sort:
         stmt = order(stmt=stmt, model=Branch)

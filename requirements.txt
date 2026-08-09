@@ -13,3 +13,5 @@ aiofiles
 python-magic
 cryptography
 docxtpl
+slowapi
+python-magic

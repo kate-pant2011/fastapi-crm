@@ -73,7 +73,7 @@ async def signup_page_submit(
         result = await signup_user(session, signup_data, ip)
 
         response = RedirectResponse(
-            url=f"/auth/login?login={result.login}",
+            url=f"/auth/login?login={result.get("login")}",
             status_code=303,
         )
 

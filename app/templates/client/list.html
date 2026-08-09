@@ -35,7 +35,7 @@
 <div class="row mb-4">
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">
             Менеджер
@@ -70,7 +70,7 @@
 
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">
             Область просмотра
@@ -101,7 +101,7 @@
 
 
 
-    <div class="col-md-4">
+    <div class="col-md-3">
 
         <label class="form-label">
             Сортировка
@@ -141,6 +141,37 @@
 
     </div>
 
+    <div class="col-md-3">
+
+        <label class="form-label">
+            Статус
+        </label>
+
+        <select
+            name="is_archived"
+            class="form-select">
+
+            <option
+                value=""
+                {% if is_archived is none %}
+                selected
+                {% endif %}
+            >
+                Активные
+            </option>
+
+            <option
+                value="true"
+                {% if is_archived %}
+                selected
+                {% endif %}
+            >
+                Архивные
+            </option>
+
+        </select>
+
+    </div>
 
 </div>
 

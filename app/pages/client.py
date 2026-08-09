@@ -38,6 +38,7 @@ async def client_list_page(
     sort: str | None = Query(default=None),
     limit: int = Query(default=20, le=100),
     offset: int = Query(default=0),
+    is_archived: bool | None = Query(default=None),
     session: AsyncSession = Depends(get_db),
     user: UserDTO = Depends(
         require_page_roles("owner", "admin", "manager"))
@@ -49,6 +50,7 @@ async def client_list_page(
         "total": 0,
         "limit": limit,
         "offset": offset,
+        "is_archived": is_archived,
         "sort": sort,
         "manager_id": manager_id,
         "scope": scope,
@@ -60,7 +62,8 @@ async def client_list_page(
             limit=limit,
             offset=offset,
             manager_id=manager_id,
-            scope=scope
+            scope=scope,
+            is_archived=is_archived
         )
         result = await form_client_list(
             session=session, roles=user.roles, requester_id=user.id, query=query
@@ -165,17 +168,29 @@ async def create_client_page(
 
     if email:
         if email[-1] == ",":
-            email = [email[ 0:-1]]
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
         elif "," in email:
             email = email.split(",")
         else:
             email = [email]
 
     if telephone:
-        if "," in telephone:
+        if telephone[-1] == ",":
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
+        elif "," in telephone:
             telephone = telephone.split(",")
-        elif telephone[-1] == ",":
-            telephone = [telephone[ 0:-1]]
         else:
             telephone = [telephone]
 
@@ -604,17 +619,29 @@ async def user_template(
     }
     if email:
         if email[-1] == ",":
-            email = [email[ 0:-1]]
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
         elif "," in email:
             email = email.split(",")
         else:
             email = [email]
 
     if telephone: 
-        if"," in telephone:
+        if telephone[-1] == ",":
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
+        elif "," in telephone:
             telephone = telephone.split(",")
-        elif telephone[-1] == ",":
-            telephone = [telephone[0:-1]]
         else:
             telephone = [telephone]
 

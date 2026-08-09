@@ -161,7 +161,13 @@ async def create_email_template_page(
 
     if from_emails:
         if from_emails[-1] == ",":
-            from_emails = [from_emails[ 0:-1]]
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
         elif "," in from_emails:
             from_emails = from_emails.split(",")
         else:
@@ -514,8 +520,19 @@ async def edit_doc_template(
         "error": None,
     }
 
-    if "," in from_emails:
-        from_emails = from_emails.split(",")
+    if from_emails:
+        if from_emails[-1] == ",":
+            context["error"] = "Нельзя заканчивать список запятой"
+            return templates.TemplateResponse(
+                request=request, 
+                name="error.html", 
+                context=context,
+                status_code=400,
+            )
+        elif "," in from_emails:
+            from_emails = from_emails.split(",")
+        else:
+            from_emails = [from_emails]
         
     try:
         data = EmailTemplatePatchRequest(
