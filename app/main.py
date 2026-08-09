@@ -48,7 +48,11 @@ from slowapi.errors import RateLimitExceeded
 from app.rate_limit import limiter
 
 
-app = FastAPI()
+app = FastAPI(
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
+)
 
 
 @app.exception_handler(HTTPException)

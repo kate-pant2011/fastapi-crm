@@ -1,7 +1,7 @@
 services:
   backend:
     build: .
-    container_name: my_backend
+    container_name: crm_backend
     expose:
       - "8000"
     volumes:
@@ -15,7 +15,7 @@ services:
 
   db:
     image: postgres:16-alpine
-    container_name: my_postgres
+    container_name: crm_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
@@ -31,13 +31,13 @@ services:
   
   nginx:
     image: nginx:1.31.3-alpine
-    container_name: my_nginx
+    container_name: crm_nginx
     restart: unless-stopped
     depends_on:
       backend:
         condition: service_started
     ports:
-    - "80:80"
+    - "8080:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     healthcheck:
