@@ -152,7 +152,7 @@ async def login_page_submit(
             value=result.access,
             httponly=True,
             samesite="lax",
-            secure=False,  # True на проде
+            secure=True,  
         )
 
         if result.refresh:
@@ -161,7 +161,7 @@ async def login_page_submit(
                 value=result.refresh,
                 httponly=True,
                 samesite="lax",
-                secure=False,
+                secure=True,
             )
 
         roles = set(result.roles_list)
