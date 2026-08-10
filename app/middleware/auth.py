@@ -62,14 +62,14 @@ class RefreshMiddleware(BaseHTTPMiddleware):
                 value=token.access,
                 httponly=True,
                 samesite="lax",
-                secure=False,
+                secure=True,
             )
             response.set_cookie(
                 key="refresh_token",
                 value=token.refresh,
                 httponly=True,
                 samesite="lax",
-                secure=False,
+                secure=True,
             )
             return response
 
