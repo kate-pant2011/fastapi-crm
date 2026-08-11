@@ -122,7 +122,7 @@ class FileHandler:
         file_mime = magic.from_buffer(chunk[:2048], mime=True)
 
         if file_mime not in ALLOWED_MIME[ext]:
-            raise ApplicationException(400, f"Неверный mime тип '{file_mime}' для расширения {ext}")
+            raise ApplicationException(f"Неверный mime тип '{file_mime}' для расширения {ext}", 400)
         
         return file_mime
     
