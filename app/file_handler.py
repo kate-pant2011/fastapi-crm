@@ -35,11 +35,11 @@ ALLOWED_MIME = {
     "json": ["application/json", "text/plain"],
     "xml": ["application/xml", "text/xml"],
 
-    "doc": ["application/msword"],
+    "doc": ["application/msword", "application/x-ole-storage",],
 
     "docx": [
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "application/zip",  
+        "application/zip", "application/x-ole-storage",
     ],
 
     "xls": ["application/vnd.ms-excel"],
