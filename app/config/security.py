@@ -49,7 +49,7 @@ class JWTService:
             "status": status,
             "active": active,
         }
-        encoded = jwt.encode(payload, self.key, [self.algorithm])
+        encoded = jwt.encode(payload, self.key, self.algorithm)
         return encoded
 
     def create_refresh(self, sub, jti):
@@ -57,7 +57,7 @@ class JWTService:
             days=settings.REFRESH_TOKEN_EXPIRE_DAYS
         )
         payload = {"sub": str(sub), "exp": exp, "jti": jti}
-        encoded = jwt.encode(payload, self.key, [self.algorithm])
+        encoded = jwt.encode(payload, self.key, self.algorithm)
 
         return TokenDTO(token=encoded, exp=exp)
 
@@ -71,12 +71,12 @@ class JWTService:
             "type": "password_reset",
             "jti": jti
         }
-        encoded = jwt.encode(payload, self.key, [self.algorithm])
+        encoded = jwt.encode(payload, self.key, self.algorithm)
         return TokenDTO(token=encoded, exp=exp)
     
     def decode_token(self, token: str):
         try:
-            decoded = jwt.decode(token, self.key, algorithms=[self.algorithm])
+            decoded = jwt.decode(token, self.key, algorithms=self.algorithm)
 
             if decoded.get("jti") is None:
                 raise HTTPException(status_code=401, detail="Invalid token type")
