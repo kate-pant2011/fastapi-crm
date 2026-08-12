@@ -35,6 +35,12 @@ class Settings:
         
         self._database_url = database
 
+        alembic_db = os.getenv("ALEMBIC_URL")
+        if not alembic_db:
+            raise RuntimeError("No data base url")
+        
+        self._alembic_url = alembic_db
+
         fernet_key = os.getenv("FERNET_KEY")
         if not fernet_key:
             raise RuntimeError("No fernet key")
@@ -68,6 +74,10 @@ class Settings:
     @property
     def DATABASE_URL(self):
         return self._database_url
+
+    @property
+    def ALEMBIC_URL(self):
+        return self._alembic_url
     
     @property
     def FERNET_KEY(self):
