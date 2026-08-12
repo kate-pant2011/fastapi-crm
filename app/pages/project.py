@@ -228,6 +228,7 @@ async def create_project_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -238,6 +239,7 @@ async def create_project_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -368,6 +370,7 @@ async def project_delete_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -377,6 +380,7 @@ async def project_delete_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -422,6 +426,7 @@ async def project_restore_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -431,6 +436,7 @@ async def project_restore_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -544,6 +550,7 @@ async def project_upload_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
         return templates.TemplateResponse(
             request=request, 
@@ -553,6 +560,7 @@ async def project_upload_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
         return templates.TemplateResponse(
             request=request, 
@@ -683,6 +691,7 @@ async def project_template(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -693,6 +702,7 @@ async def project_template(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__}: {e}"
 
         return templates.TemplateResponse(

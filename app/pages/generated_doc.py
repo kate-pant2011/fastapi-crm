@@ -101,6 +101,7 @@ async def convert_word_to_pdf_page(
         )
         
     except ApplicationException as e:
+        await session.rollback()
         context = {
             "request": request,
             "user": user,
@@ -116,6 +117,7 @@ async def convert_word_to_pdf_page(
         )
         
     except Exception as e:
+        await session.rollback()
         context = {
             "request": request,
             "user": user,

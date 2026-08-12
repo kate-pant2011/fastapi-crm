@@ -205,6 +205,7 @@ async def create_email_template_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -215,6 +216,7 @@ async def create_email_template_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -319,6 +321,7 @@ async def email_template_delete_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -328,6 +331,7 @@ async def email_template_delete_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -421,6 +425,7 @@ async def render_email_template_page(
         return result
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -431,6 +436,7 @@ async def render_email_template_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -558,6 +564,7 @@ async def edit_doc_template(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -568,6 +575,7 @@ async def edit_doc_template(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__}: {e}"
 
         return templates.TemplateResponse(

@@ -117,6 +117,7 @@ async def file_page_delete(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -127,6 +128,7 @@ async def file_page_delete(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -165,6 +167,7 @@ async def file_page_download(
         ) 
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -175,6 +178,7 @@ async def file_page_download(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(

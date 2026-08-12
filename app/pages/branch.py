@@ -162,6 +162,7 @@ async def create_branch_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -172,6 +173,7 @@ async def create_branch_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -301,6 +303,7 @@ async def branch_delete_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
         context["return_url"] = "/branches"
 
@@ -311,6 +314,7 @@ async def branch_delete_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
         context["return_url"] = "/branches"
 
@@ -357,6 +361,7 @@ async def branch_restore_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
         context["return_url"] = "/branches"
 
@@ -367,6 +372,7 @@ async def branch_restore_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
         context["return_url"] = "/branches"
 
@@ -414,6 +420,7 @@ async def branch_upload_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
         return templates.TemplateResponse(
             request=request, 
@@ -423,6 +430,7 @@ async def branch_upload_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
         return templates.TemplateResponse(
             request=request, 
@@ -524,6 +532,7 @@ async def branch_template(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -534,6 +543,7 @@ async def branch_template(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__}: {e}"
 
         return templates.TemplateResponse(

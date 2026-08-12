@@ -173,6 +173,7 @@ async def create_stage_template_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -183,6 +184,7 @@ async def create_stage_template_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -354,6 +356,7 @@ async def stage_doc_template(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -364,6 +367,7 @@ async def stage_doc_template(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__}: {e}"
 
         return templates.TemplateResponse(
@@ -405,6 +409,7 @@ async def create_stage_page_(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -415,6 +420,7 @@ async def create_stage_page_(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(

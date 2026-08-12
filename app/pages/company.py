@@ -192,6 +192,7 @@ async def create_company_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -202,6 +203,7 @@ async def create_company_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -327,6 +329,7 @@ async def company_delete_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -336,6 +339,7 @@ async def company_delete_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -381,6 +385,7 @@ async def company_restore_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -390,6 +395,7 @@ async def company_restore_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
 
         return templates.TemplateResponse(
@@ -486,6 +492,7 @@ async def company_template(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -496,6 +503,7 @@ async def company_template(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__}: {e}"
 
         return templates.TemplateResponse(

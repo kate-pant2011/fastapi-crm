@@ -209,6 +209,7 @@ async def user_delete_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
         context["return_url"] = "/users"
 
@@ -219,6 +220,7 @@ async def user_delete_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
         context["return_url"] = "/users"
 
@@ -265,6 +267,7 @@ async def user_restore_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
         context["return_url"] = "/users"
 
@@ -275,6 +278,7 @@ async def user_restore_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
         context["return_url"] = "/users"
 
@@ -321,6 +325,7 @@ async def user_restore_page(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
         context["return_url"] = "/users"
 
@@ -331,6 +336,7 @@ async def user_restore_page(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__} - {e}"
         context["return_url"] = "/users"
 
@@ -644,6 +650,7 @@ async def user_template(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         context["error"] = e.name
 
         return templates.TemplateResponse(
@@ -654,6 +661,7 @@ async def user_template(
         )
 
     except Exception as e:
+        await session.rollback()
         context["error"] = f"{type(e).__name__}: {e}"
 
         return templates.TemplateResponse(

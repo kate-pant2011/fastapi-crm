@@ -80,7 +80,7 @@ async def signup_page_submit(
         return response
 
     except IntegrityError as e:
-        print("IntegrityError")
+        await session.rollback()
         error = f"Integrity Error - {e}"
         return templates.TemplateResponse(
             request=request, name="auth/signup.html", context={"error": error},
@@ -88,15 +88,15 @@ async def signup_page_submit(
     )
 
     except ApplicationException as e:
-        print("APPLICATION EXCEPTION")
+        await session.rollback()
         return templates.TemplateResponse(
             request=request, name="auth/signup.html", context={"error": e.name},
             status_code=e.code,
     )
 
     except Exception as e:
+        await session.rollback()
         error = f"Internal server error - {e}"
-        print("EXCEPTION")
         return templates.TemplateResponse(
             request=request, name="auth/signup.html", context={
                 "error": error
@@ -176,6 +176,7 @@ async def login_page_submit(
         return response
 
     except ApplicationException as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request, name="auth/login.html", context={
                 "error": e.name,
@@ -185,6 +186,7 @@ async def login_page_submit(
         )
 
     except Exception as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request, name="auth/login.html",context={
                 "error": f"{type(e).__name__} - {e}",
@@ -214,6 +216,7 @@ async def logout_page(
         return response
 
     except ApplicationException as e:
+        await session.rollback()
         response = RedirectResponse(
             url="/auth",
             status_code=303,
@@ -224,6 +227,7 @@ async def logout_page(
         return response
 
     except Exception:
+        await session.rollback()
         response = RedirectResponse(
             url="/auth",
             status_code=303,
@@ -269,6 +273,7 @@ async def forgot_password_submit(
             },
         )
     except IntegrityError as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request,
             name="auth/forgot_password.html",
@@ -277,6 +282,7 @@ async def forgot_password_submit(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request,
             name="auth/forgot_password.html",
@@ -285,6 +291,7 @@ async def forgot_password_submit(
         )
 
     except Exception as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request,
             name="auth/forgot_password.html",
@@ -328,6 +335,7 @@ async def reset_password_submit(
             status_code=303,
         )
     except IntegrityError as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request,
             name="auth/reset_password.html",
@@ -339,6 +347,7 @@ async def reset_password_submit(
         )
 
     except ApplicationException as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request,
             name="auth/reset_password.html",
@@ -350,6 +359,7 @@ async def reset_password_submit(
         )
 
     except Exception as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request,
             name="auth/reset_password.html",
@@ -393,6 +403,7 @@ async def change_password_submit(
         return response
 
     except ApplicationException as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request,
             name="auth/change_password.html",
@@ -401,6 +412,7 @@ async def change_password_submit(
         )
 
     except Exception as e:
+        await session.rollback()
         return templates.TemplateResponse(
             request=request,
             name="auth/forgot_password.html",
